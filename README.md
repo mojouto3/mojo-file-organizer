@@ -24,42 +24,42 @@
 
 ## What is Mojo File Organizer?
 
-Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders — with a single click.
+Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders with a single click.
 
-Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, view your full organize history, and track statistics over time — all wrapped in a clean, modern dark UI.
+Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, view your full organize history, and track statistics over time all wrapped in a clean, modern dark UI.
 
 ---
 
 ## Features
 
 ### Core
-- **One-click organize** — select any folder and sort all files instantly
-- **Smart Preview** — see exactly what will move and where, before committing
-- **Undo** — instantly restore all moved files back to their original location
-- **Progress bar** — real-time feedback showing which file is being moved
+- **One-click organize** ➔ select any folder and sort all files instantly
+- **Smart Preview** ➔ see exactly what will move and where, before committing
+- **Undo** ➔ instantly restore all moved files back to their original location
+- **Progress bar** ➔ real-time feedback showing which file is being moved
 
 ### Smart Group
-- **Group by store or client name** — files are matched by name regardless of separators (`.` `_` `-` `,` space) or case
-- **Persistent groups** — add your stores/clients once, they are remembered forever
-- **Unlimited groups** — add as many as you need, grow over time
+- **Group by store or client name** ➔ files are matched by name regardless of separators (`.` `_` `-` `,` space) or case
+- **Persistent groups** ➔ add your stores/clients once, they are remembered forever
+- **Unlimited groups** ➔ add as many as you need, grow over time
 
 ### Settings & Customization
-- **Custom categories** — create your own file categories (e.g. "3D Models", "RAW Photos")
-- **Custom extensions** — add or remove file extensions from any category
-- **Enable/disable categories** — turn off categories you don't need
-- **Reset to defaults** — restore the original category configuration at any time
+- **Custom categories** ➔ create your own file categories (e.g. "3D Models", "RAW Photos")
+- **Custom extensions** ➔ add or remove file extensions from any category
+- **Enable/disable categories** ➔ turn off categories you don't need
+- **Reset to defaults** ➔ restore the original category configuration at any time
 
 ### History & Stats
-- **Session history** — every organize session saved with date, time, folder and file details
-- **Expandable sessions** — click any session to see exactly which files moved and where
-- **Delete sessions** — remove individual sessions or clear all history
-- **Statistics dashboard** — total files organized, sessions count, breakdown by category with chart
+- **Session history** ➔ every organize session saved with date, time, folder and file details
+- **Expandable sessions** ➔ click any session to see exactly which files moved and where
+- **Delete sessions** ➔ remove individual sessions or clear all history
+- **Statistics dashboard** ➔ total files organized, sessions count, breakdown by category with chart
 
 ### Other
-- **Auto-schedule** — runs automatically every Monday at 9:00 AM via Windows Task Scheduler
-- **Bilingual** — full Greek and English support, switchable in real time
-- **Dark theme** — easy on the eyes, always
-- **Custom MFO icon** — branded Desktop shortcut
+- **Auto-schedule** ➔ runs automatically every Monday at 9:00 AM via Windows Task Scheduler
+- **Bilingual** ➔ full Greek and English support, switchable in real time
+- **Dark theme** ➔ easy on the eyes, always
+- **Custom MFO icon** ➔ branded Desktop shortcut
 
 ---
 
@@ -100,7 +100,7 @@ Coming soon.
 
 ### Organize Tab
 1. Click **My Folder** to auto-detect your Downloads, or **Browse** to choose any folder
-2. Review the **Preview** — files grouped by category with counts
+2. Review the **Preview** ➔ files grouped by category with counts
 3. Click **Organize Now**
 4. Use **Undo** to reverse if needed
 
@@ -108,7 +108,7 @@ Coming soon.
 1. Add your store or client names (e.g. `Nike`, `store1`, `ClientABC`)
 2. Select a folder
 3. Preview which files match which group
-4. Click **Organize Now** — files go to their matching subfolder
+4. Click **Organize Now** ➔ files go to their matching subfolder
 
 > Files are matched regardless of separators or case:
 > `logo_nike.jpg`, `NIKE-banner.png`, `nike.poster.mp4` → all go to `Nike/`
