@@ -1,0 +1,28 @@
+{
+  "name": "mojo-file-organizer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mojouto3/mojo-file-organizer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mojouto3/mojo-file-organizer/issues"
+  },
+  "homepage": "https://github.com/mojouto3/mojo-file-organizer#readme",
+  "devDependencies": {
+    "electron": "^42.3.3",
+    "electron-builder": "^26.8.1"
+  },
+  "dependencies": {
+    "lucide-react": "^1.17.0"
+  }
+}
