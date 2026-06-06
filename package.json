@@ -1,28 +1,31 @@
 {
   "name": "mojo-file-organizer",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mojouto3/mojo-file-organizer.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "version": "3.0.0",
+  "description": "A modern, elegant file organizer desktop app for Windows",
+  "main": "main.js",
+  "author": "mojomultimedia",
+  "license": "MIT",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/mojouto3/mojo-file-organizer/issues"
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64"
   },
-  "homepage": "https://github.com/mojouto3/mojo-file-organizer#readme",
   "devDependencies": {
-    "electron": "^42.3.3",
-    "electron-builder": "^26.8.1"
+    "electron": "^42.3.2",
+    "electron-builder": "^26.0.0"
   },
-  "dependencies": {
-    "lucide-react": "^1.17.0"
+  "build": {
+    "appId": "com.mojomultimedia.mojo-file-organizer",
+    "productName": "Mojo File Organizer",
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "Mojo File Organizer"
+    }
   }
 }

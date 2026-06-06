@@ -1,0 +1,27 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+  preview:         (folder) => ipcRenderer.invoke('preview', folder),
+  organize:        (folder) => ipcRenderer.invoke('organize', folder),
+  undo:            (moves)  => ipcRenderer.invoke('undo', moves),
+  getGroups:       ()       => ipcRenderer.invoke('get-groups'),
+  saveGroups:      (g)      => ipcRenderer.invoke('save-groups', g),
+  previewGroups:   (folder) => ipcRenderer.invoke('preview-groups', folder),
+  organizeGroups:  (folder) => ipcRenderer.invoke('organize-groups', folder),
+  getLog:          ()       => ipcRenderer.invoke('get-log'),
+  clearLog:        ()       => ipcRenderer.invoke('clear-log'),
+  deleteSession:   (id)     => ipcRenderer.invoke('delete-session', id),
+  getStats:        ()       => ipcRenderer.invoke('get-stats'),
+  getCategories:   ()       => ipcRenderer.invoke('get-categories'),
+  saveCategories:  (c)      => ipcRenderer.invoke('save-categories', c),
+  resetCategories: ()       => ipcRenderer.invoke('reset-categories'),
+  getSettings:     ()       => ipcRenderer.invoke('get-settings'),
+  saveSettings:    (s)      => ipcRenderer.invoke('save-settings', s),
+  schedule:        (opts)   => ipcRenderer.invoke('schedule', opts),
+  unschedule:      ()       => ipcRenderer.invoke('unschedule'),
+  pickFolder:      ()       => ipcRenderer.invoke('pick-folder'),
+  getDownloads:    ()       => ipcRenderer.invoke('get-downloads'),
+  minimize:        ()       => ipcRenderer.send('minimize'),
+  maximize:        ()       => ipcRenderer.send('maximize'),
+  close:           ()       => ipcRenderer.send('close'),
+});

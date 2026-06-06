@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mojo File Organizer</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+<!-- Titlebar -->
+<div class="titlebar">
+  <div class="titlebar-left">
+    <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
+    <span class="titlebar-title">Mojo File Organizer</span>
+    <span class="titlebar-version">v3.0</span>
+  </div>
+  <div class="titlebar-right">
+    <button class="win-btn" onclick="window.api.minimize()"><i data-lucide="minus"></i></button>
+    <button class="win-btn" onclick="window.api.maximize()"><i data-lucide="square"></i></button>
+    <button class="win-btn close-btn" onclick="window.api.close()"><i data-lucide="x"></i></button>
+  </div>
+</div>
+
+<!-- Tab bar -->
+<div class="tabbar">
+  <button class="tab active" id="tab-organize" onclick="showTab('organize')">
+    <i data-lucide="folder-open"></i><span data-en="Organize" data-gr="Οργάνωση">Organize</span>
+  </button>
+  <button class="tab" id="tab-group" onclick="showTab('group')">
+    <i data-lucide="store"></i><span data-en="Smart Group" data-gr="Ομαδοποίηση">Smart Group</span>
+  </button>
+  <button class="tab" id="tab-history" onclick="showTab('history')">
+    <i data-lucide="clock"></i><span data-en="History" data-gr="Ιστορικό">History</span>
+  </button>
+  <button class="tab" id="tab-stats" onclick="showTab('stats')">
+    <i data-lucide="bar-chart-2"></i><span data-en="Stats" data-gr="Στατιστικά">Stats</span>
+  </button>
+  <div class="tab-spacer"></div>
+  <button class="tab" id="tab-settings" onclick="showTab('settings')">
+    <i data-lucide="settings"></i><span data-en="Settings" data-gr="Ρυθμίσεις">Settings</span>
+  </button>
+</div>
+
+<!-- ══ ORGANIZE ══ -->
+<div class="page" id="page-organize">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="folder" class="card-icon"></i>
+      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="folderInput" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="previewCard">
+    <div class="card-header">
+      <i data-lucide="eye" class="card-icon"></i>
+      <span class="card-title" data-en="Preview" data-gr="Προεπισκόπηση">Preview</span>
+      <span class="badge badge-green" id="previewCount"></span>
+    </div>
+    <div class="cat-grid" id="categoryGrid"></div>
+    <div class="progress-wrap hidden" id="progressWrap">
+      <div class="progress-bar-track"><div class="progress-bar" id="progressBar"></div></div>
+      <div class="progress-label" id="progressLabel"></div>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-green btn-lg" id="organizeBtn" onclick="organize()">
+        <i data-lucide="zap"></i><span data-en="Organize Now" data-gr="Οργάνωση Τώρα">Organize Now</span>
+      </button>
+      <button class="btn btn-outline" onclick="resetOrganize()"><span data-en="Cancel" data-gr="Ακύρωση">Cancel</span></button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="resultsCard">
+    <div class="card-header">
+      <i data-lucide="check-circle" class="card-icon green"></i>
+      <span class="card-title" data-en="Done!" data-gr="Ολοκληρώθηκε!">Done!</span>
+      <span class="badge badge-green" id="movedCount"></span>
+    </div>
+    <div class="cat-grid" id="resultsGrid"></div>
+    <div class="action-row">
+      <button class="btn btn-outline" onclick="undo()"><i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span></button>
+      <button class="btn btn-outline" onclick="showTab('history')"><i data-lucide="clock"></i><span data-en="View History" data-gr="Ιστορικό">View History</span></button>
+      <button class="btn btn-green" onclick="resetOrganize()"><span data-en="Organize Another" data-gr="Νέα Οργάνωση">Organize Another</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SMART GROUP ══ -->
+<div class="page hidden" id="page-group">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="folder" class="card-icon"></i>
+      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="groupFolderInput" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickGroupFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsGroup()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="store" class="card-icon"></i>
+      <span class="card-title" data-en="Stores / Clients" data-gr="Μαγαζιά / Πελάτες">Stores / Clients</span>
+      <span class="badge" id="groupCount">0</span>
+    </div>
+    <div class="input-row">
+      <input type="text" id="groupNameInput" placeholder="e.g. Nike, store1, ClientABC..."/>
+      <button class="btn btn-green" onclick="addGroup()"><i data-lucide="plus"></i><span data-en="Add" data-gr="Προσθήκη">Add</span></button>
+    </div>
+    <div class="chip-list" id="groupList"></div>
+  </div>
+  <div class="card hidden" id="groupPreviewCard">
+    <div class="card-header">
+      <i data-lucide="eye" class="card-icon"></i>
+      <span class="card-title" data-en="Preview" data-gr="Προεπισκόπηση">Preview</span>
+      <span class="badge badge-green" id="groupPreviewCount"></span>
+    </div>
+    <div class="match-list" id="groupPreviewList"></div>
+    <div class="action-row">
+      <button class="btn btn-green btn-lg" id="groupOrganizeBtn" onclick="organizeGroups()">
+        <i data-lucide="zap"></i><span data-en="Organize Now" data-gr="Οργάνωση Τώρα">Organize Now</span>
+      </button>
+      <button class="btn btn-outline" onclick="resetGroup()"><span data-en="Cancel" data-gr="Ακύρωση">Cancel</span></button>
+    </div>
+  </div>
+  <div class="card hidden" id="groupResultsCard">
+    <div class="card-header">
+      <i data-lucide="check-circle" class="card-icon green"></i>
+      <span class="card-title" data-en="Done!" data-gr="Ολοκληρώθηκε!">Done!</span>
+      <span class="badge badge-green" id="groupMovedCount"></span>
+    </div>
+    <div class="cat-grid" id="groupResultsGrid"></div>
+    <div class="action-row">
+      <button class="btn btn-outline" onclick="undoGroups()"><i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span></button>
+      <button class="btn btn-green" onclick="resetGroup()"><span data-en="Organize Another" data-gr="Νέα Οργάνωση">Organize Another</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+<div class="page hidden" id="page-history">
+  <div class="card" style="flex:1">
+    <div class="card-header">
+      <i data-lucide="clock" class="card-icon"></i>
+      <span class="card-title" data-en="Session History" data-gr="Ιστορικό Συνεδριών">Session History</span>
+      <span class="badge" id="historyCount"></span>
+      <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-en="Clear All" data-gr="Διαγραφή Όλων">Clear All</button>
+    </div>
+    <div class="empty-state hidden" id="historyEmpty">
+      <i data-lucide="inbox"></i>
+      <p data-en="No history yet." data-gr="Δεν υπάρχει ιστορικό ακόμα.">No history yet.</p>
+    </div>
+    <div class="session-list" id="historyList"></div>
+  </div>
+</div>
+
+<!-- ══ STATS ══ -->
+<div class="page hidden" id="page-stats">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="bar-chart-2" class="card-icon"></i>
+      <span class="card-title" data-en="Overview" data-gr="Επισκόπηση">Overview</span>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="pie-chart" class="card-icon"></i>
+      <span class="card-title" data-en="Files by Category" data-gr="Αρχεία ανά Κατηγορία">Files by Category</span>
+    </div>
+    <div class="chart-wrap" id="chartWrap"></div>
+  </div>
+</div>
+
+<!-- ══ SETTINGS ══ -->
+<div class="page hidden" id="page-settings">
+
+  <!-- General -->
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="sliders" class="card-icon"></i>
+      <span class="card-title" data-en="General" data-gr="Γενικά">General</span>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-en="Language" data-gr="Γλώσσα">Language</div>
+        <div class="setting-desc" data-en="Interface language" data-gr="Γλώσσα εφαρμογής">Interface language</div>
+      </div>
+      <select class="setting-select" id="settingLang" onchange="saveSetting('language', this.value)">
+        <option value="en">English</option>
+        <option value="gr">Ελληνικά</option>
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-en="Default Folder" data-gr="Προεπιλεγμένος Φάκελος">Default Folder</div>
+        <div class="setting-desc" data-en="Auto-select this folder on startup" data-gr="Αυτόματη επιλογή φακέλου κατά την εκκίνηση">Auto-select this folder on startup</div>
+      </div>
+      <div class="setting-folder-row">
+        <input type="text" id="settingDefaultFolder" readonly placeholder="None"/>
+        <button class="btn btn-outline btn-sm" onclick="pickDefaultFolder()"><i data-lucide="folder-open"></i></button>
+        <button class="btn btn-outline btn-sm" onclick="clearDefaultFolder()"><i data-lucide="x"></i></button>
+      </div>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-en="Start with Windows" data-gr="Εκκίνηση με τα Windows">Start with Windows</div>
+        <div class="setting-desc" data-en="Launch automatically when Windows starts" data-gr="Αυτόματη εκκίνηση με τα Windows">Launch automatically when Windows starts</div>
+      </div>
+      <button class="setting-toggle" id="toggleStartWindows" onclick="toggleSetting('startWithWindows')"></button>
+    </div>
+
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-en="Minimize to Tray" data-gr="Ελαχιστοποίηση στο Tray">Minimize to Tray</div>
+        <div class="setting-desc" data-en="Keep running in background when closed" data-gr="Συνέχεια στο background όταν κλείνει">Keep running in background when closed</div>
+      </div>
+      <button class="setting-toggle" id="toggleMinimizeTray" onclick="toggleSetting('minimizeToTray')"></button>
+    </div>
+  </div>
+
+  <!-- Auto-Schedule -->
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="calendar" class="card-icon"></i>
+      <span class="card-title" data-en="Auto-Schedule" data-gr="Αυτόματη Εκτέλεση">Auto-Schedule</span>
+    </div>
+    <p class="card-desc" data-en="Choose which days and time to run automatically." data-gr="Επιλέξτε μέρες και ώρα αυτόματης εκτέλεσης.">Choose which days and time to run automatically.</p>
+
+    <div class="schedule-folder-row">
+      <input type="text" id="scheduleFolderInput" readonly placeholder="Select folder to auto-organize..."/>
+      <button class="btn btn-outline btn-sm" onclick="pickScheduleFolder()"><i data-lucide="folder-open"></i></button>
+    </div>
+
+    <div class="days-row" id="daysRow">
+      <button class="day-btn" data-day="MON" onclick="toggleDay(this)" data-en="Mon" data-gr="Δευ">Mon</button>
+      <button class="day-btn" data-day="TUE" onclick="toggleDay(this)" data-en="Tue" data-gr="Τρι">Tue</button>
+      <button class="day-btn" data-day="WED" onclick="toggleDay(this)" data-en="Wed" data-gr="Τετ">Wed</button>
+      <button class="day-btn" data-day="THU" onclick="toggleDay(this)" data-en="Thu" data-gr="Πεμ">Thu</button>
+      <button class="day-btn" data-day="FRI" onclick="toggleDay(this)" data-en="Fri" data-gr="Παρ">Fri</button>
+      <button class="day-btn" data-day="SAT" onclick="toggleDay(this)" data-en="Sat" data-gr="Σαβ">Sat</button>
+      <button class="day-btn" data-day="SUN" onclick="toggleDay(this)" data-en="Sun" data-gr="Κυρ">Sun</button>
+    </div>
+
+    <div class="time-row">
+      <i data-lucide="clock" style="width:14px;height:14px;color:var(--text-dim)"></i>
+      <span class="setting-desc" data-en="Time:" data-gr="Ώρα:">Time:</span>
+      <input type="time" id="scheduleTime" value="09:00" class="time-input"/>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-green" onclick="enableSchedule()"><i data-lucide="play"></i><span data-en="Enable Auto-Run" data-gr="Ενεργοποίηση">Enable Auto-Run</span></button>
+      <button class="btn btn-danger-outline" onclick="disableSchedule()"><i data-lucide="square"></i><span data-en="Disable" data-gr="Απενεργοποίηση">Disable</span></button>
+    </div>
+    <div id="scheduleMsg" class="status-msg"></div>
+  </div>
+
+  <!-- Categories -->
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="layers" class="card-icon"></i>
+      <span class="card-title" data-en="Categories & Extensions" data-gr="Κατηγορίες & Επεκτάσεις">Categories & Extensions</span>
+      <button class="btn btn-outline btn-sm" onclick="resetCategories()" style="margin-left:auto">
+        <i data-lucide="refresh-cw"></i><span data-en="Reset" data-gr="Επαναφορά">Reset</span>
+      </button>
+    </div>
+    <p class="card-desc" data-en="Enable/disable categories, add or remove extensions, or create your own." data-gr="Ενεργοποιήστε/απενεργοποιήστε κατηγορίες ή προσθέστε επεκτάσεις.">Enable/disable categories, add or remove extensions, or create your own.</p>
+    <div class="cat-settings-list" id="catSettingsList"></div>
+    <div class="input-row" style="margin-top:12px">
+      <input type="text" id="newCatName" placeholder="New category name (e.g. 3D Models)..."/>
+      <button class="btn btn-green" onclick="addCategory()"><i data-lucide="plus"></i><span data-en="Add Category" data-gr="Νέα Κατηγορία">Add Category</span></button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<script src="renderer.js"></script>
+</body>
+</html>
