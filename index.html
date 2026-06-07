@@ -37,6 +37,9 @@
   <button class="tab" id="tab-stats" onclick="showTab('stats')">
     <i data-lucide="bar-chart-2"></i><span data-en="Stats" data-gr="Στατιστικά">Stats</span>
   </button>
+  <button class="tab" id="tab-duplicates" onclick="showTab('duplicates')">
+  <i data-lucide="copy"></i><span data-en="Duplicates" data-gr="Διπλότυπα">Duplicates</span>
+  </button>
   <div class="tab-spacer"></div>
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
     <i data-lucide="settings"></i><span data-en="Settings" data-gr="Ρυθμίσεις">Settings</span>
@@ -283,6 +286,52 @@
   </div>
 
 </div>
+
+<!-- ══ DUPLICATES ══ -->
+<div class="page hidden" id="page-duplicates">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="folder-search" class="card-icon"></i>
+      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="dupFolderInput" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickDupFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsDup()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+    </div>
+    <div class="scan-group">
+      <button class="scan-btn active" id="scanContentBtn" onclick="scanDuplicates('content')">
+        <i data-lucide="scan-search"></i><span data-en="Scan by Content" data-gr="Σάρωση περιεχομένου">Scan by Content</span>
+      </button>
+      <button class="scan-btn" id="scanNameBtn" onclick="scanDuplicates('name')">
+        <i data-lucide="file-search"></i><span data-en="Scan by Name" data-gr="Σάρωση ονόματος">Scan by Name</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="dupResultsCard">
+    <div class="card-header">
+      <i data-lucide="copy" class="card-icon"></i>
+      <span class="card-title" data-en="Duplicate Files Found" data-gr="Βρέθηκαν Διπλότυπα">Duplicate Files Found</span>
+      <span class="badge badge-green" id="dupCount"></span>
+      <button class="btn btn-danger-outline btn-sm" onclick="deleteSelected()" style="margin-left:auto">
+        <i data-lucide="trash-2"></i><span data-en="Delete Selected" data-gr="Διαγραφή Επιλεγμένων">Delete Selected</span>
+      </button>
+    </div>
+    <div class="dup-list" id="dupList"></div>
+    <div class="action-row">
+      <button class="btn btn-outline" id="undoDupBtn" style="display:none" onclick="undoDuplicates()">
+        <i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="empty-state hidden" id="dupEmpty">
+    <i data-lucide="check-circle"></i>
+    <p data-en="No duplicates found!" data-gr="Δεν βρέθηκαν διπλότυπα!">No duplicates found!</p>
+  </div>
+</div>
+
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
