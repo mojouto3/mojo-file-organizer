@@ -59,8 +59,72 @@ function createTray() {
 
 function updateTrayMenu() {
   if (!tray) return;
+  const settings = readSettings();
+  const lastFolder = settings.defaultFolder || path.join(os.homedir(), 'Downloads');
+  const downloadsFolder = path.join(os.homedir(), 'Downloads');
+
   const menu = Menu.buildFromTemplate([
     { label: 'Mojo File Organizer', enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Organize Downloads',
+      click: async () => {
+        const cats = readCategories();
+        const moved = [], errors = [];
+        try {
+          const files = fs.readdirSync(downloadsFolder, { withFileTypes: true }).filter(f => f.isFile());
+          for (const f of files) {
+            const cat = getCategory(path.extname(f.name), cats);
+            if (!cat) continue;
+            const destFolder = path.join(downloadsFolder, cat);
+            if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+            const src = path.join(downloadsFolder, f.name);
+            const dest = getUniqueDest(destFolder, f.name);
+            try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat }); }
+            catch (e) { errors.push(f.name); }
+          }
+          if (moved.length > 0) {
+            appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: downloadsFolder, type: 'organize', moved, errors: [], total: moved.length });
+            sendNotification('Mojo File Organizer', `Downloads organized — ${moved.length} file${moved.length !== 1 ? 's' : ''} moved`);
+          } else {
+            sendNotification('Mojo File Organizer', 'No files to organize in Downloads');
+          }
+        } catch (e) {
+          sendNotification('Mojo File Organizer', 'Error organizing Downloads');
+        }
+      }
+    },
+    {
+      label: `Organize Last Folder`,
+      sublabel: lastFolder,
+      enabled: !!settings.defaultFolder,
+      click: async () => {
+        if (!settings.defaultFolder) return;
+        const cats = readCategories();
+        const moved = [], errors = [];
+        try {
+          const files = fs.readdirSync(lastFolder, { withFileTypes: true }).filter(f => f.isFile());
+          for (const f of files) {
+            const cat = getCategory(path.extname(f.name), cats);
+            if (!cat) continue;
+            const destFolder = path.join(lastFolder, cat);
+            if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+            const src = path.join(lastFolder, f.name);
+            const dest = getUniqueDest(destFolder, f.name);
+            try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat }); }
+            catch (e) { errors.push(f.name); }
+          }
+          if (moved.length > 0) {
+            appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: lastFolder, type: 'organize', moved, errors: [], total: moved.length });
+            sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} organized in ${path.basename(lastFolder)}`);
+          } else {
+            sendNotification('Mojo File Organizer', 'No files to organize');
+          }
+        } catch (e) {
+          sendNotification('Mojo File Organizer', 'Error organizing folder');
+        }
+      }
+    },
     { type: 'separator' },
     { label: 'Open', click: () => showWindow() },
     { type: 'separator' },
