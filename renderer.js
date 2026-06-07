@@ -532,6 +532,118 @@ async function resetCategories() {
   showToast(lang === 'en' ? 'Reset to defaults' : 'Επαναφορά');
 }
 
+// ── Duplicate Finder ─────────────────────────────────────────────
+let currentDupFolder = null;
+let lastDeletedDups = [];
+
+async function pickDupFolder()    { const f = await window.api.pickFolder();   if (f) setDupFolder(f); }
+async function useDownloadsDup()  { const f = await window.api.getDownloads(); if (f) setDupFolder(f); }
+
+function setDupFolder(folder) {
+  currentDupFolder = folder;
+  document.getElementById('dupFolderInput').value = folder;
+}
+
+async function scanDuplicates(mode) {
+  if (!currentDupFolder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+
+  // Toggle active button
+  document.getElementById('scanContentBtn').classList.toggle('active', mode === 'content');
+  document.getElementById('scanNameBtn').classList.toggle('active', mode === 'name');
+
+  showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
+  const result = await window.api.scanDuplicates({ folderPath: currentDupFolder, mode });
+
+  const card  = document.getElementById('dupResultsCard');
+  const empty = document.getElementById('dupEmpty');
+  const list  = document.getElementById('dupList');
+
+  if (!result.duplicates.length) {
+    card.classList.add('hidden');
+    empty.classList.remove('hidden');
+    lucide.createIcons();
+    return;
+  }
+
+  empty.classList.add('hidden');
+  card.classList.remove('hidden');
+  document.getElementById('dupCount').textContent = `${result.totalGroups} groups · ${result.totalFiles} files`;
+
+  list.innerHTML = '';
+  result.duplicates.forEach((group, gi) => {
+    const div = document.createElement('div');
+    div.className = 'dup-group';
+    const size = formatSize(group[0].size);
+
+    const rows = group.map((f, fi) => {
+      const isKeep = fi === 0;
+      return `<div class="dup-row ${isKeep ? 'keep-row' : ''}" onclick="toggleDupRow(this, '${f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}', ${f.size})">
+        <div class="dup-check ${isKeep ? '' : ''}"><i data-lucide="check"></i></div>
+        ${isKeep ? '<span class="keep-badge">KEEP</span>' : '<span class="del-badge">DELETE</span><span class="badge-placeholder" style="display:none"></span>'}
+        <span class="dup-filename" title="${f.name}">${f.name}</span>
+        <span class="dup-filepath" title="${f.path}">${f.path}</span>
+        <span class="dup-size">${size}</span>
+      </div>`;
+    }).join('');
+
+    div.innerHTML = `
+      <div class="dup-group-header">
+        <i data-lucide="copy"></i>
+        ${group.length} duplicate files · ${size} each
+      </div>
+      ${rows}`;
+    list.appendChild(div);
+  });
+  lucide.createIcons();
+}
+
+function toggleDupRow(row, filePath, fileName, fileSize) {
+  if (row.classList.contains('keep-row')) return; // can't select keep row
+  row.classList.toggle('selected');
+  const check = row.querySelector('.dup-check');
+  check.classList.toggle('checked', row.classList.contains('selected'));
+  lucide.createIcons();
+}
+
+
+async function deleteSelected() {
+  const selectedRows = document.querySelectorAll('.dup-row.selected');
+  if (!selectedRows.length) { showToast(lang === 'en' ? 'Select files to delete!' : 'Επιλέξτε αρχεία!'); return; }
+
+  const files = [...selectedRows].map(row => {
+    const pathEl = row.querySelector('.dup-filepath');
+    const nameEl = row.querySelector('.dup-filename');
+    const sizeEl = row.querySelector('.dup-size');
+    return { path: pathEl.title, name: nameEl.textContent, size: 0 };
+  });
+
+  if (!confirm(lang === 'en' ? `Delete ${files.length} file(s)?` : `Διαγραφή ${files.length} αρχείων;`)) return;
+
+  const result = await window.api.deleteDuplicates(files);
+  lastDeletedDups = result.deleted;
+
+  document.getElementById('undoDupBtn').style.display = result.deleted.length ? 'flex' : 'none';
+  showToast(lang === 'en' ? `${result.deleted.length} file(s) deleted` : `Διαγράφηκαν ${result.deleted.length} αρχεία`);
+
+  const lastMode = document.getElementById('scanContentBtn').classList.contains('active') ? 'content' : 'name';
+  await scanDuplicates(lastMode);
+}
+
+async function undoDuplicates() {
+  if (!lastDeletedDups.length) return;
+  const result = await window.api.restoreDuplicates(lastDeletedDups);
+  lastDeletedDups = [];
+  document.getElementById('undoDupBtn').style.display = 'none';
+  showToast(lang === 'en' ? `Restored ${result.restored.length} file(s)` : `Επαναφορά ${result.restored.length} αρχείων`);
+  await scanDuplicates('content');
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };

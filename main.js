@@ -354,6 +354,70 @@ ipcMain.handle('pick-folder',   async () => {
 });
 ipcMain.handle('get-downloads', async () => path.join(os.homedir(), 'Downloads'));
 
+// ── IPC: Duplicate Finder ─────────────────────────────────────────
+const crypto = require('crypto');
+
+function hashFile(filePath) {
+  try {
+    const buffer = fs.readFileSync(filePath);
+    return crypto.createHash('md5').update(buffer).digest('hex');
+  } catch (e) { return null; }
+}
+
+ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
+  const results = {};
+  try {
+    const files = fs.readdirSync(folderPath, { withFileTypes: true })
+      .filter(f => f.isFile())
+      .map(f => ({ name: f.name, path: path.join(folderPath, f.name), size: fs.statSync(path.join(folderPath, f.name)).size }));
+
+    for (const file of files) {
+      let key;
+      if (mode === 'name') {
+        key = file.name.toLowerCase();
+      } else {
+        const hash = hashFile(file.path);
+        if (!hash) continue;
+        key = hash;
+      }
+      if (!results[key]) results[key] = [];
+      results[key].push({ name: file.name, path: file.path, size: file.size });
+    }
+
+    const duplicates = Object.values(results).filter(g => g.length > 1);
+    return { duplicates, totalGroups: duplicates.length, totalFiles: duplicates.reduce((s, g) => s + g.length, 0) };
+  } catch (e) {
+    return { duplicates: [], totalGroups: 0, totalFiles: 0, error: e.message };
+  }
+});
+
+ipcMain.handle('delete-duplicates', async (_, files) => {
+  const deleted = [], errors = [];
+  const trashDir = path.join(os.homedir(), '.mojo-trash');
+  if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
+  for (const file of files) {
+    try {
+      const trashPath = path.join(trashDir, `${Date.now()}_${file.name}`);
+      fs.renameSync(file.path, trashPath);
+      deleted.push({ ...file, trashPath });
+    } catch (e) { errors.push({ name: file.name, error: e.message }); }
+  }
+  return { deleted, errors };
+});
+
+ipcMain.handle('restore-duplicates', async (_, files) => {
+  const restored = [], errors = [];
+  for (const file of files) {
+    try {
+      if (fs.existsSync(file.trashPath)) {
+        fs.renameSync(file.trashPath, file.path);
+        restored.push(file.name);
+      }
+    } catch (e) { errors.push({ name: file.name, error: e.message }); }
+  }
+  return { restored, errors };
+});
+
 // ── IPC: Window ───────────────────────────────────────────────────
 ipcMain.on('minimize', () => mainWindow.minimize());
 ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
