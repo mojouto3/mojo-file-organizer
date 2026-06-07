@@ -196,7 +196,7 @@ mojo-file-organizer/
 ## Related Projects
 
 - [downloads-organizer](https://github.com/mojouto3/downloads-organizer) — Ultra-lightweight PowerShell version
-- [downloads-organizer-v2](https://github.com/mojouto3/downloads-organizer-v2) — Electron lite edition, Downloads folder only
+- [downloads-organizer-v2](https://github.com/mojouto3/downloads-organizer-v2) — Electron lite edition, Downloads folder only.
 
 ---
 
