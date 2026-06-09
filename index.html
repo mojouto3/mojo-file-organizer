@@ -187,6 +187,51 @@
 
 <!-- ══ SETTINGS ══ -->
 <div class="page hidden" id="page-settings">
+ 
+  <!-- Appearance -->
+<div class="card">
+  <div class="card-header">
+    <i data-lucide="palette" class="card-icon"></i>
+    <span class="card-title" data-en="Appearance" data-gr="Εμφάνιση">Appearance</span>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <div class="setting-title" data-en="Theme" data-gr="Θέμα">Theme</div>
+      <div class="setting-desc" data-en="Choose dark or light interface" data-gr="Σκούρο ή ανοιχτό θέμα">Choose dark or light interface</div>
+    </div>
+    <div class="theme-toggle-group">
+      <button class="theme-btn active" id="themeDark" onclick="setTheme('dark')" data-en="Dark" data-gr="Σκούρο">Dark</button>
+      <button class="theme-btn" id="themeLight" onclick="setTheme('light')" data-en="Light" data-gr="Ανοιχτό">Light</button>
+    </div>
+  </div>
+
+  <div class="setting-row">
+    <div class="setting-info">
+      <div class="setting-title" data-en="Accent Color" data-gr="Χρώμα Accent">Accent Color</div>
+      <div class="setting-desc" data-en="Choose a preset or pick your own" data-gr="Επιλέξτε χρώμα ή δικό σας">Choose a preset or pick your own</div>
+    </div>
+  </div>
+
+  <div class="accent-grid" id="accentGrid">
+    <div class="accent-dot selected" data-color="#3ddb3d" onclick="setAccent('#3ddb3d', this)" style="background:#3ddb3d"></div>
+    <div class="accent-dot" data-color="#3b82f6" onclick="setAccent('#3b82f6', this)" style="background:#3b82f6"></div>
+    <div class="accent-dot" data-color="#f59e0b" onclick="setAccent('#f59e0b', this)" style="background:#f59e0b"></div>
+    <div class="accent-dot" data-color="#ef4444" onclick="setAccent('#ef4444', this)" style="background:#ef4444"></div>
+    <div class="accent-dot" data-color="#8b5cf6" onclick="setAccent('#8b5cf6', this)" style="background:#8b5cf6"></div>
+    <div class="accent-dot" data-color="#ec4899" onclick="setAccent('#ec4899', this)" style="background:#ec4899"></div>
+    <div class="accent-dot" data-color="#06b6d4" onclick="setAccent('#06b6d4', this)" style="background:#06b6d4"></div>
+    <div class="accent-dot" data-color="#f97316" onclick="setAccent('#f97316', this)" style="background:#f97316"></div>
+  </div>
+
+  <div class="setting-row" style="margin-top:8px">
+    <div class="setting-info">
+      <div class="setting-title" data-en="Custom Color" data-gr="Προσαρμοσμένο Χρώμα">Custom Color</div>
+    </div>
+    <input type="color" id="customAccentColor" value="#3ddb3d" onchange="setAccent(this.value, null)" class="color-picker-input"/>
+  </div>
+
+</div>
 
   <!-- General -->
   <div class="card">
