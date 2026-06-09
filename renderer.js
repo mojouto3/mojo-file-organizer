@@ -14,6 +14,8 @@ let scheduleFolder = null;
 async function init() {
   lucide.createIcons();
   appSettings = await window.api.getSettings();
+  if (appSettings.theme) document.documentElement.setAttribute('data-theme', appSettings.theme);
+  if (appSettings.accent) document.documentElement.style.setProperty('--accent', appSettings.accent);
   categories  = await window.api.getCategories();
   groups      = await window.api.getGroups();
 
@@ -342,6 +344,7 @@ async function loadStats() {
 }
 
 // ── Settings ──────────────────────────────────────────────────────
+applyThemeSettings();
 async function renderSettings() {
   // Apply saved values to UI
   document.getElementById('settingLang').value = appSettings.language || 'en';
@@ -725,6 +728,39 @@ function clearWatcherLog() {
   document.getElementById('watcherLog').innerHTML = '';
   watcherEventCount = 0;
   document.getElementById('watcherEventCount').textContent = '0 events';
+}
+
+// ── Themes ───────────────────────────────────────────────────────
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.body.setAttribute('data-theme', theme);
+  document.getElementById('themeDark').classList.toggle('active', theme === 'dark');
+  document.getElementById('themeLight').classList.toggle('active', theme === 'light');
+  appSettings.theme = theme;
+  window.api.saveSettings(appSettings);
+}
+
+function setAccent(color, dotEl) {
+  document.documentElement.style.setProperty('--accent', color);
+  document.documentElement.style.setProperty('--green', color);
+  document.documentElement.style.setProperty('--green-dim', `color-mix(in srgb, ${color} 12%, transparent)`);
+  document.documentElement.style.setProperty('--green-hover', `color-mix(in srgb, ${color} 85%, white)`);
+  document.getElementById('customAccentColor').value = color;
+  document.querySelectorAll('.accent-dot').forEach(d => d.classList.remove('selected'));
+  if (dotEl) dotEl.classList.add('selected');
+  appSettings.accent = color;
+  window.api.saveSettings(appSettings);
+}
+
+function applyThemeSettings() {
+  if (appSettings.theme) setTheme(appSettings.theme);
+  if (appSettings.accent) {
+    document.documentElement.style.setProperty('--accent', appSettings.accent);
+    document.getElementById('customAccentColor').value = appSettings.accent;
+    document.querySelectorAll('.accent-dot').forEach(d => {
+      d.classList.toggle('selected', d.dataset.color === appSettings.accent);
+    });
+  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
