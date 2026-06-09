@@ -59,72 +59,8 @@ function createTray() {
 
 function updateTrayMenu() {
   if (!tray) return;
-  const settings = readSettings();
-  const lastFolder = settings.defaultFolder || path.join(os.homedir(), 'Downloads');
-  const downloadsFolder = path.join(os.homedir(), 'Downloads');
-
   const menu = Menu.buildFromTemplate([
     { label: 'Mojo File Organizer', enabled: false },
-    { type: 'separator' },
-    {
-      label: 'Organize Downloads',
-      click: async () => {
-        const cats = readCategories();
-        const moved = [], errors = [];
-        try {
-          const files = fs.readdirSync(downloadsFolder, { withFileTypes: true }).filter(f => f.isFile());
-          for (const f of files) {
-            const cat = getCategory(path.extname(f.name), cats);
-            if (!cat) continue;
-            const destFolder = path.join(downloadsFolder, cat);
-            if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
-            const src = path.join(downloadsFolder, f.name);
-            const dest = getUniqueDest(destFolder, f.name);
-            try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat }); }
-            catch (e) { errors.push(f.name); }
-          }
-          if (moved.length > 0) {
-            appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: downloadsFolder, type: 'organize', moved, errors: [], total: moved.length });
-            sendNotification('Mojo File Organizer', `Downloads organized — ${moved.length} file${moved.length !== 1 ? 's' : ''} moved`);
-          } else {
-            sendNotification('Mojo File Organizer', 'No files to organize in Downloads');
-          }
-        } catch (e) {
-          sendNotification('Mojo File Organizer', 'Error organizing Downloads');
-        }
-      }
-    },
-    {
-      label: `Organize Last Folder`,
-      sublabel: lastFolder,
-      enabled: !!settings.defaultFolder,
-      click: async () => {
-        if (!settings.defaultFolder) return;
-        const cats = readCategories();
-        const moved = [], errors = [];
-        try {
-          const files = fs.readdirSync(lastFolder, { withFileTypes: true }).filter(f => f.isFile());
-          for (const f of files) {
-            const cat = getCategory(path.extname(f.name), cats);
-            if (!cat) continue;
-            const destFolder = path.join(lastFolder, cat);
-            if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
-            const src = path.join(lastFolder, f.name);
-            const dest = getUniqueDest(destFolder, f.name);
-            try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat }); }
-            catch (e) { errors.push(f.name); }
-          }
-          if (moved.length > 0) {
-            appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: lastFolder, type: 'organize', moved, errors: [], total: moved.length });
-            sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} organized in ${path.basename(lastFolder)}`);
-          } else {
-            sendNotification('Mojo File Organizer', 'No files to organize');
-          }
-        } catch (e) {
-          sendNotification('Mojo File Organizer', 'Error organizing folder');
-        }
-      }
-    },
     { type: 'separator' },
     { label: 'Open', click: () => showWindow() },
     { type: 'separator' },
@@ -418,6 +354,15 @@ ipcMain.handle('pick-folder',   async () => {
 });
 ipcMain.handle('get-downloads', async () => path.join(os.homedir(), 'Downloads'));
 
+// ── IPC: Window ───────────────────────────────────────────────────
+ipcMain.on('minimize', () => mainWindow.minimize());
+ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
+ipcMain.on('close',    () => {
+  const s = readSettings();
+  if (s.minimizeToTray) { mainWindow.hide(); }
+  else { app.isQuitting = true; mainWindow.close(); }
+});
+
 // ── IPC: Duplicate Finder ─────────────────────────────────────────
 const crypto = require('crypto');
 
@@ -482,11 +427,73 @@ ipcMain.handle('restore-duplicates', async (_, files) => {
   return { restored, errors };
 });
 
-// ── IPC: Window ───────────────────────────────────────────────────
-ipcMain.on('minimize', () => mainWindow.minimize());
-ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
-ipcMain.on('close',    () => {
-  const s = readSettings();
-  if (s.minimizeToTray) { mainWindow.hide(); }
-  else { app.isQuitting = true; mainWindow.close(); }
+// ── File Watcher ──────────────────────────────────────────────────
+let activeWatcher = null;
+let watcherFolder = null;
+
+ipcMain.handle('start-watcher', async (_, folderPath) => {
+  try {
+    if (activeWatcher) {
+      activeWatcher.close();
+      activeWatcher = null;
+    }
+
+    watcherFolder = folderPath;
+    const cats = readCategories();
+    const recentlyProcessed = new Set();
+
+    activeWatcher = fs.watch(folderPath, async (eventType, filename) => {
+      if (!filename || eventType !== 'rename') return;
+      if (recentlyProcessed.has(filename)) return;
+      recentlyProcessed.add(filename);
+      setTimeout(() => recentlyProcessed.delete(filename), 3000);
+
+      setTimeout(async () => {
+        const filePath = path.join(folderPath, filename);
+        try {
+          const stat = fs.statSync(filePath);
+          if (!stat.isFile()) return;
+        } catch (e) { return; }
+
+        const cat = getCategory(path.extname(filename), cats);
+        if (!cat) return;
+
+        const destFolder = path.join(folderPath, cat);
+        if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+
+        const dest = getUniqueDest(destFolder, filename);
+        try {
+          fs.renameSync(filePath, dest);
+          appendSession({
+            id: Date.now(),
+            timestamp: new Date().toISOString(),
+            folder: folderPath,
+            type: 'watcher',
+            moved: [{ name: filename, category: cat }],
+            errors: [],
+            total: 1
+          });
+          sendNotification('Mojo File Organizer', `Auto-organized: ${filename} → ${cat}/`);
+          if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: cat });
+        } catch (e) {}
+      }, 1000);
+    });
+
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('stop-watcher', async () => {
+  if (activeWatcher) {
+    activeWatcher.close();
+    activeWatcher = null;
+    watcherFolder = null;
+  }
+  return { ok: true };
+});
+
+ipcMain.handle('get-watcher-status', async () => {
+  return { active: !!activeWatcher, folder: watcherFolder };
 });

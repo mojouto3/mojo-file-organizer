@@ -14,7 +14,7 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version">v3.0</span>
+    <span class="titlebar-version">v3.1.0</span>
   </div>
   <div class="titlebar-right">
     <button class="win-btn" onclick="window.api.minimize()"><i data-lucide="minus"></i></button>
@@ -39,6 +39,9 @@
   </button>
   <button class="tab" id="tab-duplicates" onclick="showTab('duplicates')">
   <i data-lucide="copy"></i><span data-en="Duplicates" data-gr="Διπλότυπα">Duplicates</span>
+  </button>
+  <button class="tab" id="tab-watcher" onclick="showTab('watcher')">
+  <i data-lucide="eye"></i><span data-en="Watcher" data-gr="Παρακολούθηση">Watcher</span>
   </button>
   <div class="tab-spacer"></div>
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
@@ -332,6 +335,43 @@
   </div>
 </div>
 
+
+ <!-- ══ WATCHER ══ -->
+<div class="page hidden" id="page-watcher">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="eye" class="card-icon"></i>
+      <span class="card-title" data-en="File Watcher" data-gr="Παρακολούθηση Αρχείων">File Watcher</span>
+      <span class="badge hidden" id="watcherActiveBadge" style="background:rgba(61,219,61,0.15);color:#3ddb3d">● Active</span>
+    </div>
+    <p class="card-desc" data-en="Monitor a folder in real-time. New files are automatically organized as soon as they arrive." data-gr="Παρακολούθηση φακέλου σε πραγματικό χρόνο. Νέα αρχεία οργανώνονται αυτόματα.">Monitor a folder in real-time. New files are automatically organized as soon as they arrive.</p>
+    <div class="folder-row">
+      <input type="text" id="watcherFolderInput" readonly placeholder="Choose a folder to watch..."/>
+      <button class="btn btn-outline" onclick="pickWatcherFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsWatcher()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-outline" id="startWatcherBtn" onclick="startWatcher()" style="display:none">
+        <i data-lucide="play"></i><span data-en="Start Watching" data-gr="Έναρξη">Start Watching</span>
+      </button>
+      <button class="btn btn-danger-outline hidden" id="stopWatcherBtn" onclick="stopWatcher()">
+        <i data-lucide="square"></i><span data-en="Stop" data-gr="Διακοπή">Stop</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="watcherLogCard">
+    <div class="card-header">
+      <i data-lucide="activity" class="card-icon"></i>
+      <span class="card-title" data-en="Activity Log" data-gr="Αρχείο Δραστηριότητας">Activity Log</span>
+      <span class="badge" id="watcherEventCount">0 events</span>
+      <button class="btn btn-outline btn-sm" onclick="clearWatcherLog()" style="margin-left:auto">
+        <i data-lucide="trash-2"></i><span data-en="Clear" data-gr="Καθαρισμός">Clear</span>
+      </button>
+    </div>
+    <div class="watcher-log" id="watcherLog"></div>
+  </div>
+</div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
