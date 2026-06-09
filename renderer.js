@@ -28,6 +28,7 @@ async function init() {
 
   document.getElementById('groupNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addGroup(); });
   document.getElementById('newCatName').addEventListener('keydown',     e => { if (e.key === 'Enter') addCategory(); });
+  
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ function showTab(name) {
   if (name === 'history')  loadHistory();
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
+  if (name === 'watcher')  initWatcher();
 }
 
 // ── Organize ──────────────────────────────────────────────────────
@@ -642,6 +644,87 @@ function formatSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// ── File Watcher ─────────────────────────────────────────────────
+let watcherEventCount = 0;
+
+async function initWatcher() {
+  const status = await window.api.getWatcherStatus();
+  if (status.active) {
+  document.getElementById('watcherFolderInput').value = status.folder;
+  if (document.getElementById('page-watcher') && !document.getElementById('page-watcher').classList.contains('hidden')) {
+    setWatcherActive(true);
+  }
+}
+
+  window.api.onWatcherEvent((data) => {
+    addWatcherEvent(data.filename, data.category);
+  });
+}
+
+async function pickWatcherFolder() {
+  const f = await window.api.pickFolder();
+  if (f) document.getElementById('watcherFolderInput').value = f;
+}
+
+async function useDownloadsWatcher() {
+  const f = await window.api.getDownloads();
+  if (f) document.getElementById('watcherFolderInput').value = f;
+}
+
+async function startWatcher() {
+  const folder = document.getElementById('watcherFolderInput').value;
+  if (!folder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+
+  const result = await window.api.startWatcher(folder);
+  if (result.ok) {
+    setWatcherActive(true);
+    if (!document.getElementById('page-watcher').classList.contains('hidden')) {
+  document.getElementById('watcherLogCard').classList.remove('hidden');
+  }
+    showToast(lang === 'en' ? 'Watching for new files...' : 'Παρακολούθηση ενεργή...');
+  } else {
+    showToast(lang === 'en' ? 'Failed to start watcher' : 'Αποτυχία εκκίνησης');
+  }
+}
+
+async function stopWatcher() {
+  await window.api.stopWatcher();
+  setWatcherActive(false);
+  showToast(lang === 'en' ? 'Watcher stopped' : 'Παρακολούθηση διακόπηκε');
+}
+
+function setWatcherActive(active) {
+  document.getElementById('startWatcherBtn').classList.toggle('hidden', active);
+  document.getElementById('stopWatcherBtn').classList.toggle('hidden', !active);
+  document.getElementById('watcherActiveBadge').classList.toggle('hidden', !active);
+}
+
+function addWatcherEvent(filename, category) {
+  watcherEventCount++;
+  document.getElementById('watcherEventCount').textContent = `${watcherEventCount} event${watcherEventCount !== 1 ? 's' : ''}`;
+
+  const log = document.getElementById('watcherLog');
+  const now = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const el = document.createElement('div');
+  el.className = 'watcher-event';
+  el.innerHTML = `
+    <div class="watcher-pulse"></div>
+    <span class="watcher-event-time">${now}</span>
+    <span class="watcher-event-file">${filename}</span>
+    <span class="watcher-event-cat">→ ${category}/</span>`;
+  log.insertBefore(el, log.firstChild);
+  lucide.createIcons();
+
+  document.getElementById('watcherLogCard').classList.remove('hidden');
+}
+
+function clearWatcherLog() {
+  document.getElementById('watcherLog').innerHTML = '';
+  watcherEventCount = 0;
+  document.getElementById('watcherEventCount').textContent = '0 events';
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
