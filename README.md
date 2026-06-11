@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.0.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.2.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -24,42 +24,60 @@
 
 ## What is Mojo File Organizer?
 
-Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders with a single click.
+Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders — with a single click.
 
-Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, view your full organize history, and track statistics over time all wrapped in a clean, modern dark UI.
+Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, find and remove duplicates, monitor folders in real-time, and track statistics over time — all wrapped in a clean, modern interface with dark and light themes.
 
 ---
 
 ## Features
 
 ### Core
-- **One-click organize** ➔ select any folder and sort all files instantly
-- **Smart Preview** ➔ see exactly what will move and where, before committing
-- **Undo** ➔ instantly restore all moved files back to their original location
-- **Progress bar** ➔ real-time feedback showing which file is being moved
+- **One-click organize** — select any folder and sort all files instantly
+- **Smart Preview** — see exactly what will move and where, before committing
+- **Undo** — instantly restore all moved files back to their original location
+- **Progress bar** — real-time feedback showing which file is being moved
 
 ### Smart Group
-- **Group by store or client name** ➔ files are matched by name regardless of separators (`.` `_` `-` `,` space) or case
-- **Persistent groups** ➔ add your stores/clients once, they are remembered forever
-- **Unlimited groups** ➔ add as many as you need, grow over time
+- **Group by store or client name** — files matched by name regardless of separators (`.` `_` `-` `,` space) or case
+- **Persistent groups** — add your stores/clients once, remembered forever
+- **Unlimited groups** — add as many as you need, grow over time
 
-### Settings & Customization
-- **Custom categories** ➔ create your own file categories (e.g. "3D Models", "RAW Photos")
-- **Custom extensions** ➔ add or remove file extensions from any category
-- **Enable/disable categories** ➔ turn off categories you don't need
-- **Reset to defaults** ➔ restore the original category configuration at any time
+### Duplicate Finder
+- **Scan by content** — MD5 hash comparison finds identical files regardless of name
+- **Scan by name** — finds files with the same filename
+- **Visual indicators** — KEEP and DELETE badges for clear decision making
+- **Undo** — restore deleted files instantly
+
+### File Watcher
+- **Real-time monitoring** — watches a folder and auto-organizes new files as they arrive
+- **Activity log** — see every file organized with timestamp and destination
+- **Windows notifications** — get notified when files are auto-organized
+- **Runs in background** — keeps working even when minimized to tray
 
 ### History & Stats
-- **Session history** ➔ every organize session saved with date, time, folder and file details
-- **Expandable sessions** ➔ click any session to see exactly which files moved and where
-- **Delete sessions** ➔ remove individual sessions or clear all history
-- **Statistics dashboard** ➔ total files organized, sessions count, breakdown by category with chart
+- **Session history** — every organize session saved with date, time, folder and file details
+- **Expandable sessions** — click any session to see exactly which files moved and where
+- **Delete sessions** — remove individual sessions or clear all history
+- **Statistics dashboard** — total files, sessions count, breakdown by category with chart
+- **Export to CSV** — full session history as spreadsheet
+- **Export to PDF** — professional statistics report with branding
 
-### Other
-- **Auto-schedule** ➔ runs automatically every Monday at 9:00 AM via Windows Task Scheduler
-- **Bilingual** ➔ full Greek and English support, switchable in real time
-- **Dark theme** ➔ easy on the eyes, always
-- **Custom MFO icon** ➔ branded Desktop shortcut
+### Appearance & Languages
+- **Dark and Light themes** — switchable in real time
+- **8 preset accent colors** + custom color picker
+- **5 languages** — English, Greek, German, Spanish, Russian
+
+### Settings & Customization
+- **Custom categories** — create your own file categories (e.g. "3D Models", "RAW Photos")
+- **Custom extensions** — add or remove file extensions from any category
+- **Enable/disable categories** — turn off categories you don't need
+- **Reset to defaults** — restore the original category configuration at any time
+- **Default folder** — auto-select a folder on startup
+- **Start with Windows** — launch automatically on startup
+- **Minimize to Tray** — keep running in background when closed
+- **Auto-schedule** — choose specific days and time for automatic organizing
+- **Tray Quick Actions** — organize without opening the app
 
 ---
 
@@ -67,7 +85,7 @@ Unlike basic file sorters, Mojo File Organizer gives you **full control**: custo
 
 | Category | File Types |
 |---|---|
-| Images | jpg, jpeg, png, gif, bmp, webp, svg, ico, tiff, heic, raw |
+| Images | jpg, jpeg, png, gif, bmp, webp, svg, ico, tiff, heic, raw, avif |
 | Videos | mp4, mkv, avi, mov, wmv, flv, webm, m4v, mpg, mpeg |
 | Audio | mp3, wav, flac, aac, ogg, m4a, wma, opus, aiff |
 | Documents | pdf, doc, docx, xls, xlsx, ppt, pptx, odt, txt, rtf, epub, mobi |
@@ -99,8 +117,8 @@ Coming soon.
 ## Usage
 
 ### Organize Tab
-1. Click **My Folder** to auto-detect your Downloads, or **Browse** to choose any folder
-2. Review the **Preview** ➔ files grouped by category with counts
+1. Click **Downloads** to auto-detect your Downloads folder, or **Browse** to choose any folder
+2. Review the **Preview** — files grouped by category with counts
 3. Click **Organize Now**
 4. Use **Undo** to reverse if needed
 
@@ -108,10 +126,23 @@ Coming soon.
 1. Add your store or client names (e.g. `Nike`, `store1`, `ClientABC`)
 2. Select a folder
 3. Preview which files match which group
-4. Click **Organize Now** ➔ files go to their matching subfolder
+4. Click **Organize Now** — files go to their matching subfolder
 
 > Files are matched regardless of separators or case:
 > `logo_nike.jpg`, `NIKE-banner.png`, `nike.poster.mp4` → all go to `Nike/`
+
+### Duplicates Tab
+1. Select a folder
+2. Click **Scan by Content** (identical files) or **Scan by Name** (same filename)
+3. Review duplicates — first file is marked **KEEP**, others as **DELETE**
+4. Select files to delete and click **Delete Selected**
+5. Use **Undo** to restore if needed
+
+### Watcher Tab
+1. Select a folder to monitor
+2. Click **Start Watching**
+3. New files dropped into the folder are automatically organized
+4. Check the Activity Log to see what was moved
 
 ### History Tab
 - View all past sessions with date, time and folder
@@ -120,21 +151,24 @@ Coming soon.
 
 ### Stats Tab
 - Total files organized across all sessions
-- Number of sessions
 - Bar chart breakdown by category
+- Export to **CSV** or **PDF** with one click
 
 ### Settings Tab
-- Toggle categories on/off
-- Add new extensions to existing categories
-- Create entirely new categories
-- Delete categories you don't need
-- Reset to defaults at any time
+- **Appearance** — switch Dark/Light theme and accent color
+- **Language** — EN, GR, DE, ES, RU
+- **Default Folder** — auto-select on startup
+- **Start with Windows** — launch automatically
+- **Minimize to Tray** — keep running in background
+- **Auto-Schedule** — choose days and time for automatic runs
+- **Categories** — customize extensions or create new categories
 
-### Auto-Schedule
-1. Select your folder in the Organize tab
-2. Go to the schedule section and click **Enable Auto-Run**
-3. The app runs silently every Monday at 9:00 AM
-4. Click **Disable** to turn off
+### Tray Quick Actions
+Right-click the tray icon to:
+- **Organize Downloads** — instantly organizes your Downloads folder
+- **Organize Last Folder** — organizes your default folder
+- **Open** — bring the app to focus
+- **Quit** — exit completely
 
 ---
 
@@ -172,31 +206,36 @@ The installer will be created at `dist/Mojo File Organizer Setup X.X.X.exe`.
 mojo-file-organizer/
 ├── assets/
 │   └── icon.ico              # MFO app icon
-├── main.js                   # Electron main process — file ops, IPC, scheduling
+├── main.js                   # Electron main process — file ops, IPC, scheduling, tray
 ├── preload.js                # Secure bridge between main and renderer
 ├── renderer.js               # UI logic — all tab interactions
 ├── index.html                # App layout and tab structure
-├── style.css                 # Dark theme, tabs, components
+├── style.css                 # Dark/light themes, tabs, components
+├── translations.js           # All UI strings for EN, GR, DE, ES, RU
 └── package.json              # Project config and electron-builder settings
 ```
 
 ---
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for full version history.
+
+---
+
 ## Roadmap
 
-- [ ] System tray — run in background with notifications
-- [ ] More languages (German, Spanish, French)
 - [ ] Portable version (no installer needed)
-- [ ] Duplicate file finder
-- [ ] Dark/light theme toggle
-- [ ] File watcher — auto-organize when new files arrive
+- [ ] French, Italian translations
+- [ ] Folder size analyzer
+- [ ] Cloud backup integration
 
 ---
 
 ## Related Projects
 
 - [downloads-organizer](https://github.com/mojouto3/downloads-organizer) — Ultra-lightweight PowerShell version
-- [downloads-organizer-v2](https://github.com/mojouto3/downloads-organizer-v2) — Electron lite edition, Downloads folder only.
+- [downloads-organizer-v2](https://github.com/mojouto3/downloads-organizer-v2) — Electron lite edition, Downloads folder only
 
 ---
 
@@ -214,6 +253,6 @@ MIT License — free to use, modify, and share. See [LICENSE](LICENSE) for detai
 
 <div align="center">
 
-Made with ☕ by [mojomultimedia](https://github.com/mojouto3)
+Made with ☕ by [mojomultimedia](https://github.com/mojouto3) · [Constantinos-T](https://github.com/Constantinos-T)
 
 </div>
