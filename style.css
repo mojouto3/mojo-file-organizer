@@ -23,7 +23,8 @@ body[data-theme="light"], html[data-theme="light"] {
 }
 
 :root {
-  --green: #3ddb3d;
+  --accent: #3ddb3d
+  --green: var(--accent, #3ddb3d);
   --green-dim: rgba(61,219,61,0.10);
   --green-hover: #4ee84e;
   --bg: #111111;
@@ -573,4 +574,31 @@ input[type="text"]:focus { border-color: #444; }
   width: 36px; height: 36px; border-radius: 8px;
   border: 1px solid var(--border); cursor: pointer;
   padding: 2px; background: none;
+}
+body[data-theme="light"] .titlebar,
+html[data-theme="light"] .titlebar {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body[data-theme="light"] .titlebar-title,
+html[data-theme="light"] .titlebar-title {
+  color: #1a1a1a;
+}
+
+body[data-theme="light"] .tabbar,
+html[data-theme="light"] .tabbar {
+  background: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+body[data-theme="light"] .win-btn,
+html[data-theme="light"] .win-btn {
+  color: #666;
+}
+
+body[data-theme="light"] .win-btn:hover,
+html[data-theme="light"] .win-btn:hover {
+  background: #f0f0f0;
+  color: #1a1a1a;
 }

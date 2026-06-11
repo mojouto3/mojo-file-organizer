@@ -766,13 +766,22 @@ function setTheme(theme) {
 }
 
 function setAccent(color, dotEl) {
+  // Convert hex to rgb for manual mixing
+  const r = parseInt(color.slice(1,3), 16);
+  const g = parseInt(color.slice(3,5), 16);
+  const b = parseInt(color.slice(5,7), 16);
+  
   document.documentElement.style.setProperty('--accent', color);
   document.documentElement.style.setProperty('--green', color);
-  document.documentElement.style.setProperty('--green-dim', `color-mix(in srgb, ${color} 12%, transparent)`);
-  document.documentElement.style.setProperty('--green-hover', `color-mix(in srgb, ${color} 85%, white)`);
-  document.getElementById('customAccentColor').value = color;
+  document.documentElement.style.setProperty('--green-dim', `rgba(${r},${g},${b},0.12)`);
+  document.documentElement.style.setProperty('--green-hover', `rgba(${r},${g},${b},0.85)`);
+  document.body.style.setProperty('--accent', color);
+  document.body.style.setProperty('--green', color);
+  document.body.style.setProperty('--green-dim', `rgba(${r},${g},${b},0.12)`);
+  document.body.style.setProperty('--green-hover', `rgba(${r},${g},${b},0.85)`);
   document.querySelectorAll('.accent-dot').forEach(d => d.classList.remove('selected'));
-  if (dotEl) dotEl.classList.add('selected');
+if (dotEl) dotEl.classList.add('selected');
+
   appSettings.accent = color;
   window.api.saveSettings(appSettings);
 }
