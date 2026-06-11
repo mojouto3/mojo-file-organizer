@@ -24,60 +24,60 @@
 
 ## What is Mojo File Organizer?
 
-Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders — with a single click.
+Mojo File Organizer is a free, open-source Windows desktop application that automatically sorts any folder into clean, organized subfolders with a single click.
 
-Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, find and remove duplicates, monitor folders in real-time, and track statistics over time — all wrapped in a clean, modern interface with dark and light themes.
+Unlike basic file sorters, Mojo File Organizer gives you **full control**: customize your own categories, define which file extensions belong where, group files by client or store name, find and remove duplicates, monitor folders in real-time, and track statistics over time - all wrapped in a clean, modern interface with dark and light themes.
 
 ---
 
 ## Features
 
 ### Core
-- **One-click organize** — select any folder and sort all files instantly
-- **Smart Preview** — see exactly what will move and where, before committing
-- **Undo** — instantly restore all moved files back to their original location
-- **Progress bar** — real-time feedback showing which file is being moved
+- **One-click organize** ➔ select any folder and sort all files instantly
+- **Smart Preview** ➔ see exactly what will move and where, before committing
+- **Undo** ➔ instantly restore all moved files back to their original location
+- **Progress bar** ➔ real-time feedback showing which file is being moved
 
 ### Smart Group
-- **Group by store or client name** — files matched by name regardless of separators (`.` `_` `-` `,` space) or case
-- **Persistent groups** — add your stores/clients once, remembered forever
-- **Unlimited groups** — add as many as you need, grow over time
+- **Group by store or client name** ➔ files matched by name regardless of separators (`.` `_` `-` `,` space) or case
+- **Persistent groups** ➔ add your stores/clients once, remembered forever
+- **Unlimited groups** ➔ add as many as you need, grow over time
 
 ### Duplicate Finder
-- **Scan by content** — MD5 hash comparison finds identical files regardless of name
-- **Scan by name** — finds files with the same filename
-- **Visual indicators** — KEEP and DELETE badges for clear decision making
-- **Undo** — restore deleted files instantly
+- **Scan by content** ➔ MD5 hash comparison finds identical files regardless of name
+- **Scan by name** ➔ finds files with the same filename
+- **Visual indicators** ➔ KEEP and DELETE badges for clear decision making
+- **Undo** ➔ restore deleted files instantly
 
 ### File Watcher
-- **Real-time monitoring** — watches a folder and auto-organizes new files as they arrive
-- **Activity log** — see every file organized with timestamp and destination
-- **Windows notifications** — get notified when files are auto-organized
-- **Runs in background** — keeps working even when minimized to tray
+- **Real-time monitoring** ➔ watches a folder and auto-organizes new files as they arrive
+- **Activity log** ➔ see every file organized with timestamp and destination
+- **Windows notifications** ➔ get notified when files are auto-organized
+- **Runs in background** ➔ keeps working even when minimized to tray
 
 ### History & Stats
-- **Session history** — every organize session saved with date, time, folder and file details
-- **Expandable sessions** — click any session to see exactly which files moved and where
-- **Delete sessions** — remove individual sessions or clear all history
-- **Statistics dashboard** — total files, sessions count, breakdown by category with chart
-- **Export to CSV** — full session history as spreadsheet
-- **Export to PDF** — professional statistics report with branding
+- **Session history** ➔ every organize session saved with date, time, folder and file details
+- **Expandable sessions** ➔ click any session to see exactly which files moved and where
+- **Delete sessions** ➔ remove individual sessions or clear all history
+- **Statistics dashboard** ➔ total files, sessions count, breakdown by category with chart
+- **Export to CSV** ➔ full session history as spreadsheet
+- **Export to PDF** ➔ professional statistics report with branding
 
 ### Appearance & Languages
-- **Dark and Light themes** — switchable in real time
+- **Dark and Light themes** ➔ switchable in real time
 - **8 preset accent colors** + custom color picker
-- **5 languages** — English, Greek, German, Spanish, Russian
+- **5 languages** ➔ English, Greek, German, Spanish, Russian
 
 ### Settings & Customization
-- **Custom categories** — create your own file categories (e.g. "3D Models", "RAW Photos")
-- **Custom extensions** — add or remove file extensions from any category
-- **Enable/disable categories** — turn off categories you don't need
-- **Reset to defaults** — restore the original category configuration at any time
-- **Default folder** — auto-select a folder on startup
-- **Start with Windows** — launch automatically on startup
-- **Minimize to Tray** — keep running in background when closed
-- **Auto-schedule** — choose specific days and time for automatic organizing
-- **Tray Quick Actions** — organize without opening the app
+- **Custom categories** ➔ create your own file categories (e.g. "3D Models", "RAW Photos")
+- **Custom extensions** ➔ add or remove file extensions from any category
+- **Enable/disable categories** ➔ turn off categories you don't need
+- **Reset to defaults** ➔ restore the original category configuration at any time
+- **Default folder** ➔ auto-select a folder on startup
+- **Start with Windows** ➔ launch automatically on startup
+- **Minimize to Tray** ➔ keep running in background when closed
+- **Auto-schedule** ➔ choose specific days and time for automatic organizing
+- **Tray Quick Actions** ➔ organize without opening the app
 
 ---
 
@@ -118,7 +118,7 @@ Coming soon.
 
 ### Organize Tab
 1. Click **Downloads** to auto-detect your Downloads folder, or **Browse** to choose any folder
-2. Review the **Preview** — files grouped by category with counts
+2. Review the **Preview** ➔ files grouped by category with counts
 3. Click **Organize Now**
 4. Use **Undo** to reverse if needed
 
@@ -126,7 +126,7 @@ Coming soon.
 1. Add your store or client names (e.g. `Nike`, `store1`, `ClientABC`)
 2. Select a folder
 3. Preview which files match which group
-4. Click **Organize Now** — files go to their matching subfolder
+4. Click **Organize Now** ➔ files go to their matching subfolder
 
 > Files are matched regardless of separators or case:
 > `logo_nike.jpg`, `NIKE-banner.png`, `nike.poster.mp4` → all go to `Nike/`
@@ -134,7 +134,7 @@ Coming soon.
 ### Duplicates Tab
 1. Select a folder
 2. Click **Scan by Content** (identical files) or **Scan by Name** (same filename)
-3. Review duplicates — first file is marked **KEEP**, others as **DELETE**
+3. Review duplicates ➔ first file is marked **KEEP**, others as **DELETE**
 4. Select files to delete and click **Delete Selected**
 5. Use **Undo** to restore if needed
 
@@ -155,20 +155,20 @@ Coming soon.
 - Export to **CSV** or **PDF** with one click
 
 ### Settings Tab
-- **Appearance** — switch Dark/Light theme and accent color
-- **Language** — EN, GR, DE, ES, RU
-- **Default Folder** — auto-select on startup
-- **Start with Windows** — launch automatically
-- **Minimize to Tray** — keep running in background
-- **Auto-Schedule** — choose days and time for automatic runs
-- **Categories** — customize extensions or create new categories
+- **Appearance** ➔ switch Dark/Light theme and accent color
+- **Language** ➔ EN, GR, DE, ES, RU
+- **Default Folder** ➔ auto-select on startup
+- **Start with Windows** ➔ launch automatically
+- **Minimize to Tray** ➔ keep running in background
+- **Auto-Schedule** ➔ choose days and time for automatic runs
+- **Categories** ➔ customize extensions or create new categories
 
 ### Tray Quick Actions
 Right-click the tray icon to:
-- **Organize Downloads** — instantly organizes your Downloads folder
-- **Organize Last Folder** — organizes your default folder
-- **Open** — bring the app to focus
-- **Quit** — exit completely
+- **Organize Downloads** ➔ instantly organizes your Downloads folder
+- **Organize Last Folder** ➔ organizes your default folder
+- **Open** ➔ bring the app to focus
+- **Quit** ➔ exit completely
 
 ---
 
