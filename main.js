@@ -354,6 +354,94 @@ ipcMain.handle('pick-folder',   async () => {
 });
 ipcMain.handle('get-downloads', async () => path.join(os.homedir(), 'Downloads'));
 
+// ── IPC: Export Stats ─────────────────────────────────────────────
+ipcMain.handle('export-csv', async (_, exportPath) => {
+  try {
+    const sessions = readLog();
+    const rows = ['Date,Time,Folder,Type,File,Category'];
+    for (const s of sessions) {
+      const date = new Date(s.timestamp);
+      const dateStr = date.toLocaleDateString('en-GB');
+      const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      for (const m of s.moved) {
+        rows.push(`"${dateStr}","${timeStr}","${s.folder}","${s.type}","${m.name}","${m.category}"`);
+      }
+    }
+    fs.writeFileSync(exportPath, rows.join('\n'), 'utf8');
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('export-pdf', async (_, exportPath) => {
+  try {
+    const sessions = readLog();
+    const byCategory = {};
+    for (const s of sessions) {
+      for (const m of s.moved) {
+        byCategory[m.category] = (byCategory[m.category] || 0) + 1;
+      }
+    }
+    const totalFiles = sessions.reduce((sum, s) => sum + s.total, 0);
+
+    // Build HTML for PDF
+    const categoryRows = Object.entries(byCategory)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, count]) => `<tr><td>${cat}</td><td>${count}</td></tr>`)
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  body { font-family: Arial, sans-serif; padding: 40px; color: #1a1a1a; }
+  h1 { color: #1a1a1a; font-size: 24px; margin-bottom: 4px; }
+  .subtitle { color: #888; font-size: 13px; margin-bottom: 30px; }
+  .stats { display: flex; gap: 20px; margin-bottom: 30px; }
+  .stat { background: #f5f5f5; border-radius: 8px; padding: 16px 24px; text-align: center; }
+  .stat-num { font-size: 32px; font-weight: 800; color: #3ddb3d; }
+  .stat-label { font-size: 11px; color: #888; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 12px; }
+  td { padding: 8px 14px; border-bottom: 1px solid #eee; font-size: 12px; }
+  h2 { font-size: 16px; color: #1a1a1a; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+  <h1>Mojo File Organizer</h1>
+  <div class="subtitle">Statistics Report — ${new Date().toLocaleDateString('en-GB')}</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">${totalFiles}</div><div class="stat-label">Total Files Organized</div></div>
+    <div class="stat"><div class="stat-num">${sessions.length}</div><div class="stat-label">Sessions</div></div>
+    <div class="stat"><div class="stat-num">${Object.keys(byCategory).length}</div><div class="stat-label">Categories Used</div></div>
+  </div>
+  <h2>Files by Category</h2>
+  <table>
+    <tr><th>Category</th><th>Files</th></tr>
+    ${categoryRows}
+  </table>
+</body>
+</html>`;
+
+    // Create temp window for PDF
+    const pdfWin = new BrowserWindow({ show: false, webPreferences: { offscreen: true } });
+    await pdfWin.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
+    const pdfData = await pdfWin.webContents.printToPDF({ marginsType: 1, printBackground: true });
+    pdfWin.close();
+    fs.writeFileSync(exportPath, pdfData);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('show-save-dialog', async (_, options) => {
+  const result = await dialog.showSaveDialog(mainWindow, options);
+  return result.canceled ? null : result.filePath;
+});
+
 // ── IPC: Window ───────────────────────────────────────────────────
 ipcMain.on('minimize', () => mainWindow.minimize());
 ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());

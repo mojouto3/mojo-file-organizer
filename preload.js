@@ -31,4 +31,7 @@ contextBridge.exposeInMainWorld('api', {
   minimize:        ()       => ipcRenderer.send('minimize'),
   maximize:        ()       => ipcRenderer.send('maximize'),
   close:           ()       => ipcRenderer.send('close'),
+  exportCsv:      (path)    => ipcRenderer.invoke('export-csv', path),
+ exportPdf:      (path)    => ipcRenderer.invoke('export-pdf', path),
+ showSaveDialog: (opts)    => ipcRenderer.invoke('show-save-dialog', opts),
 });

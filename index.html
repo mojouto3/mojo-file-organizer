@@ -172,9 +172,17 @@
 <div class="page hidden" id="page-stats">
   <div class="card">
     <div class="card-header">
-      <i data-lucide="bar-chart-2" class="card-icon"></i>
-      <span class="card-title" data-i18n="overview">Overview</span>
-    </div>
+  <i data-lucide="bar-chart-2" class="card-icon"></i>
+  <span class="card-title" data-i18n="overview">Overview</span>
+  <div class="action-row" style="margin:0;margin-left:auto;gap:6px">
+    <button class="btn btn-outline btn-sm" onclick="exportStats('csv')">
+      <i data-lucide="file-spreadsheet"></i> CSV
+    </button>
+    <button class="btn btn-outline btn-sm" onclick="exportStats('pdf')">
+      <i data-lucide="file-text"></i> PDF
+    </button>
+  </div>
+</div>
     <div class="stats-grid" id="statsGrid"></div>
   </div>
   <div class="card">
