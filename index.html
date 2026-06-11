@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mojo File Organizer</title>
+  <script src="translations.js"></script>
   <link rel="stylesheet" href="style.css"/>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -14,7 +15,7 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version">v3.1.0</span>
+    <span class="titlebar-version">v3.1</span>
   </div>
   <div class="titlebar-right">
     <button class="win-btn" onclick="window.api.minimize()"><i data-lucide="minus"></i></button>
@@ -26,26 +27,26 @@
 <!-- Tab bar -->
 <div class="tabbar">
   <button class="tab active" id="tab-organize" onclick="showTab('organize')">
-    <i data-lucide="folder-open"></i><span data-en="Organize" data-gr="Οργάνωση">Organize</span>
+    <i data-lucide="folder-open"></i><span data-i18n="organize">Organize</span>
   </button>
   <button class="tab" id="tab-group" onclick="showTab('group')">
-    <i data-lucide="store"></i><span data-en="Smart Group" data-gr="Ομαδοποίηση">Smart Group</span>
+    <i data-lucide="store"></i><span data-i18n="smartGroup">Smart Group</span>
   </button>
   <button class="tab" id="tab-history" onclick="showTab('history')">
-    <i data-lucide="clock"></i><span data-en="History" data-gr="Ιστορικό">History</span>
+    <i data-lucide="clock"></i><span data-i18n="history">History</span>
   </button>
   <button class="tab" id="tab-stats" onclick="showTab('stats')">
-    <i data-lucide="bar-chart-2"></i><span data-en="Stats" data-gr="Στατιστικά">Stats</span>
+    <i data-lucide="bar-chart-2"></i><span data-i18n="stats">Stats</span>
   </button>
   <button class="tab" id="tab-duplicates" onclick="showTab('duplicates')">
-  <i data-lucide="copy"></i><span data-en="Duplicates" data-gr="Διπλότυπα">Duplicates</span>
+    <i data-lucide="copy"></i><span data-i18n="duplicates">Duplicates</span>
   </button>
   <button class="tab" id="tab-watcher" onclick="showTab('watcher')">
-  <i data-lucide="eye"></i><span data-en="Watcher" data-gr="Παρακολούθηση">Watcher</span>
+    <i data-lucide="eye"></i><span data-i18n="watcher">Watcher</span>
   </button>
   <div class="tab-spacer"></div>
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
-    <i data-lucide="settings"></i><span data-en="Settings" data-gr="Ρυθμίσεις">Settings</span>
+    <i data-lucide="settings"></i><span data-i18n="settings">Settings</span>
   </button>
 </div>
 
@@ -54,19 +55,19 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="folder" class="card-icon"></i>
-      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
+      <span class="card-title" data-i18n="selectFolder">Select Folder</span>
     </div>
     <div class="folder-row">
       <input type="text" id="folderInput" readonly placeholder="Choose a folder..."/>
-      <button class="btn btn-outline" onclick="pickFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
-      <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+      <button class="btn btn-outline" onclick="pickFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
     </div>
   </div>
 
   <div class="card hidden" id="previewCard">
     <div class="card-header">
       <i data-lucide="eye" class="card-icon"></i>
-      <span class="card-title" data-en="Preview" data-gr="Προεπισκόπηση">Preview</span>
+      <span class="card-title" data-i18n="preview">Preview</span>
       <span class="badge badge-green" id="previewCount"></span>
     </div>
     <div class="cat-grid" id="categoryGrid"></div>
@@ -76,23 +77,23 @@
     </div>
     <div class="action-row">
       <button class="btn btn-green btn-lg" id="organizeBtn" onclick="organize()">
-        <i data-lucide="zap"></i><span data-en="Organize Now" data-gr="Οργάνωση Τώρα">Organize Now</span>
+        <i data-lucide="zap"></i><span data-i18n="organizeNow">Organize Now</span>
       </button>
-      <button class="btn btn-outline" onclick="resetOrganize()"><span data-en="Cancel" data-gr="Ακύρωση">Cancel</span></button>
+      <button class="btn btn-outline" onclick="resetOrganize()"><span data-i18n="cancel">Cancel</span></button>
     </div>
   </div>
 
   <div class="card hidden" id="resultsCard">
     <div class="card-header">
       <i data-lucide="check-circle" class="card-icon green"></i>
-      <span class="card-title" data-en="Done!" data-gr="Ολοκληρώθηκε!">Done!</span>
+      <span class="card-title" data-i18n="done">Done!</span>
       <span class="badge badge-green" id="movedCount"></span>
     </div>
     <div class="cat-grid" id="resultsGrid"></div>
     <div class="action-row">
-      <button class="btn btn-outline" onclick="undo()"><i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span></button>
-      <button class="btn btn-outline" onclick="showTab('history')"><i data-lucide="clock"></i><span data-en="View History" data-gr="Ιστορικό">View History</span></button>
-      <button class="btn btn-green" onclick="resetOrganize()"><span data-en="Organize Another" data-gr="Νέα Οργάνωση">Organize Another</span></button>
+      <button class="btn btn-outline" onclick="undo()"><i data-lucide="undo-2"></i><span data-i18n="undo">Undo</span></button>
+      <button class="btn btn-outline" onclick="showTab('history')"><i data-lucide="clock"></i><span data-i18n="viewHistory">View History</span></button>
+      <button class="btn btn-green" onclick="resetOrganize()"><span data-i18n="organizeAnother">Organize Another</span></button>
     </div>
   </div>
 </div>
@@ -102,50 +103,50 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="folder" class="card-icon"></i>
-      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
+      <span class="card-title" data-i18n="selectFolder">Select Folder</span>
     </div>
     <div class="folder-row">
       <input type="text" id="groupFolderInput" readonly placeholder="Choose a folder..."/>
-      <button class="btn btn-outline" onclick="pickGroupFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
-      <button class="btn btn-outline" onclick="useDownloadsGroup()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
+      <button class="btn btn-outline" onclick="pickGroupFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsGroup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
     </div>
   </div>
   <div class="card">
     <div class="card-header">
       <i data-lucide="store" class="card-icon"></i>
-      <span class="card-title" data-en="Stores / Clients" data-gr="Μαγαζιά / Πελάτες">Stores / Clients</span>
+      <span class="card-title" data-i18n="storesClients">Stores / Clients</span>
       <span class="badge" id="groupCount">0</span>
     </div>
     <div class="input-row">
       <input type="text" id="groupNameInput" placeholder="e.g. Nike, store1, ClientABC..."/>
-      <button class="btn btn-green" onclick="addGroup()"><i data-lucide="plus"></i><span data-en="Add" data-gr="Προσθήκη">Add</span></button>
+      <button class="btn btn-green" onclick="addGroup()"><i data-lucide="plus"></i><span data-i18n="add">Add</span></button>
     </div>
     <div class="chip-list" id="groupList"></div>
   </div>
   <div class="card hidden" id="groupPreviewCard">
     <div class="card-header">
       <i data-lucide="eye" class="card-icon"></i>
-      <span class="card-title" data-en="Preview" data-gr="Προεπισκόπηση">Preview</span>
+      <span class="card-title" data-i18n="preview">Preview</span>
       <span class="badge badge-green" id="groupPreviewCount"></span>
     </div>
     <div class="match-list" id="groupPreviewList"></div>
     <div class="action-row">
       <button class="btn btn-green btn-lg" id="groupOrganizeBtn" onclick="organizeGroups()">
-        <i data-lucide="zap"></i><span data-en="Organize Now" data-gr="Οργάνωση Τώρα">Organize Now</span>
+        <i data-lucide="zap"></i><span data-i18n="organizeNow">Organize Now</span>
       </button>
-      <button class="btn btn-outline" onclick="resetGroup()"><span data-en="Cancel" data-gr="Ακύρωση">Cancel</span></button>
+      <button class="btn btn-outline" onclick="resetGroup()"><span data-i18n="cancel">Cancel</span></button>
     </div>
   </div>
   <div class="card hidden" id="groupResultsCard">
     <div class="card-header">
       <i data-lucide="check-circle" class="card-icon green"></i>
-      <span class="card-title" data-en="Done!" data-gr="Ολοκληρώθηκε!">Done!</span>
+      <span class="card-title" data-i18n="done">Done!</span>
       <span class="badge badge-green" id="groupMovedCount"></span>
     </div>
     <div class="cat-grid" id="groupResultsGrid"></div>
     <div class="action-row">
-      <button class="btn btn-outline" onclick="undoGroups()"><i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span></button>
-      <button class="btn btn-green" onclick="resetGroup()"><span data-en="Organize Another" data-gr="Νέα Οργάνωση">Organize Another</span></button>
+      <button class="btn btn-outline" onclick="undoGroups()"><i data-lucide="undo-2"></i><span data-i18n="undo">Undo</span></button>
+      <button class="btn btn-green" onclick="resetGroup()"><span data-i18n="organizeAnother">Organize Another</span></button>
     </div>
   </div>
 </div>
@@ -155,13 +156,13 @@
   <div class="card" style="flex:1">
     <div class="card-header">
       <i data-lucide="clock" class="card-icon"></i>
-      <span class="card-title" data-en="Session History" data-gr="Ιστορικό Συνεδριών">Session History</span>
+      <span class="card-title" data-i18n="sessionHistory">Session History</span>
       <span class="badge" id="historyCount"></span>
-      <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-en="Clear All" data-gr="Διαγραφή Όλων">Clear All</button>
+      <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-i18n="clearAll">Clear All</button>
     </div>
     <div class="empty-state hidden" id="historyEmpty">
       <i data-lucide="inbox"></i>
-      <p data-en="No history yet." data-gr="Δεν υπάρχει ιστορικό ακόμα.">No history yet.</p>
+      <p data-i18n="noHistory">No history yet.</p>
     </div>
     <div class="session-list" id="historyList"></div>
   </div>
@@ -172,89 +173,164 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="bar-chart-2" class="card-icon"></i>
-      <span class="card-title" data-en="Overview" data-gr="Επισκόπηση">Overview</span>
+      <span class="card-title" data-i18n="overview">Overview</span>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
   </div>
   <div class="card">
     <div class="card-header">
       <i data-lucide="pie-chart" class="card-icon"></i>
-      <span class="card-title" data-en="Files by Category" data-gr="Αρχεία ανά Κατηγορία">Files by Category</span>
+      <span class="card-title" data-i18n="filesByCategory">Files by Category</span>
     </div>
     <div class="chart-wrap" id="chartWrap"></div>
   </div>
 </div>
 
+<!-- ══ DUPLICATES ══ -->
+<div class="page hidden" id="page-duplicates">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="folder-search" class="card-icon"></i>
+      <span class="card-title" data-i18n="selectFolder">Select Folder</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="dupFolderInput" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickDupFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsDup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
+    </div>
+    <div class="scan-group">
+      <button class="scan-btn active" id="scanContentBtn" onclick="scanDuplicates('content')">
+        <i data-lucide="scan-search"></i><span data-i18n="scanByContent">Scan by Content</span>
+      </button>
+      <button class="scan-btn" id="scanNameBtn" onclick="scanDuplicates('name')">
+        <i data-lucide="file-search"></i><span data-i18n="scanByName">Scan by Name</span>
+      </button>
+    </div>
+  </div>
+  <div class="card hidden" id="dupResultsCard">
+    <div class="card-header">
+      <i data-lucide="copy" class="card-icon"></i>
+      <span class="card-title" data-i18n="duplicateFilesFound">Duplicate Files Found</span>
+      <span class="badge badge-green" id="dupCount"></span>
+      <button class="btn btn-danger-outline btn-sm" onclick="deleteSelected()" style="margin-left:auto">
+        <i data-lucide="trash-2"></i><span data-i18n="deleteSelected">Delete Selected</span>
+      </button>
+    </div>
+    <div class="dup-list" id="dupList"></div>
+    <div class="action-row">
+      <button class="btn btn-outline" id="undoDupBtn" style="display:none" onclick="undoDuplicates()">
+        <i data-lucide="undo-2"></i><span data-i18n="undo">Undo</span>
+      </button>
+    </div>
+  </div>
+  <div class="empty-state hidden" id="dupEmpty">
+    <i data-lucide="check-circle"></i>
+    <p data-i18n="noDuplicates">No duplicates found!</p>
+  </div>
+</div>
+
+<!-- ══ WATCHER ══ -->
+<div class="page hidden" id="page-watcher">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="eye" class="card-icon"></i>
+      <span class="card-title" data-i18n="fileWatcher">File Watcher</span>
+      <span class="badge hidden" id="watcherActiveBadge" style="background:rgba(61,219,61,0.15);color:#3ddb3d">● Active</span>
+    </div>
+    <p class="card-desc" data-i18n="watcherDesc">Monitor a folder in real-time. New files are automatically organized as soon as they arrive.</p>
+    <div class="folder-row">
+      <input type="text" id="watcherFolderInput" readonly placeholder="Choose a folder to watch..."/>
+      <button class="btn btn-outline" onclick="pickWatcherFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsWatcher()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-outline" id="startWatcherBtn" onclick="startWatcher()" style="display:none">
+        <i data-lucide="play"></i><span data-i18n="startWatching">Start Watching</span>
+      </button>
+      <button class="btn btn-danger-outline hidden" id="stopWatcherBtn" onclick="stopWatcher()">
+        <i data-lucide="square"></i><span data-i18n="stop">Stop</span>
+      </button>
+    </div>
+  </div>
+  <div class="card hidden" id="watcherLogCard">
+    <div class="card-header">
+      <i data-lucide="activity" class="card-icon"></i>
+      <span class="card-title" data-i18n="activityLog">Activity Log</span>
+      <span class="badge" id="watcherEventCount">0 events</span>
+      <button class="btn btn-outline btn-sm" onclick="clearWatcherLog()" style="margin-left:auto">
+        <i data-lucide="trash-2"></i><span data-i18n="clear">Clear</span>
+      </button>
+    </div>
+    <div class="watcher-log" id="watcherLog"></div>
+  </div>
+</div>
+
 <!-- ══ SETTINGS ══ -->
 <div class="page hidden" id="page-settings">
- 
+
   <!-- Appearance -->
-<div class="card">
-  <div class="card-header">
-    <i data-lucide="palette" class="card-icon"></i>
-    <span class="card-title" data-en="Appearance" data-gr="Εμφάνιση">Appearance</span>
-  </div>
-
-  <div class="setting-row">
-    <div class="setting-info">
-      <div class="setting-title" data-en="Theme" data-gr="Θέμα">Theme</div>
-      <div class="setting-desc" data-en="Choose dark or light interface" data-gr="Σκούρο ή ανοιχτό θέμα">Choose dark or light interface</div>
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="palette" class="card-icon"></i>
+      <span class="card-title" data-i18n="appearance">Appearance</span>
     </div>
-    <div class="theme-toggle-group">
-      <button class="theme-btn active" id="themeDark" onclick="setTheme('dark')" data-en="Dark" data-gr="Σκούρο">Dark</button>
-      <button class="theme-btn" id="themeLight" onclick="setTheme('light')" data-en="Light" data-gr="Ανοιχτό">Light</button>
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="theme">Theme</div>
+        <div class="setting-desc" data-i18n="themeDesc">Choose dark or light interface</div>
+      </div>
+      <div class="theme-toggle-group">
+        <button class="theme-btn active" id="themeDark" onclick="setTheme('dark')" data-i18n="dark">Dark</button>
+        <button class="theme-btn" id="themeLight" onclick="setTheme('light')" data-i18n="light">Light</button>
+      </div>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="accentColor">Accent Color</div>
+        <div class="setting-desc" data-i18n="accentColorDesc">Choose a preset or pick your own</div>
+      </div>
+    </div>
+    <div class="accent-grid" id="accentGrid">
+      <div class="accent-dot selected" data-color="#3ddb3d" onclick="setAccent('#3ddb3d', this)" style="background:#3ddb3d"></div>
+      <div class="accent-dot" data-color="#3b82f6" onclick="setAccent('#3b82f6', this)" style="background:#3b82f6"></div>
+      <div class="accent-dot" data-color="#f59e0b" onclick="setAccent('#f59e0b', this)" style="background:#f59e0b"></div>
+      <div class="accent-dot" data-color="#ef4444" onclick="setAccent('#ef4444', this)" style="background:#ef4444"></div>
+      <div class="accent-dot" data-color="#8b5cf6" onclick="setAccent('#8b5cf6', this)" style="background:#8b5cf6"></div>
+      <div class="accent-dot" data-color="#ec4899" onclick="setAccent('#ec4899', this)" style="background:#ec4899"></div>
+      <div class="accent-dot" data-color="#06b6d4" onclick="setAccent('#06b6d4', this)" style="background:#06b6d4"></div>
+      <div class="accent-dot" data-color="#f97316" onclick="setAccent('#f97316', this)" style="background:#f97316"></div>
+    </div>
+    <div class="setting-row" style="margin-top:8px">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="customColor">Custom Color</div>
+      </div>
+      <input type="color" id="customAccentColor" value="#3ddb3d" onchange="setAccent(this.value, null)" class="color-picker-input"/>
     </div>
   </div>
-
-  <div class="setting-row">
-    <div class="setting-info">
-      <div class="setting-title" data-en="Accent Color" data-gr="Χρώμα Accent">Accent Color</div>
-      <div class="setting-desc" data-en="Choose a preset or pick your own" data-gr="Επιλέξτε χρώμα ή δικό σας">Choose a preset or pick your own</div>
-    </div>
-  </div>
-
-  <div class="accent-grid" id="accentGrid">
-    <div class="accent-dot selected" data-color="#3ddb3d" onclick="setAccent('#3ddb3d', this)" style="background:#3ddb3d"></div>
-    <div class="accent-dot" data-color="#3b82f6" onclick="setAccent('#3b82f6', this)" style="background:#3b82f6"></div>
-    <div class="accent-dot" data-color="#f59e0b" onclick="setAccent('#f59e0b', this)" style="background:#f59e0b"></div>
-    <div class="accent-dot" data-color="#ef4444" onclick="setAccent('#ef4444', this)" style="background:#ef4444"></div>
-    <div class="accent-dot" data-color="#8b5cf6" onclick="setAccent('#8b5cf6', this)" style="background:#8b5cf6"></div>
-    <div class="accent-dot" data-color="#ec4899" onclick="setAccent('#ec4899', this)" style="background:#ec4899"></div>
-    <div class="accent-dot" data-color="#06b6d4" onclick="setAccent('#06b6d4', this)" style="background:#06b6d4"></div>
-    <div class="accent-dot" data-color="#f97316" onclick="setAccent('#f97316', this)" style="background:#f97316"></div>
-  </div>
-
-  <div class="setting-row" style="margin-top:8px">
-    <div class="setting-info">
-      <div class="setting-title" data-en="Custom Color" data-gr="Προσαρμοσμένο Χρώμα">Custom Color</div>
-    </div>
-    <input type="color" id="customAccentColor" value="#3ddb3d" onchange="setAccent(this.value, null)" class="color-picker-input"/>
-  </div>
-
-</div>
 
   <!-- General -->
   <div class="card">
     <div class="card-header">
       <i data-lucide="sliders" class="card-icon"></i>
-      <span class="card-title" data-en="General" data-gr="Γενικά">General</span>
+      <span class="card-title" data-i18n="general">General</span>
     </div>
-
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-title" data-en="Language" data-gr="Γλώσσα">Language</div>
-        <div class="setting-desc" data-en="Interface language" data-gr="Γλώσσα εφαρμογής">Interface language</div>
+        <div class="setting-title" data-i18n="language">Language</div>
+        <div class="setting-desc" data-i18n="interfaceLanguage">Interface language</div>
       </div>
-      <select class="setting-select" id="settingLang" onchange="saveSetting('language', this.value)">
+      <select class="setting-select" id="settingLang" onchange="changeLanguage(this.value)">
         <option value="en">English</option>
         <option value="gr">Ελληνικά</option>
+        <option value="de">Deutsch</option>
+        <option value="es">Español</option>
+        <option value="ru">Русский</option>
       </select>
     </div>
-
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-title" data-en="Default Folder" data-gr="Προεπιλεγμένος Φάκελος">Default Folder</div>
-        <div class="setting-desc" data-en="Auto-select this folder on startup" data-gr="Αυτόματη επιλογή φακέλου κατά την εκκίνηση">Auto-select this folder on startup</div>
+        <div class="setting-title" data-i18n="defaultFolder">Default Folder</div>
+        <div class="setting-desc" data-i18n="defaultFolderDesc">Auto-select this folder on startup</div>
       </div>
       <div class="setting-folder-row">
         <input type="text" id="settingDefaultFolder" readonly placeholder="None"/>
@@ -262,19 +338,17 @@
         <button class="btn btn-outline btn-sm" onclick="clearDefaultFolder()"><i data-lucide="x"></i></button>
       </div>
     </div>
-
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-title" data-en="Start with Windows" data-gr="Εκκίνηση με τα Windows">Start with Windows</div>
-        <div class="setting-desc" data-en="Launch automatically when Windows starts" data-gr="Αυτόματη εκκίνηση με τα Windows">Launch automatically when Windows starts</div>
+        <div class="setting-title" data-i18n="startWithWindows">Start with Windows</div>
+        <div class="setting-desc" data-i18n="startWithWindowsDesc">Launch automatically when Windows starts</div>
       </div>
       <button class="setting-toggle" id="toggleStartWindows" onclick="toggleSetting('startWithWindows')"></button>
     </div>
-
     <div class="setting-row">
       <div class="setting-info">
-        <div class="setting-title" data-en="Minimize to Tray" data-gr="Ελαχιστοποίηση στο Tray">Minimize to Tray</div>
-        <div class="setting-desc" data-en="Keep running in background when closed" data-gr="Συνέχεια στο background όταν κλείνει">Keep running in background when closed</div>
+        <div class="setting-title" data-i18n="minimizeToTray">Minimize to Tray</div>
+        <div class="setting-desc" data-i18n="minimizeToTrayDesc">Keep running in background when closed</div>
       </div>
       <button class="setting-toggle" id="toggleMinimizeTray" onclick="toggleSetting('minimizeToTray')"></button>
     </div>
@@ -284,34 +358,30 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="calendar" class="card-icon"></i>
-      <span class="card-title" data-en="Auto-Schedule" data-gr="Αυτόματη Εκτέλεση">Auto-Schedule</span>
+      <span class="card-title" data-i18n="autoSchedule">Auto-Schedule</span>
     </div>
-    <p class="card-desc" data-en="Choose which days and time to run automatically." data-gr="Επιλέξτε μέρες και ώρα αυτόματης εκτέλεσης.">Choose which days and time to run automatically.</p>
-
+    <p class="card-desc" data-i18n="autoScheduleDesc">Choose which days and time to run automatically.</p>
     <div class="schedule-folder-row">
       <input type="text" id="scheduleFolderInput" readonly placeholder="Select folder to auto-organize..."/>
       <button class="btn btn-outline btn-sm" onclick="pickScheduleFolder()"><i data-lucide="folder-open"></i></button>
     </div>
-
     <div class="days-row" id="daysRow">
-      <button class="day-btn" data-day="MON" onclick="toggleDay(this)" data-en="Mon" data-gr="Δευ">Mon</button>
-      <button class="day-btn" data-day="TUE" onclick="toggleDay(this)" data-en="Tue" data-gr="Τρι">Tue</button>
-      <button class="day-btn" data-day="WED" onclick="toggleDay(this)" data-en="Wed" data-gr="Τετ">Wed</button>
-      <button class="day-btn" data-day="THU" onclick="toggleDay(this)" data-en="Thu" data-gr="Πεμ">Thu</button>
-      <button class="day-btn" data-day="FRI" onclick="toggleDay(this)" data-en="Fri" data-gr="Παρ">Fri</button>
-      <button class="day-btn" data-day="SAT" onclick="toggleDay(this)" data-en="Sat" data-gr="Σαβ">Sat</button>
-      <button class="day-btn" data-day="SUN" onclick="toggleDay(this)" data-en="Sun" data-gr="Κυρ">Sun</button>
+      <button class="day-btn" data-day="MON" onclick="toggleDay(this)">Mon</button>
+      <button class="day-btn" data-day="TUE" onclick="toggleDay(this)">Tue</button>
+      <button class="day-btn" data-day="WED" onclick="toggleDay(this)">Wed</button>
+      <button class="day-btn" data-day="THU" onclick="toggleDay(this)">Thu</button>
+      <button class="day-btn" data-day="FRI" onclick="toggleDay(this)">Fri</button>
+      <button class="day-btn" data-day="SAT" onclick="toggleDay(this)">Sat</button>
+      <button class="day-btn" data-day="SUN" onclick="toggleDay(this)">Sun</button>
     </div>
-
     <div class="time-row">
       <i data-lucide="clock" style="width:14px;height:14px;color:var(--text-dim)"></i>
-      <span class="setting-desc" data-en="Time:" data-gr="Ώρα:">Time:</span>
+      <span class="setting-desc">Time:</span>
       <input type="time" id="scheduleTime" value="09:00" class="time-input"/>
     </div>
-
     <div class="action-row">
-      <button class="btn btn-green" onclick="enableSchedule()"><i data-lucide="play"></i><span data-en="Enable Auto-Run" data-gr="Ενεργοποίηση">Enable Auto-Run</span></button>
-      <button class="btn btn-danger-outline" onclick="disableSchedule()"><i data-lucide="square"></i><span data-en="Disable" data-gr="Απενεργοποίηση">Disable</span></button>
+      <button class="btn btn-green" onclick="enableSchedule()"><i data-lucide="play"></i><span data-i18n="enableAutoRun">Enable Auto-Run</span></button>
+      <button class="btn btn-danger-outline" onclick="disableSchedule()"><i data-lucide="square"></i><span data-i18n="disable">Disable</span></button>
     </div>
     <div id="scheduleMsg" class="status-msg"></div>
   </div>
@@ -320,102 +390,19 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="layers" class="card-icon"></i>
-      <span class="card-title" data-en="Categories & Extensions" data-gr="Κατηγορίες & Επεκτάσεις">Categories & Extensions</span>
+      <span class="card-title" data-i18n="categoriesExtensions">Categories & Extensions</span>
       <button class="btn btn-outline btn-sm" onclick="resetCategories()" style="margin-left:auto">
-        <i data-lucide="refresh-cw"></i><span data-en="Reset" data-gr="Επαναφορά">Reset</span>
+        <i data-lucide="refresh-cw"></i><span data-i18n="reset">Reset</span>
       </button>
     </div>
-    <p class="card-desc" data-en="Enable/disable categories, add or remove extensions, or create your own." data-gr="Ενεργοποιήστε/απενεργοποιήστε κατηγορίες ή προσθέστε επεκτάσεις.">Enable/disable categories, add or remove extensions, or create your own.</p>
+    <p class="card-desc" data-i18n="categoriesDesc">Enable/disable categories, add or remove extensions, or create your own.</p>
     <div class="cat-settings-list" id="catSettingsList"></div>
     <div class="input-row" style="margin-top:12px">
       <input type="text" id="newCatName" placeholder="New category name (e.g. 3D Models)..."/>
-      <button class="btn btn-green" onclick="addCategory()"><i data-lucide="plus"></i><span data-en="Add Category" data-gr="Νέα Κατηγορία">Add Category</span></button>
+      <button class="btn btn-green" onclick="addCategory()"><i data-lucide="plus"></i><span data-i18n="addCategory">Add Category</span></button>
     </div>
   </div>
 
-</div>
-
-<!-- ══ DUPLICATES ══ -->
-<div class="page hidden" id="page-duplicates">
-  <div class="card">
-    <div class="card-header">
-      <i data-lucide="folder-search" class="card-icon"></i>
-      <span class="card-title" data-en="Select Folder" data-gr="Επιλογή Φακέλου">Select Folder</span>
-    </div>
-    <div class="folder-row">
-      <input type="text" id="dupFolderInput" readonly placeholder="Choose a folder..."/>
-      <button class="btn btn-outline" onclick="pickDupFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
-      <button class="btn btn-outline" onclick="useDownloadsDup()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
-    </div>
-    <div class="scan-group">
-      <button class="scan-btn active" id="scanContentBtn" onclick="scanDuplicates('content')">
-        <i data-lucide="scan-search"></i><span data-en="Scan by Content" data-gr="Σάρωση περιεχομένου">Scan by Content</span>
-      </button>
-      <button class="scan-btn" id="scanNameBtn" onclick="scanDuplicates('name')">
-        <i data-lucide="file-search"></i><span data-en="Scan by Name" data-gr="Σάρωση ονόματος">Scan by Name</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="card hidden" id="dupResultsCard">
-    <div class="card-header">
-      <i data-lucide="copy" class="card-icon"></i>
-      <span class="card-title" data-en="Duplicate Files Found" data-gr="Βρέθηκαν Διπλότυπα">Duplicate Files Found</span>
-      <span class="badge badge-green" id="dupCount"></span>
-      <button class="btn btn-danger-outline btn-sm" onclick="deleteSelected()" style="margin-left:auto">
-        <i data-lucide="trash-2"></i><span data-en="Delete Selected" data-gr="Διαγραφή Επιλεγμένων">Delete Selected</span>
-      </button>
-    </div>
-    <div class="dup-list" id="dupList"></div>
-    <div class="action-row">
-      <button class="btn btn-outline" id="undoDupBtn" style="display:none" onclick="undoDuplicates()">
-        <i data-lucide="undo-2"></i><span data-en="Undo" data-gr="Αναίρεση">Undo</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="empty-state hidden" id="dupEmpty">
-    <i data-lucide="check-circle"></i>
-    <p data-en="No duplicates found!" data-gr="Δεν βρέθηκαν διπλότυπα!">No duplicates found!</p>
-  </div>
-</div>
-
-
- <!-- ══ WATCHER ══ -->
-<div class="page hidden" id="page-watcher">
-  <div class="card">
-    <div class="card-header">
-      <i data-lucide="eye" class="card-icon"></i>
-      <span class="card-title" data-en="File Watcher" data-gr="Παρακολούθηση Αρχείων">File Watcher</span>
-      <span class="badge hidden" id="watcherActiveBadge" style="background:rgba(61,219,61,0.15);color:#3ddb3d">● Active</span>
-    </div>
-    <p class="card-desc" data-en="Monitor a folder in real-time. New files are automatically organized as soon as they arrive." data-gr="Παρακολούθηση φακέλου σε πραγματικό χρόνο. Νέα αρχεία οργανώνονται αυτόματα.">Monitor a folder in real-time. New files are automatically organized as soon as they arrive.</p>
-    <div class="folder-row">
-      <input type="text" id="watcherFolderInput" readonly placeholder="Choose a folder to watch..."/>
-      <button class="btn btn-outline" onclick="pickWatcherFolder()"><i data-lucide="folder-open"></i><span data-en="Browse" data-gr="Αναζήτηση">Browse</span></button>
-      <button class="btn btn-outline" onclick="useDownloadsWatcher()"><i data-lucide="download"></i><span data-en="Downloads" data-gr="Λήψεις">Downloads</span></button>
-    </div>
-    <div class="action-row">
-      <button class="btn btn-outline" id="startWatcherBtn" onclick="startWatcher()" style="display:none">
-        <i data-lucide="play"></i><span data-en="Start Watching" data-gr="Έναρξη">Start Watching</span>
-      </button>
-      <button class="btn btn-danger-outline hidden" id="stopWatcherBtn" onclick="stopWatcher()">
-        <i data-lucide="square"></i><span data-en="Stop" data-gr="Διακοπή">Stop</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="card hidden" id="watcherLogCard">
-    <div class="card-header">
-      <i data-lucide="activity" class="card-icon"></i>
-      <span class="card-title" data-en="Activity Log" data-gr="Αρχείο Δραστηριότητας">Activity Log</span>
-      <span class="badge" id="watcherEventCount">0 events</span>
-      <button class="btn btn-outline btn-sm" onclick="clearWatcherLog()" style="margin-left:auto">
-        <i data-lucide="trash-2"></i><span data-en="Clear" data-gr="Καθαρισμός">Clear</span>
-      </button>
-    </div>
-    <div class="watcher-log" id="watcherLog"></div>
-  </div>
 </div>
 
 <!-- Toast -->

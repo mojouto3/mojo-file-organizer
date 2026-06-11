@@ -36,13 +36,38 @@ async function init() {
 // ── Language ──────────────────────────────────────────────────────
 function applyLanguage(l) {
   lang = l;
-  document.querySelectorAll('[data-en]').forEach(el => { el.textContent = el.dataset[lang] || el.dataset['en']; });
+  const t = TRANSLATIONS[l] || TRANSLATIONS['en'];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+}
+
+function changeLanguage(l) {
+  appSettings.language = l;
+  window.api.saveSettings(appSettings);
+  applyLanguage(l);
+  renderSettings();
+  showToast(TRANSLATIONS[l]?.language || 'Language changed');
 }
 
 function toggleLang() {
   lang = lang === 'en' ? 'gr' : 'en';
   applyLanguage(lang);
   saveSetting('language', lang);
+
+  function applyLanguage(l) {
+  lang = l;
+  console.log('applyLanguage called with:', l);
+  const t = TRANSLATIONS[l] || TRANSLATIONS['en'];
+  console.log('translations found:', Object.keys(t).length);
+  const elements = document.querySelectorAll('[data-i18n]');
+  console.log('elements found:', elements.length);
+  elements.forEach(el => {
+    const key = el.dataset.i18n;
+    if (t[key]) el.textContent = t[key];
+  });
+}
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────
