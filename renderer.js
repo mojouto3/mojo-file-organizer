@@ -788,6 +788,34 @@ function applyThemeSettings() {
   }
 }
 
+// ── Export Stats ─────────────────────────────────────────────────
+async function exportStats(format) {
+  const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
+  
+  const options = format === 'csv' ? {
+    title: 'Export to CSV',
+    defaultPath: `mojo-stats-${new Date().toISOString().slice(0,10)}.csv`,
+    filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+  } : {
+    title: 'Export to PDF',
+    defaultPath: `mojo-stats-${new Date().toISOString().slice(0,10)}.pdf`,
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+  };
+
+  const savePath = await window.api.showSaveDialog(options);
+  if (!savePath) return;
+
+  const result = format === 'csv' 
+    ? await window.api.exportCsv(savePath)
+    : await window.api.exportPdf(savePath);
+
+  if (result.ok) {
+    showToast(format === 'csv' ? 'Exported to CSV!' : 'Exported to PDF!');
+  } else {
+    showToast('Export failed: ' + result.error);
+  }
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
