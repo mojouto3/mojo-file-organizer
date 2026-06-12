@@ -41,6 +41,9 @@
   <button class="tab" id="tab-duplicates" onclick="showTab('duplicates')">
     <i data-lucide="copy"></i><span data-i18n="duplicates">Duplicates</span>
   </button>
+  <button class="tab" id="tab-cleanup" onclick="showTab('cleanup')">
+  <i data-lucide="trash-2"></i><span data-i18n="cleanup">Cleanup</span>
+  </button>
   <button class="tab" id="tab-watcher" onclick="showTab('watcher')">
     <i data-lucide="eye"></i><span data-i18n="watcher">Watcher</span>
   </button>
@@ -234,6 +237,59 @@
   <div class="empty-state hidden" id="dupEmpty">
     <i data-lucide="check-circle"></i>
     <p data-i18n="noDuplicates">No duplicates found!</p>
+  </div>
+</div>
+
+<!-- ══ CLEANUP ══ -->
+<div class="page hidden" id="page-cleanup">
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="folder-search" class="card-icon"></i>
+      <span class="card-title" data-i18n="selectFolder">Select Folder</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="cleanupFolderInput" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickCleanupFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      <button class="btn btn-outline" onclick="useDownloadsCleanup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-green" onclick="scanCleanup()">
+        <i data-lucide="search"></i><span data-i18n="scanFolder">Scan Folder</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card hidden" id="cleanupResultsCard">
+    <div class="card-header">
+      <i data-lucide="trash-2" class="card-icon"></i>
+      <span class="card-title" data-i18n="cleanupOverview">Cleanup Overview</span>
+      <span class="badge badge-green" id="cleanupTotalSize"></span>
+    </div>
+
+    <div class="select-all-row">
+      <input type="checkbox" id="selectAllCleanup" onchange="toggleSelectAll(this.checked)" checked/>
+      <label for="selectAllCleanup" class="select-all-label" data-i18n="selectAll">Select All</label>
+      <span class="total-size-label" id="cleanupSelectedSize"></span>
+    </div>
+
+    <div class="cleanup-sections" id="cleanupSections"></div>
+
+    <div class="action-row">
+      <button class="btn btn-green" onclick="runCleanup()">
+        <i data-lucide="trash-2"></i><span data-i18n="cleanSelected">Clean Selected</span>
+      </button>
+      <button class="btn btn-outline" onclick="previewCleanup()">
+        <i data-lucide="eye"></i><span data-i18n="preview">Preview</span>
+      </button>
+      <button class="btn btn-outline" id="undoCleanupBtn" style="display:none;margin-left:auto" onclick="undoCleanup()">
+        <i data-lucide="undo-2"></i><span data-i18n="undo">Undo</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="empty-state hidden" id="cleanupEmpty">
+    <i data-lucide="check-circle"></i>
+    <p data-i18n="nothingToClean">Nothing to clean!</p>
   </div>
 </div>
 

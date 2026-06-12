@@ -80,6 +80,7 @@ function showTab(name) {
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
+  if (name === 'cleanup') {}
 }
 
 // ── Organize ──────────────────────────────────────────────────────
@@ -823,6 +824,174 @@ async function exportStats(format) {
   } else {
     showToast('Export failed: ' + result.error);
   }
+}
+
+// ── Cleanup Tab ───────────────────────────────────────────────────
+let currentCleanupFolder = null;
+let cleanupScanResults = null;
+let lastCleanupDeleted = [];
+
+async function pickCleanupFolder()    { const f = await window.api.pickFolder();   if (f) setCleanupFolder(f); }
+async function useDownloadsCleanup()  { const f = await window.api.getDownloads(); if (f) setCleanupFolder(f); }
+
+function setCleanupFolder(folder) {
+  currentCleanupFolder = folder;
+  document.getElementById('cleanupFolderInput').value = folder;
+}
+
+async function scanCleanup() {
+  if (!currentCleanupFolder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
+
+  const results = await window.api.scanCleanup(currentCleanupFolder);
+  cleanupScanResults = results;
+
+  const totalSize = results.installers.totalSize + results.junk.totalSize + results.duplicates.totalSize;
+
+  if (totalSize === 0 && results.emptyFolders.count === 0) {
+    document.getElementById('cleanupResultsCard').classList.add('hidden');
+    document.getElementById('cleanupEmpty').classList.remove('hidden');
+    lucide.createIcons();
+    return;
+  }
+
+  document.getElementById('cleanupEmpty').classList.add('hidden');
+  document.getElementById('cleanupResultsCard').classList.remove('hidden');
+  document.getElementById('cleanupTotalSize').textContent = formatSize(totalSize) + ' found';
+
+  const maxSize = Math.max(results.installers.totalSize, results.junk.totalSize, results.duplicates.totalSize, 1);
+
+  const sections = [
+    {
+      id: 'installers', icon: '⚙️',
+      title: lang === 'en' ? 'Installers' : 'Εγκαταστάτες',
+      desc: '.exe .msi .pkg .dmg',
+      size: results.installers.totalSize,
+      count: results.installers.files.length,
+      label: lang === 'en' ? 'files' : 'αρχεία'
+    },
+    {
+      id: 'junk', icon: '🗑️',
+      title: lang === 'en' ? 'Temp and Junk' : 'Προσωρινά αρχεία',
+      desc: '.tmp .log .cache .bak',
+      size: results.junk.totalSize,
+      count: results.junk.files.length,
+      label: lang === 'en' ? 'files' : 'αρχεία'
+    },
+    {
+      id: 'duplicates', icon: '📄',
+      title: lang === 'en' ? 'Duplicate Files' : 'Διπλότυπα αρχεία',
+      desc: lang === 'en' ? 'Identical files by content' : 'Ίδιο περιεχόμενο',
+      size: results.duplicates.totalSize,
+      count: results.duplicates.files.length,
+      label: lang === 'en' ? 'files' : 'αρχεία'
+    },
+    {
+      id: 'emptyFolders', icon: '📁',
+      title: lang === 'en' ? 'Empty Folders' : 'Άδειοι φάκελοι',
+      desc: lang === 'en' ? 'Folders with no files' : 'Φάκελοι χωρίς αρχεία',
+      size: 0,
+      count: results.emptyFolders.count,
+      label: lang === 'en' ? 'folders' : 'φάκελοι'
+    }
+  ];
+
+  const container = document.getElementById('cleanupSections');
+  container.innerHTML = sections.map(s => `
+    <div class="cleanup-section">
+      <div class="cleanup-section-row" onclick="toggleCleanupSection('${s.id}')">
+        <input type="checkbox" id="check-${s.id}" checked onclick="event.stopPropagation();updateCleanupTotal()"/>
+        <span class="cleanup-section-icon">${s.icon}</span>
+        <div class="cleanup-section-info">
+          <div class="cleanup-section-title">${s.title}</div>
+          <div class="cleanup-section-desc">${s.desc}</div>
+          <div class="cleanup-section-bar">
+            <div class="cleanup-section-fill" style="width:${s.size ? Math.round((s.size/maxSize)*100) : 0}%"></div>
+          </div>
+        </div>
+        <div class="cleanup-section-stats">
+          <div class="cleanup-section-size">${s.size ? formatSize(s.size) : '—'}</div>
+          <div class="cleanup-section-count">${s.count} ${s.label}</div>
+        </div>
+      </div>
+    </div>`).join('');
+
+  updateCleanupTotal();
+  lucide.createIcons();
+}
+
+function toggleCleanupSection(id) {
+  const cb = document.getElementById(`check-${id}`);
+  cb.checked = !cb.checked;
+  updateCleanupTotal();
+}
+
+function toggleSelectAll(checked) {
+  ['installers','junk','duplicates','emptyFolders'].forEach(id => {
+    const cb = document.getElementById(`check-${id}`);
+    if (cb) cb.checked = checked;
+  });
+  updateCleanupTotal();
+}
+
+function updateCleanupTotal() {
+  if (!cleanupScanResults) return;
+  let total = 0;
+  if (document.getElementById('check-installers')?.checked)   total += cleanupScanResults.installers.totalSize;
+  if (document.getElementById('check-junk')?.checked)         total += cleanupScanResults.junk.totalSize;
+  if (document.getElementById('check-duplicates')?.checked)   total += cleanupScanResults.duplicates.totalSize;
+  document.getElementById('cleanupSelectedSize').textContent = formatSize(total) + ' selected';
+
+  const allChecked = ['installers','junk','duplicates','emptyFolders'].every(id => document.getElementById(`check-${id}`)?.checked);
+  document.getElementById('selectAllCleanup').checked = allChecked;
+}
+
+function previewCleanup() {
+  if (!cleanupScanResults) return;
+  const lines = [];
+  if (document.getElementById('check-installers')?.checked)
+    cleanupScanResults.installers.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
+  if (document.getElementById('check-junk')?.checked)
+    cleanupScanResults.junk.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
+  if (document.getElementById('check-duplicates')?.checked)
+    cleanupScanResults.duplicates.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
+  if (document.getElementById('check-emptyFolders')?.checked)
+    cleanupScanResults.emptyFolders.folders.forEach(f => lines.push(`${f.name} (empty folder)`));
+
+  alert(lines.length ? lines.join('\n') : 'Nothing selected');
+}
+
+async function runCleanup() {
+  if (!cleanupScanResults) return;
+
+  const toDelete = {
+    installers:   document.getElementById('check-installers')?.checked   ? cleanupScanResults.installers.files : null,
+    junk:         document.getElementById('check-junk')?.checked         ? cleanupScanResults.junk.files : null,
+    duplicates:   document.getElementById('check-duplicates')?.checked   ? cleanupScanResults.duplicates.files : null,
+    emptyFolders: document.getElementById('check-emptyFolders')?.checked ? cleanupScanResults.emptyFolders.folders : null,
+  };
+
+  const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.emptyFolders]
+    .filter(Boolean).reduce((s, arr) => s + arr.length, 0);
+
+  if (totalCount === 0) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }
+  if (!confirm(lang === 'en' ? `Delete ${totalCount} item(s)?` : `Διαγραφή ${totalCount} στοιχείων;`)) return;
+
+  const result = await window.api.runCleanup(toDelete);
+  lastCleanupDeleted = result.deleted;
+
+  document.getElementById('undoCleanupBtn').style.display = result.deleted.length ? 'flex' : 'none';
+  showToast(lang === 'en' ? `${result.deleted.length} item(s) cleaned!` : `Καθαρίστηκαν ${result.deleted.length} στοιχεία!`);
+  await scanCleanup();
+}
+
+async function undoCleanup() {
+  if (!lastCleanupDeleted.length) return;
+  const result = await window.api.restoreCleanup(lastCleanupDeleted);
+  lastCleanupDeleted = [];
+  document.getElementById('undoCleanupBtn').style.display = 'none';
+  showToast(lang === 'en' ? `Restored ${result.restored.length} item(s)` : `Επαναφορά ${result.restored.length} στοιχείων`);
+  await scanCleanup();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
