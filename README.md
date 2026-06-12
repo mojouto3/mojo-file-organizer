@@ -226,7 +226,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ## Roadmap
 
 - [ ] Portable version (no installer needed)
-- [ ] French, Italian translations
 - [ ] Folder size analyzer
 - [ ] Cloud backup integration
 
