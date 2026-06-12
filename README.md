@@ -215,11 +215,22 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ---
 
+
 ## Roadmap
 
+### UI/UX
 - [ ] Portable version (no installer needed)
 - [ ] Folder size treemap visualization
-- [ ] Cloud backup integration
+
+### Features
+- [ ] File preview on hover (image thumbnails in organize preview)
+- [ ] Scheduled cleanup (automatic cleanup like auto-schedule for organize)
+- [ ] Drag and drop files into the app
+
+### Smart Features
+- [ ] Auto-detect duplicate apps and installers
+- [ ] Suggested cleanup based on session history
+
 
 ---
 
