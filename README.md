@@ -16,7 +16,7 @@
 
 ---
 
-![Mojo File Organizer Screenshot](assets/screenshot.png)
+![Mojo File Organizer Screenshot](assets/screenshot_new.png))
 
 </div>
 
