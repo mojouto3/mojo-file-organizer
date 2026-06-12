@@ -442,6 +442,117 @@ ipcMain.handle('show-save-dialog', async (_, options) => {
   return result.canceled ? null : result.filePath;
 });
 
+// ── IPC: Cleanup ──────────────────────────────────────────────────
+const INSTALLER_EXTS = ['.exe','.msi','.msix','.appx','.apk','.deb','.rpm','.pkg','.dmg'];
+const JUNK_EXTS = ['.tmp','.log','.cache','.bak','.temp','.old','.DS_Store'];
+const JUNK_NAMES = ['thumbs.db','desktop.ini','.ds_store'];
+
+function getFileSize(filePath) {
+  try { return fs.statSync(filePath).size; } catch (e) { return 0; }
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function scanFolder(folderPath) {
+  const installers = [], junk = [], emptyFolders = [];
+  try {
+    const items = fs.readdirSync(folderPath, { withFileTypes: true });
+    for (const item of items) {
+      const fullPath = path.join(folderPath, item.name);
+      if (item.isDirectory()) {
+        try {
+          const contents = fs.readdirSync(fullPath);
+          if (contents.length === 0) emptyFolders.push({ name: item.name, path: fullPath, size: 0 });
+        } catch (e) {}
+      } else {
+        const ext = path.extname(item.name).toLowerCase();
+        const nameLower = item.name.toLowerCase();
+        const size = getFileSize(fullPath);
+        if (INSTALLER_EXTS.includes(ext)) {
+          installers.push({ name: item.name, path: fullPath, size });
+        } else if (JUNK_EXTS.includes(ext) || JUNK_NAMES.includes(nameLower)) {
+          junk.push({ name: item.name, path: fullPath, size });
+        }
+      }
+    }
+  } catch (e) {}
+  return { installers, junk, emptyFolders };
+}
+
+ipcMain.handle('scan-cleanup', async (_, folderPath) => {
+  const { installers, junk, emptyFolders } = scanFolder(folderPath);
+
+  // Duplicates
+  const cats = readCategories();
+  const hashMap = {};
+  const duplicates = [];
+  try {
+    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    for (const f of files) {
+      const fullPath = path.join(folderPath, f.name);
+      const hash = hashFile(fullPath);
+      if (!hash) continue;
+      if (hashMap[hash]) {
+        duplicates.push({ name: f.name, path: fullPath, size: getFileSize(fullPath) });
+      } else {
+        hashMap[hash] = fullPath;
+      }
+    }
+  } catch (e) {}
+
+  return {
+    installers: { files: installers, totalSize: installers.reduce((s, f) => s + f.size, 0) },
+    junk:       { files: junk,       totalSize: junk.reduce((s, f) => s + f.size, 0) },
+    duplicates: { files: duplicates, totalSize: duplicates.reduce((s, f) => s + f.size, 0) },
+    emptyFolders: { folders: emptyFolders, count: emptyFolders.length }
+  };
+});
+
+ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders }) => {
+  const trashDir = path.join(os.homedir(), '.mojo-trash');
+  if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
+  const deleted = [], errors = [];
+
+  const deleteFile = (file) => {
+    try {
+      const trashPath = path.join(trashDir, `${Date.now()}_${file.name}`);
+      fs.renameSync(file.path, trashPath);
+      deleted.push({ ...file, trashPath });
+    } catch (e) { errors.push({ name: file.name, error: e.message }); }
+  };
+
+  const deleteFolder = (folder) => {
+    try { fs.rmdirSync(folder.path); deleted.push(folder); }
+    catch (e) { errors.push({ name: folder.name, error: e.message }); }
+  };
+
+  if (installers) installers.forEach(deleteFile);
+  if (junk)       junk.forEach(deleteFile);
+  if (duplicates) duplicates.forEach(deleteFile);
+  if (emptyFolders) emptyFolders.forEach(deleteFolder);
+
+  sendNotification('Mojo File Organizer', `Cleanup complete — ${deleted.length} items removed`);
+  return { deleted, errors };
+});
+
+ipcMain.handle('restore-cleanup', async (_, files) => {
+  const restored = [], errors = [];
+  for (const f of files) {
+    try {
+      if (f.trashPath && fs.existsSync(f.trashPath)) {
+        fs.renameSync(f.trashPath, f.path);
+        restored.push(f.name);
+      }
+    } catch (e) { errors.push({ name: f.name, error: e.message }); }
+  }
+  return { restored, errors };
+});
+
 // ── IPC: Window ───────────────────────────────────────────────────
 ipcMain.on('minimize', () => mainWindow.minimize());
 ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());

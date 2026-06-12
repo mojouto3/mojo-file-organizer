@@ -99,6 +99,12 @@ const TRANSLATIONS = {
     scheduleFailedMsg: '✗ Failed — try running as Administrator',
     autoRunDisabled: '✓ Auto-run disabled',
     noTaskFound: '✗ No task found',
+    cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',
   },
 
   gr: {
@@ -190,6 +196,12 @@ const TRANSLATIONS = {
     scheduleFailedMsg: '✗ Αποτυχία — δοκιμάστε ως Διαχειριστής',
     autoRunDisabled: '✓ Απενεργοποιήθηκε',
     noTaskFound: '✗ Δεν βρέθηκε εργασία',
+    cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',
   },
 
   de: {
@@ -281,6 +293,12 @@ const TRANSLATIONS = {
     scheduleFailedMsg: '✗ Fehlgeschlagen — Als Administrator ausführen',
     autoRunDisabled: '✓ Automatisch deaktiviert',
     noTaskFound: '✗ Keine Aufgabe gefunden',
+    cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',
   },
 
   es: {
@@ -372,6 +390,17 @@ const TRANSLATIONS = {
     scheduleFailedMsg: '✗ Error — Ejecutar como Administrador',
     autoRunDisabled: '✓ Ejecución automática desactivada',
     noTaskFound: '✗ No se encontró tarea',
+    cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',
   },
 
   ru: {
@@ -463,6 +492,12 @@ const TRANSLATIONS = {
     scheduleFailedMsg: '✗ Ошибка — Запустить как Администратор',
     autoRunDisabled: '✓ Автозапуск отключён',
     noTaskFound: '✗ Задача не найдена',
+    cleanup: 'Cleanup',
+scanFolder: 'Scan Folder',
+cleanupOverview: 'Cleanup Overview',
+selectAll: 'Select All',
+cleanSelected: 'Clean Selected',
+nothingToClean: 'Nothing to clean!',
   }
 };
 
