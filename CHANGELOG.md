@@ -80,3 +80,15 @@ All notable changes to Mojo File Organizer are documented here.
 ## Previous versions
 
 See the lite edition at [downloads-organizer-v2](https://github.com/mojouto3/downloads-organizer-v2) for v2.x history and [downloads-organizer](https://github.com/mojouto3/downloads-organizer) for v1.x history.
+
+---
+
+## [3.4.0] - 2026-06-16
+
+### Added
+- Folder Bookmarks across Organize, Smart Group, Duplicates, Cleanup and Watcher tabs
+- Star icon to bookmark frequently used folders with one click
+- Bookmarks saved persistently and shared across all tabs
+- File Age Cleanup in the Cleanup tab
+- Old Files threshold selector: 3, 6, 12 months or custom value
+- Old Files fully integrated with Select All, Preview, Clean Selected and Undo
