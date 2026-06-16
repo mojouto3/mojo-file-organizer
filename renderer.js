@@ -18,6 +18,7 @@ async function init() {
   if (appSettings.accent) document.documentElement.style.setProperty('--accent', appSettings.accent);
   categories  = await window.api.getCategories();
   groups      = await window.api.getGroups();
+  await loadBookmarks();
 
   applyLanguage(appSettings.language);
   renderGroupChips();
@@ -30,7 +31,7 @@ async function init() {
 
   document.getElementById('groupNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addGroup(); });
   document.getElementById('newCatName').addEventListener('keydown',     e => { if (e.key === 'Enter') addCategory(); });
-  
+
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -49,25 +50,6 @@ function changeLanguage(l) {
   applyLanguage(l);
   renderSettings();
   showToast(TRANSLATIONS[l]?.language || 'Language changed');
-}
-
-function toggleLang() {
-  lang = lang === 'en' ? 'gr' : 'en';
-  applyLanguage(lang);
-  saveSetting('language', lang);
-
-  function applyLanguage(l) {
-  lang = l;
-  console.log('applyLanguage called with:', l);
-  const t = TRANSLATIONS[l] || TRANSLATIONS['en'];
-  console.log('translations found:', Object.keys(t).length);
-  const elements = document.querySelectorAll('[data-i18n]');
-  console.log('elements found:', elements.length);
-  elements.forEach(el => {
-    const key = el.dataset.i18n;
-    if (t[key]) el.textContent = t[key];
-  });
-}
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────
@@ -370,8 +352,8 @@ async function loadStats() {
 }
 
 // ── Settings ──────────────────────────────────────────────────────
-applyThemeSettings();
 async function renderSettings() {
+  applyThemeSettings();
   // Apply saved values to UI
   document.getElementById('settingLang').value = appSettings.language || 'en';
   document.getElementById('settingDefaultFolder').value = appSettings.defaultFolder || '';
@@ -771,7 +753,7 @@ function setAccent(color, dotEl) {
   const r = parseInt(color.slice(1,3), 16);
   const g = parseInt(color.slice(3,5), 16);
   const b = parseInt(color.slice(5,7), 16);
-  
+
   document.documentElement.style.setProperty('--accent', color);
   document.documentElement.style.setProperty('--green', color);
   document.documentElement.style.setProperty('--green-dim', `rgba(${r},${g},${b},0.12)`);
@@ -801,7 +783,7 @@ function applyThemeSettings() {
 // ── Export Stats ─────────────────────────────────────────────────
 async function exportStats(format) {
   const t = TRANSLATIONS[lang] || TRANSLATIONS['en'];
-  
+
   const options = format === 'csv' ? {
     title: 'Export to CSV',
     defaultPath: `mojo-stats-${new Date().toISOString().slice(0,10)}.csv`,
@@ -815,7 +797,7 @@ async function exportStats(format) {
   const savePath = await window.api.showSaveDialog(options);
   if (!savePath) return;
 
-  const result = format === 'csv' 
+  const result = format === 'csv'
     ? await window.api.exportCsv(savePath)
     : await window.api.exportPdf(savePath);
 
@@ -992,6 +974,86 @@ async function undoCleanup() {
   document.getElementById('undoCleanupBtn').style.display = 'none';
   showToast(lang === 'en' ? `Restored ${result.restored.length} item(s)` : `Επαναφορά ${result.restored.length} στοιχείων`);
   await scanCleanup();
+}
+
+// ── Bookmarks ─────────────────────────────────────────────────────
+let bookmarksList = [];
+
+async function loadBookmarks() {
+  bookmarksList = await window.api.getBookmarks();
+}
+
+function toggleBookmarkPanel(context) {
+  const panel = document.getElementById(`bookmarkPanel-${context}`);
+  const isHidden = panel.classList.contains('hidden');
+  if (isHidden) {
+    renderBookmarkPanel(context);
+    panel.classList.remove('hidden');
+  } else {
+    panel.classList.add('hidden');
+  }
+}
+
+function renderBookmarkPanel(context) {
+  const panel = document.getElementById(`bookmarkPanel-${context}`);
+  const currentFolderValue = getCurrentFolderForContext(context);
+
+  let html = `
+    <div class="bookmark-add-row">
+      <button class="btn btn-green btn-sm" onclick="bookmarkCurrentFolder('${context}')">
+        <i data-lucide="bookmark-plus"></i> ${lang === 'en' ? 'Bookmark current folder' : 'Αποθήκευση τρέχοντος φακέλου'}
+      </button>
+    </div>`;
+
+  if (!bookmarksList.length) {
+    html += `<div class="bookmark-empty">${lang === 'en' ? 'No bookmarks yet.' : 'Δεν υπάρχουν σελιδοδείκτες ακόμα.'}</div>`;
+  } else {
+    html += bookmarksList.map(b => `
+      <div class="bookmark-item" onclick="useBookmark('${context}', '${b.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <i data-lucide="star" class="star-icon"></i>
+        <span class="bookmark-name">${b.name}</span>
+        <span class="bookmark-path" title="${b.path}">${b.path}</span>
+        <button class="bookmark-remove" onclick="event.stopPropagation();removeBookmarkItem(${b.id}, '${context}')">
+          <i data-lucide="x"></i>
+        </button>
+      </div>`).join('');
+  }
+
+  panel.innerHTML = html;
+  lucide.createIcons();
+}
+
+function getCurrentFolderForContext(context) {
+  if (context === 'organize')   return document.getElementById('folderInput').value;
+  if (context === 'group')      return document.getElementById('groupFolderInput').value;
+  if (context === 'duplicates') return document.getElementById('dupFolderInput').value;
+  if (context === 'cleanup')    return document.getElementById('cleanupFolderInput').value;
+  if (context === 'watcher')    return document.getElementById('watcherFolderInput').value;
+  return '';
+}
+
+function useBookmark(context, folderPath) {
+  if (context === 'organize')   setFolder(folderPath);
+  if (context === 'group')      setGroupFolder(folderPath);
+  if (context === 'duplicates') setDupFolder(folderPath);
+  if (context === 'cleanup')    setCleanupFolder(folderPath);
+  if (context === 'watcher')    document.getElementById('watcherFolderInput').value = folderPath;
+  document.getElementById(`bookmarkPanel-${context}`).classList.add('hidden');
+}
+
+async function bookmarkCurrentFolder(context) {
+  const folder = getCurrentFolderForContext(context);
+  if (!folder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+
+  bookmarksList = await window.api.addBookmark(folder);
+  showToast(lang === 'en' ? 'Bookmark added!' : 'Προστέθηκε σελιδοδείκτης!');
+  renderBookmarkPanel(context);
+}
+
+async function removeBookmarkItem(id, context) {
+  bookmarksList = await window.api.removeBookmark(id);
+  renderBookmarkPanel(context);
+  showToast(lang === 'en' ? 'Bookmark removed' : 'Αφαιρέθηκε');
 }
 
 // ── Helpers ───────────────────────────────────────────────────────
