@@ -37,7 +37,7 @@ contextBridge.exposeInMainWorld('api', {
   exportCsv:      (path)    => ipcRenderer.invoke('export-csv', path),
  exportPdf:      (path)    => ipcRenderer.invoke('export-pdf', path),
  showSaveDialog: (opts)    => ipcRenderer.invoke('show-save-dialog', opts),
- scanCleanup:    (folder) => ipcRenderer.invoke('scan-cleanup', folder),
+ scanCleanup:    (opts)   => ipcRenderer.invoke('scan-cleanup', opts),
 runCleanup:     (opts)   => ipcRenderer.invoke('run-cleanup', opts),
 restoreCleanup: (files)  => ipcRenderer.invoke('restore-cleanup', files),
 });
