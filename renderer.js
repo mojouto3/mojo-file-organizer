@@ -812,6 +812,7 @@ async function exportStats(format) {
 let currentCleanupFolder = null;
 let cleanupScanResults = null;
 let lastCleanupDeleted = [];
+let ageThresholdMonths = 6;
 
 async function pickCleanupFolder()    { const f = await window.api.pickFolder();   if (f) setCleanupFolder(f); }
 async function useDownloadsCleanup()  { const f = await window.api.getDownloads(); if (f) setCleanupFolder(f); }
@@ -821,14 +822,24 @@ function setCleanupFolder(folder) {
   document.getElementById('cleanupFolderInput').value = folder;
 }
 
+function setAgeThreshold(months, btnEl) {
+  if (!months || months < 1) return;
+  ageThresholdMonths = months;
+  document.querySelectorAll('#ageThresholdGroup .theme-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) {
+    btnEl.classList.add('active');
+    document.getElementById('customAgeMonths').value = '';
+  }
+}
+
 async function scanCleanup() {
   if (!currentCleanupFolder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
   showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
 
-  const results = await window.api.scanCleanup(currentCleanupFolder);
+  const results = await window.api.scanCleanup({ folderPath: currentCleanupFolder, oldFilesMonths: ageThresholdMonths });
   cleanupScanResults = results;
 
-  const totalSize = results.installers.totalSize + results.junk.totalSize + results.duplicates.totalSize;
+  const totalSize = results.installers.totalSize + results.junk.totalSize + results.duplicates.totalSize + (results.oldFiles?.totalSize || 0);
 
   if (totalSize === 0 && results.emptyFolders.count === 0) {
     document.getElementById('cleanupResultsCard').classList.add('hidden');
@@ -841,7 +852,7 @@ async function scanCleanup() {
   document.getElementById('cleanupResultsCard').classList.remove('hidden');
   document.getElementById('cleanupTotalSize').textContent = formatSize(totalSize) + ' found';
 
-  const maxSize = Math.max(results.installers.totalSize, results.junk.totalSize, results.duplicates.totalSize, 1);
+  const maxSize = Math.max(results.installers.totalSize, results.junk.totalSize, results.duplicates.totalSize, results.oldFiles?.totalSize || 0, 1);
 
   const sections = [
     {
@@ -866,6 +877,14 @@ async function scanCleanup() {
       desc: lang === 'en' ? 'Identical files by content' : 'Ίδιο περιεχόμενο',
       size: results.duplicates.totalSize,
       count: results.duplicates.files.length,
+      label: lang === 'en' ? 'files' : 'αρχεία'
+    },
+    {
+      id: 'oldFiles', icon: '🕒',
+      title: lang === 'en' ? 'Old Files' : 'Παλιά αρχεία',
+      desc: lang === 'en' ? `Not used in ${ageThresholdMonths} month(s)` : `Αχρησιμοποίητα ${ageThresholdMonths} μήνες`,
+      size: results.oldFiles?.totalSize || 0,
+      count: results.oldFiles?.files.length || 0,
       label: lang === 'en' ? 'files' : 'αρχεία'
     },
     {
@@ -909,7 +928,7 @@ function toggleCleanupSection(id) {
 }
 
 function toggleSelectAll(checked) {
-  ['installers','junk','duplicates','emptyFolders'].forEach(id => {
+  ['installers','junk','duplicates','oldFiles','emptyFolders'].forEach(id => {
     const cb = document.getElementById(`check-${id}`);
     if (cb) cb.checked = checked;
   });
@@ -922,9 +941,10 @@ function updateCleanupTotal() {
   if (document.getElementById('check-installers')?.checked)   total += cleanupScanResults.installers.totalSize;
   if (document.getElementById('check-junk')?.checked)         total += cleanupScanResults.junk.totalSize;
   if (document.getElementById('check-duplicates')?.checked)   total += cleanupScanResults.duplicates.totalSize;
+  if (document.getElementById('check-oldFiles')?.checked)     total += (cleanupScanResults.oldFiles?.totalSize || 0);
   document.getElementById('cleanupSelectedSize').textContent = formatSize(total) + ' selected';
 
-  const allChecked = ['installers','junk','duplicates','emptyFolders'].every(id => document.getElementById(`check-${id}`)?.checked);
+  const allChecked = ['installers','junk','duplicates','oldFiles','emptyFolders'].every(id => document.getElementById(`check-${id}`)?.checked);
   document.getElementById('selectAllCleanup').checked = allChecked;
 }
 
@@ -937,6 +957,8 @@ function previewCleanup() {
     cleanupScanResults.junk.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
   if (document.getElementById('check-duplicates')?.checked)
     cleanupScanResults.duplicates.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
+  if (document.getElementById('check-oldFiles')?.checked)
+    (cleanupScanResults.oldFiles?.files || []).forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
   if (document.getElementById('check-emptyFolders')?.checked)
     cleanupScanResults.emptyFolders.folders.forEach(f => lines.push(`${f.name} (empty folder)`));
 
@@ -950,10 +972,11 @@ async function runCleanup() {
     installers:   document.getElementById('check-installers')?.checked   ? cleanupScanResults.installers.files : null,
     junk:         document.getElementById('check-junk')?.checked         ? cleanupScanResults.junk.files : null,
     duplicates:   document.getElementById('check-duplicates')?.checked   ? cleanupScanResults.duplicates.files : null,
+    oldFiles:     document.getElementById('check-oldFiles')?.checked     ? (cleanupScanResults.oldFiles?.files || []) : null,
     emptyFolders: document.getElementById('check-emptyFolders')?.checked ? cleanupScanResults.emptyFolders.folders : null,
   };
 
-  const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.emptyFolders]
+  const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.oldFiles, toDelete.emptyFolders]
     .filter(Boolean).reduce((s, arr) => s + arr.length, 0);
 
   if (totalCount === 0) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }

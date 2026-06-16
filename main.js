@@ -411,7 +411,6 @@ ipcMain.handle('export-pdf', async (_, exportPath) => {
     }
     const totalFiles = sessions.reduce((sum, s) => sum + s.total, 0);
 
-    // Build HTML for PDF
     const categoryRows = Object.entries(byCategory)
       .sort((a, b) => b[1] - a[1])
       .map(([cat, count]) => `<tr><td>${cat}</td><td>${count}</td></tr>`)
@@ -451,7 +450,6 @@ ipcMain.handle('export-pdf', async (_, exportPath) => {
 </body>
 </html>`;
 
-    // Create temp window for PDF
     const pdfWin = new BrowserWindow({ show: false, webPreferences: { offscreen: true } });
     await pdfWin.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
     const pdfData = await pdfWin.webContents.printToPDF({ marginsType: 1, printBackground: true });
@@ -510,11 +508,30 @@ function scanFolder(folderPath) {
   return { installers, junk, emptyFolders };
 }
 
-ipcMain.handle('scan-cleanup', async (_, folderPath) => {
+function scanOldFiles(folderPath, monthsThreshold) {
+  const oldFiles = [];
+  const cutoff = Date.now() - (monthsThreshold * 30 * 24 * 60 * 60 * 1000);
+  try {
+    const items = fs.readdirSync(folderPath, { withFileTypes: true });
+    for (const item of items) {
+      if (!item.isFile()) continue;
+      const fullPath = path.join(folderPath, item.name);
+      try {
+        const stat = fs.statSync(fullPath);
+        const lastUsed = Math.max(stat.mtimeMs, stat.atimeMs);
+        if (lastUsed < cutoff) {
+          oldFiles.push({ name: item.name, path: fullPath, size: stat.size, lastModified: stat.mtime.toISOString() });
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return oldFiles;
+}
+
+ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
   const { installers, junk, emptyFolders } = scanFolder(folderPath);
 
   // Duplicates
-  const cats = readCategories();
   const hashMap = {};
   const duplicates = [];
   try {
@@ -531,15 +548,19 @@ ipcMain.handle('scan-cleanup', async (_, folderPath) => {
     }
   } catch (e) {}
 
+  // Old files
+  const oldFiles = oldFilesMonths ? scanOldFiles(folderPath, oldFilesMonths) : [];
+
   return {
     installers: { files: installers, totalSize: installers.reduce((s, f) => s + f.size, 0) },
     junk:       { files: junk,       totalSize: junk.reduce((s, f) => s + f.size, 0) },
     duplicates: { files: duplicates, totalSize: duplicates.reduce((s, f) => s + f.size, 0) },
-    emptyFolders: { folders: emptyFolders, count: emptyFolders.length }
+    emptyFolders: { folders: emptyFolders, count: emptyFolders.length },
+    oldFiles: { files: oldFiles, totalSize: oldFiles.reduce((s, f) => s + f.size, 0) }
   };
 });
 
-ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders }) => {
+ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders, oldFiles }) => {
   const trashDir = path.join(os.homedir(), '.mojo-trash');
   if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
   const deleted = [], errors = [];
@@ -561,6 +582,7 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
   if (junk)       junk.forEach(deleteFile);
   if (duplicates) duplicates.forEach(deleteFile);
   if (emptyFolders) emptyFolders.forEach(deleteFolder);
+  if (oldFiles) oldFiles.forEach(deleteFile);
 
   sendNotification('Mojo File Organizer', `Cleanup complete — ${deleted.length} items removed`);
   return { deleted, errors };

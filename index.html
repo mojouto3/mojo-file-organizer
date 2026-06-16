@@ -260,6 +260,18 @@
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('cleanup')" id="bookmarkBtn-cleanup"><i data-lucide="star"></i></button>
     </div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-cleanup"></div>
+    <div class="setting-row" style="margin-top:8px">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="oldFilesThreshold">Old Files Threshold</div>
+        <div class="setting-desc" data-i18n="oldFilesThresholdDesc">Find files not used since</div>
+      </div>
+      <div class="theme-toggle-group" id="ageThresholdGroup">
+        <button class="theme-btn" data-months="3" onclick="setAgeThreshold(3, this)">3mo</button>
+        <button class="theme-btn active" data-months="6" onclick="setAgeThreshold(6, this)">6mo</button>
+        <button class="theme-btn" data-months="12" onclick="setAgeThreshold(12, this)">12mo</button>
+        <input type="number" id="customAgeMonths" min="1" placeholder="Custom" class="time-input" style="width:70px" onchange="setAgeThreshold(parseInt(this.value), null)"/>
+      </div>
+    </div>
     <div class="action-row">
       <button class="btn btn-green" onclick="scanCleanup()">
         <i data-lucide="search"></i><span data-i18n="scanFolder">Scan Folder</span>
