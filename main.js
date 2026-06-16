@@ -193,6 +193,32 @@ function getUniqueDest(destFolder, filename) {
   do { dest = path.join(destFolder, `${base}_${i}${ext}`); i++; } while (fs.existsSync(dest));
   return dest;
 }
+// ── Bookmarks helpers ─────────────────────────────────────────────
+const BOOKMARKS_FILE = path.join(os.homedir(), 'mojo-organizer.bookmarks.json');
+
+function readBookmarks() {
+  try { if (fs.existsSync(BOOKMARKS_FILE)) return JSON.parse(fs.readFileSync(BOOKMARKS_FILE, 'utf8')); } catch (e) {}
+  return [];
+}
+function writeBookmarks(b) { fs.writeFileSync(BOOKMARKS_FILE, JSON.stringify(b, null, 2)); }
+
+// ── IPC: Bookmarks ────────────────────────────────────────────────
+ipcMain.handle('get-bookmarks', async () => readBookmarks());
+
+ipcMain.handle('add-bookmark', async (_, folderPath) => {
+  const bookmarks = readBookmarks();
+  if (bookmarks.find(b => b.path === folderPath)) return bookmarks;
+  const name = path.basename(folderPath) || folderPath;
+  bookmarks.push({ id: Date.now(), name, path: folderPath });
+  writeBookmarks(bookmarks);
+  return bookmarks;
+});
+
+ipcMain.handle('remove-bookmark', async (_, id) => {
+  const bookmarks = readBookmarks().filter(b => b.id !== id);
+  writeBookmarks(bookmarks);
+  return bookmarks;
+});
 
 // ── IPC: Settings ─────────────────────────────────────────────────
 ipcMain.handle('get-settings', async () => readSettings());
