@@ -275,6 +275,28 @@ ipcMain.handle('remove-bookmark', async (_, id) => {
   return bookmarks;
 });
 
+// ── Recent Folders helpers ───────────────────────────────────────
+const RECENT_FILE = path.join(os.homedir(), 'mojo-organizer.recent.json');
+
+function readRecent() {
+  try { if (fs.existsSync(RECENT_FILE)) return JSON.parse(fs.readFileSync(RECENT_FILE, 'utf8')); } catch (e) {}
+  return [];
+}
+function writeRecent(r) { fs.writeFileSync(RECENT_FILE, JSON.stringify(r, null, 2)); }
+
+// ── IPC: Recent Folders ───────────────────────────────────────────
+ipcMain.handle('get-recent-folders', async () => readRecent());
+
+ipcMain.handle('add-recent-folder', async (_, folderPath) => {
+  let recent = readRecent();
+  recent = recent.filter(r => r.path !== folderPath);
+  const name = path.basename(folderPath) || folderPath;
+  recent.unshift({ path: folderPath, name, timestamp: Date.now() });
+  if (recent.length > 5) recent = recent.slice(0, 5);
+  writeRecent(recent);
+  return recent;
+});
+
 // ── IPC: Settings ─────────────────────────────────────────────────
 ipcMain.handle('get-settings', async () => readSettings());
 ipcMain.handle('save-settings', async (_, s) => {
