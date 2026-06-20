@@ -4,6 +4,20 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.5.0] - 2026-06-20
+
+### Added
+- Titlebar and tabbar redesigned with subtle gradients and depth
+- Active tab indicator now follows the selected accent color instead of a hardcoded green
+- Theme toggle redesigned as a smooth pill switch with gradient active state
+- Page transitions, card hover lift, refined toast notifications, and button press feedback
+
+### Fixed
+- Accent color picker now shows a checkmark only on the selected color
+- Light theme rules implemented across all tabs (previously incomplete)
+
+---
+
 ## [3.4.0] - 2026-06-16
 
 ### Added

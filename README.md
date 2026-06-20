@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.4.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.5.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -33,21 +33,21 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 ## Features
 
 ### Core
-- One-click organize select any folder and sort all files instantly
-- Smart Preview ➔ see exactly what will move and where, before committing
-- Undo ➔ instantly restore all moved files back to their original location
-- Progress bar ➔ real-time feedback showing which file is being moved
+- One-click organize — select any folder and sort all files instantly
+- Smart Preview — see exactly what will move and where, before committing
+- Undo — instantly restore all moved files back to their original location
+- Progress bar — real-time feedback showing which file is being moved
 
 ### Smart Group
-- Group by store or client name ➔ files matched by name regardless of separators or case
-- Persistent groups ➔ add your stores/clients once, remembered forever
-- Unlimited groups ➔ add as many as you need
+- Group by store or client name — files matched by name regardless of separators or case
+- Persistent groups — add your stores/clients once, remembered forever
+- Unlimited groups — add as many as you need
 
 ### Duplicate Finder
-- Scan by content ➔ MD5 hash comparison finds identical files regardless of name
-- Scan by name ➔ finds files with the same filename
-- Visual indicators ➔ KEEP and DELETE badges for clear decision making
-- Undo ➔ restore deleted files instantly
+- Scan by content — MD5 hash comparison finds identical files regardless of name
+- Scan by name — finds files with the same filename
+- Visual indicators — KEEP and DELETE badges for clear decision making
+- Undo — restore deleted files instantly
 
 ### Cleanup Tab
 - Scan any folder for wasted disk space
@@ -56,7 +56,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Old Files threshold: 3, 6, 12 months or a custom value
 - Progress bar per section showing relative size
 - Preview before deletion
-- Undo support ➔ restore cleaned files instantly
+- Undo support — restore cleaned files instantly
 
 ### Folder Bookmarks
 - Star icon to bookmark frequently used folders
@@ -66,19 +66,20 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Bookmarks saved persistently and shared across all tabs
 
 ### File Watcher
-- Real-time monitoring ➔ watches a folder and auto-organizes new files as they arrive
-- Activity log ➔ see every file organized with timestamp and destination
-- Windows notifications ➔ get notified when files are auto-organized
+- Real-time monitoring — watches a folder and auto-organizes new files as they arrive
+- Activity log — see every file organized with timestamp and destination
+- Windows notifications — get notified when files are auto-organized
 
 ### History and Stats
-- Session history ➔ every organize session saved with date, time, folder and file details
-- Statistics dashboard ➔ total files, sessions count, breakdown by category with chart
-- Export to CSV ➔ full session history as spreadsheet
-- Export to PDF ➔ professional statistics report with branding
+- Session history — every organize session saved with date, time, folder and file details
+- Statistics dashboard — total files, sessions count, breakdown by category with chart
+- Export to CSV — full session history as spreadsheet
+- Export to PDF — professional statistics report with branding
 
 ### Appearance and Languages
-- Dark and Light themes switchable in real time
+- Dark and Light themes switchable in real time, with smooth animated transitions
 - Eight preset accent colors plus custom color picker
+- Active tab and accent elements follow the selected color throughout the app
 - Five languages: English, Greek, German, Spanish, Russian
 
 ### Settings and Customization
@@ -88,7 +89,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Start with Windows
 - Minimize to Tray
 - Auto-schedule with custom days and time
-- Tray Quick Actions ➔ organize without opening the app
+- Tray Quick Actions — organize without opening the app
 
 ---
 
@@ -129,7 +130,7 @@ Coming soon.
 
 ### Organize Tab
 1. Click Downloads to auto-detect your Downloads folder, or Browse to choose any folder
-2. Review the Preview ➔ files grouped by category with counts
+2. Review the Preview — files grouped by category with counts
 3. Click Organize Now
 4. Use Undo to reverse if needed
 
@@ -143,7 +144,7 @@ Coming soon.
 1. Select a folder
 2. Choose an Old Files threshold (3, 6, 12 months or custom)
 3. Click Scan Folder
-4. Review the sections ➔ see how much space each category takes
+4. Review the sections — see how much space each category takes
 5. Check or uncheck what you want to remove
 6. Click Preview to see exactly what will be deleted
 7. Click Clean Selected to remove
@@ -152,7 +153,7 @@ Coming soon.
 ### Duplicates Tab
 1. Select a folder
 2. Click Scan by Content or Scan by Name
-3. Review duplicates ➔ first file is marked KEEP, others as DELETE
+3. Review duplicates — first file is marked KEEP, others as DELETE
 4. Select files to delete and click Delete Selected
 
 ### Watcher Tab
