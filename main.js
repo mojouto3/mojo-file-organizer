@@ -5,6 +5,7 @@ const os   = require('os');
 
 let mainWindow;
 let tray = null;
+let trayStatsInterval = null;
 
 // ── Data files ────────────────────────────────────────────────────
 const LOG_FILE        = path.join(os.homedir(), 'mojo-organizer.log.json');
@@ -48,6 +49,59 @@ function applyStartWithWindows(enabled) {
   });
 }
 
+// ── Tray stats helpers ────────────────────────────────────────────
+function formatTraySize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function getFolderQuickStats(folderPath) {
+  let fileCount = 0;
+  let totalSize = 0;
+  try {
+    const items = fs.readdirSync(folderPath, { withFileTypes: true });
+    for (const item of items) {
+      if (!item.isFile()) continue;
+      fileCount++;
+      try {
+        totalSize += fs.statSync(path.join(folderPath, item.name)).size;
+      } catch (e) {}
+    }
+    return { ok: true, fileCount, totalSize };
+  } catch (e) {
+    return { ok: false };
+  }
+}
+
+function updateTrayTooltip() {
+  if (!tray) return;
+  const s = readSettings();
+  const folder = s.defaultFolder;
+
+  if (!folder) {
+    tray.setToolTip('Mojo File Organizer');
+    return;
+  }
+
+  const stats = getFolderQuickStats(folder);
+  if (!stats.ok) {
+    tray.setToolTip('Mojo File Organizer');
+    return;
+  }
+
+  const folderName = path.basename(folder) || folder;
+  const fileLabel = stats.fileCount === 1 ? 'file' : 'files';
+  tray.setToolTip(`Mojo File Organizer\n${folderName}: ${stats.fileCount} ${fileLabel}, ${formatTraySize(stats.totalSize)}`);
+}
+
+function startTrayStatsRefresh() {
+  updateTrayTooltip();
+  if (trayStatsInterval) clearInterval(trayStatsInterval);
+  trayStatsInterval = setInterval(updateTrayTooltip, 60000);
+}
+
 // ── Tray ──────────────────────────────────────────────────────────
 function createTray() {
   const iconPath = path.join(__dirname, 'assets', 'icon.ico');
@@ -55,6 +109,7 @@ function createTray() {
   tray.setToolTip('Mojo File Organizer');
   updateTrayMenu();
   tray.on('double-click', () => showWindow());
+  startTrayStatsRefresh();
 }
 
 function updateTrayMenu() {
@@ -133,7 +188,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {});
-app.on('before-quit', () => { app.isQuitting = true; });
+app.on('before-quit', () => { app.isQuitting = true; if (trayStatsInterval) clearInterval(trayStatsInterval); });
 
 // ── Default categories ────────────────────────────────────────────
 const DEFAULT_CATEGORIES = [
@@ -225,6 +280,7 @@ ipcMain.handle('get-settings', async () => readSettings());
 ipcMain.handle('save-settings', async (_, s) => {
   writeSettings(s);
   applyStartWithWindows(s.startWithWindows);
+  updateTrayTooltip();
   return true;
 });
 
@@ -265,6 +321,7 @@ ipcMain.handle('organize', async (_, folderPath) => {
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'organize', moved: moved.map(m => ({ name: m.name, category: m.category })), errors, total: moved.length });
       sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} organized successfully`);
+      updateTrayTooltip();
     }
   } catch (e) { errors.push({ name: 'General', error: e.message }); }
   return { moved, errors };
@@ -282,6 +339,7 @@ ipcMain.handle('undo', async (_, moves) => {
       }
     } catch (e) { errors.push({ name: m.name, error: e.message }); }
   }
+  updateTrayTooltip();
   return { restored, errors };
 });
 
@@ -326,6 +384,7 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'smart-group', moved: moved.map(m => ({ name: m.name, category: m.group })), errors, total: moved.length });
       sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} grouped successfully`);
+      updateTrayTooltip();
     }
   } catch (e) { errors.push({ name: 'General', error: e.message }); }
   return { moved, errors };
@@ -436,7 +495,7 @@ ipcMain.handle('export-pdf', async (_, exportPath) => {
 </head>
 <body>
   <h1>Mojo File Organizer</h1>
-  <div class="subtitle">Statistics Report — ${new Date().toLocaleDateString('en-GB')}</div>
+  <div class="subtitle">Statistics Report - ${new Date().toLocaleDateString('en-GB')}</div>
   <div class="stats">
     <div class="stat"><div class="stat-num">${totalFiles}</div><div class="stat-label">Total Files Organized</div></div>
     <div class="stat"><div class="stat-num">${sessions.length}</div><div class="stat-label">Sessions</div></div>
@@ -584,7 +643,8 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
   if (emptyFolders) emptyFolders.forEach(deleteFolder);
   if (oldFiles) oldFiles.forEach(deleteFile);
 
-  sendNotification('Mojo File Organizer', `Cleanup complete — ${deleted.length} items removed`);
+  sendNotification('Mojo File Organizer', `Cleanup complete - ${deleted.length} items removed`);
+  updateTrayTooltip();
   return { deleted, errors };
 });
 
@@ -598,6 +658,7 @@ ipcMain.handle('restore-cleanup', async (_, files) => {
       }
     } catch (e) { errors.push({ name: f.name, error: e.message }); }
   }
+  updateTrayTooltip();
   return { restored, errors };
 });
 
@@ -658,6 +719,7 @@ ipcMain.handle('delete-duplicates', async (_, files) => {
       deleted.push({ ...file, trashPath });
     } catch (e) { errors.push({ name: file.name, error: e.message }); }
   }
+  updateTrayTooltip();
   return { deleted, errors };
 });
 
@@ -671,6 +733,7 @@ ipcMain.handle('restore-duplicates', async (_, files) => {
       }
     } catch (e) { errors.push({ name: file.name, error: e.message }); }
   }
+  updateTrayTooltip();
   return { restored, errors };
 });
 
@@ -720,8 +783,9 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
             errors: [],
             total: 1
           });
-          sendNotification('Mojo File Organizer', `Auto-organized: ${filename} → ${cat}/`);
+          sendNotification('Mojo File Organizer', `Auto-organized: ${filename} -> ${cat}/`);
           if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: cat });
+          updateTrayTooltip();
         } catch (e) {}
       }, 1000);
     });
