@@ -906,3 +906,23 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
 }
 .chip, .file-chip, .ext-chip { animation: chipIn 0.2s ease; }
+
+/* ── Recent Folders ── */
+.recent-folders-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-top: 8px; padding: 6px 0;
+}
+.recent-folders-label {
+  font-size: 10px; color: var(--text-dim); font-weight: 600;
+  flex-shrink: 0; margin-right: 2px;
+}
+.recent-folder-chip {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text-mid); border-radius: 20px;
+  padding: 4px 12px; font-size: 11px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; font-family: inherit;
+  white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis;
+}
+.recent-folder-chip:hover {
+  background: var(--green-dim); border-color: var(--green); color: var(--green);
+}

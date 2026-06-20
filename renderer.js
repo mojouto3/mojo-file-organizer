@@ -32,6 +32,7 @@ async function init() {
   document.getElementById('groupNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addGroup(); });
   document.getElementById('newCatName').addEventListener('keydown',     e => { if (e.key === 'Enter') addCategory(); });
 
+  renderRecentFolders('organize');
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -63,6 +64,10 @@ function showTab(name) {
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
   if (name === 'cleanup') {}
+  if (['organize','group','duplicates','cleanup','watcher'].includes(name)) {
+    const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher' };
+    renderRecentFolders(ctxMap[name]);
+  }
 }
 
 // ── Organize ──────────────────────────────────────────────────────
@@ -72,6 +77,7 @@ async function useDownloads()  { const f = await window.api.getDownloads();  if 
 async function setFolder(folder) {
   currentFolder = folder;
   document.getElementById('folderInput').value = folder;
+  await trackRecentFolder(folder);
   await showPreview(folder);
 }
 
@@ -204,6 +210,7 @@ async function useDownloadsGroup() { const f = await window.api.getDownloads(); 
 async function setGroupFolder(folder) {
   currentGroupFolder = folder;
   document.getElementById('groupFolderInput').value = folder;
+  await trackRecentFolder(folder);
   await showGroupPreview(folder);
 }
 
@@ -555,6 +562,7 @@ async function useDownloadsDup()  { const f = await window.api.getDownloads(); i
 function setDupFolder(folder) {
   currentDupFolder = folder;
   document.getElementById('dupFolderInput').value = folder;
+  trackRecentFolder(folder);
 }
 
 async function scanDuplicates(mode) {
@@ -820,6 +828,7 @@ async function useDownloadsCleanup()  { const f = await window.api.getDownloads(
 function setCleanupFolder(folder) {
   currentCleanupFolder = folder;
   document.getElementById('cleanupFolderInput').value = folder;
+  trackRecentFolder(folder);
 }
 
 function setAgeThreshold(months, btnEl) {
@@ -1077,6 +1086,41 @@ async function removeBookmarkItem(id, context) {
   bookmarksList = await window.api.removeBookmark(id);
   renderBookmarkPanel(context);
   showToast(lang === 'en' ? 'Bookmark removed' : 'Αφαιρέθηκε');
+}
+
+// ── Recent Folders ────────────────────────────────────────────────
+async function trackRecentFolder(folder) {
+  if (!folder) return;
+  await window.api.addRecentFolder(folder);
+}
+
+async function getRecentFoldersHTML(context) {
+  const recent = await window.api.getRecentFolders();
+  if (!recent.length) return '';
+  return `
+    <div class="recent-folders-row">
+      <span class="recent-folders-label">${lang === 'en' ? 'Recent:' : 'Πρόσφατα:'}</span>
+      ${recent.map(r => `
+        <button class="recent-folder-chip" title="${r.path}" onclick="useRecentFolder('${context}', '${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+          ${r.name}
+        </button>`).join('')}
+    </div>`;
+}
+
+async function renderRecentFolders(context) {
+  const containerId = `recentFolders-${context}`;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = await getRecentFoldersHTML(context);
+  lucide.createIcons();
+}
+
+function useRecentFolder(context, folderPath) {
+  if (context === 'organize')   setFolder(folderPath);
+  if (context === 'group')      setGroupFolder(folderPath);
+  if (context === 'duplicates') setDupFolder(folderPath);
+  if (context === 'cleanup')    setCleanupFolder(folderPath);
+  if (context === 'watcher')    document.getElementById('watcherFolderInput').value = folderPath;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────

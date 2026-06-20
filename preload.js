@@ -40,4 +40,6 @@ contextBridge.exposeInMainWorld('api', {
  scanCleanup:    (opts)   => ipcRenderer.invoke('scan-cleanup', opts),
 runCleanup:     (opts)   => ipcRenderer.invoke('run-cleanup', opts),
 restoreCleanup: (files)  => ipcRenderer.invoke('restore-cleanup', files),
+getRecentFolders: ()       => ipcRenderer.invoke('get-recent-folders'),
+addRecentFolder:  (folder) => ipcRenderer.invoke('add-recent-folder', folder),
 });

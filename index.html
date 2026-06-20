@@ -66,6 +66,7 @@
       <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('organize')" id="bookmarkBtn-organize"><i data-lucide="star"></i></button>
     </div>
+    <div id="recentFolders-organize"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-organize"></div>
   </div>
 
@@ -116,6 +117,7 @@
       <button class="btn btn-outline" onclick="useDownloadsGroup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('group')" id="bookmarkBtn-group"><i data-lucide="star"></i></button>
     </div>
+    <div id="recentFolders-group"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-group"></div>
   </div>
   <div class="card">
@@ -214,6 +216,7 @@
       <button class="btn btn-outline" onclick="useDownloadsDup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('duplicates')" id="bookmarkBtn-duplicates"><i data-lucide="star"></i></button>
     </div>
+    <div id="recentFolders-duplicates"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-duplicates"></div>
     <div class="scan-group">
       <button class="scan-btn active" id="scanContentBtn" onclick="scanDuplicates('content')">
@@ -259,6 +262,7 @@
       <button class="btn btn-outline" onclick="useDownloadsCleanup()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('cleanup')" id="bookmarkBtn-cleanup"><i data-lucide="star"></i></button>
     </div>
+    <div id="recentFolders-cleanup"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-cleanup"></div>
     <div class="setting-row" style="margin-top:8px">
       <div class="setting-info">
@@ -328,6 +332,7 @@
       <button class="btn btn-outline" onclick="useDownloadsWatcher()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       <button class="btn btn-outline" onclick="toggleBookmarkPanel('watcher')" id="bookmarkBtn-watcher"><i data-lucide="star"></i></button>
     </div>
+    <div id="recentFolders-watcher"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-watcher"></div>
     <div class="action-row">
       <button class="btn btn-outline" id="startWatcherBtn" onclick="startWatcher()" style="display:none">
