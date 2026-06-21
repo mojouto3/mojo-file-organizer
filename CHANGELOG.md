@@ -4,6 +4,18 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.6.0] - 2026-06-21
+
+### Added
+- Quick Stats in Tray: tooltip shows file count and total size of the default folder, refreshed automatically every 60 seconds and after every action
+- Recent Folders: automatically tracks the last 5 folders used across all tabs, shown as quick-select chips
+- Drag and Drop folder selection: drag a folder from File Explorer directly onto the app
+- Enhanced History: Open location and Undo this file actions for individual files within a session
+- Open folder action on each session to jump to the organized folder
+- Drag and Drop to recategorize: drag a file chip between category sections in History to move it on disk and update the session log
+
+---
+
 ## [3.5.0] - 2026-06-20
 
 ### Added

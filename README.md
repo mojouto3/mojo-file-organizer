@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.5.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.6.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -65,6 +65,16 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Remove bookmark option
 - Bookmarks saved persistently and shared across all tabs
 
+### Recent Folders
+- Automatically tracks the last 5 folders used across all tabs
+- Quick-select chips shown below the folder input
+- Separate from manual Bookmarks, no setup needed
+
+### Drag and Drop
+- Drag a folder from File Explorer directly onto the app instead of using Browse
+- Works across Organize, Smart Group, Duplicates, Cleanup and Watcher tabs
+- Visual feedback while dragging over the drop zone
+
 ### File Watcher
 - Real-time monitoring: watches a folder and auto-organizes new files as they arrive
 - Activity log: see every file organized with timestamp and destination
@@ -72,6 +82,9 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 
 ### History and Stats
 - Session history: every organize session saved with date, time, folder and file details
+- Open location and Undo this file actions for individual files within a session
+- Open folder action to jump straight to the organized folder
+- Drag and drop a file chip between category sections to recategorize it on disk
 - Statistics dashboard: total files, sessions count, breakdown by category with chart
 - Export to CSV: full session history as spreadsheet
 - Export to PDF: professional statistics report with branding
@@ -90,6 +103,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Minimize to Tray
 - Auto-schedule with custom days and time
 - Tray Quick Actions: organize without opening the app
+- Tray tooltip shows quick stats (file count and size) for the default folder, updated automatically
 
 ---
 
@@ -230,9 +244,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ### UI/UX
 - [ ] Portable version (no installer needed)
 - [ ] Folder size treemap visualization
-- [ ] Drag and drop folder selection
-- [ ] Enhanced History with per-file actions (open location, undo single file)
-- [ ] Drag and drop to recategorize files in History
 
 ### Features
 - [ ] File preview on hover (image thumbnails in organize preview)
