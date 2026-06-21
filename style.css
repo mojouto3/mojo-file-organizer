@@ -968,3 +968,16 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .file-chip-wrap:hover .file-chip-action { opacity: 1; }
 .file-chip-action:hover { color: var(--green); background: var(--green-dim); }
 .file-chip-undo:hover { color: var(--danger); background: rgba(224,85,85,0.10); }
+
+/* ── History Drag and Drop Recategorize ── */
+.session-cat {
+  transition: background 0.2s ease, box-shadow 0.2s ease, border-radius 0.2s ease;
+  padding: 6px; margin: -6px;
+}
+.session-cat.drag-over-cat {
+  background: var(--green-dim);
+  box-shadow: 0 0 0 2px var(--green) inset;
+  border-radius: 8px;
+}
+.file-chip-wrap[draggable="true"] { cursor: grab; }
+.file-chip-wrap[draggable="true"]:active { cursor: grabbing; }

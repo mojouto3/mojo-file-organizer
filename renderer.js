@@ -299,10 +299,12 @@ async function loadHistory() {
     }
 
     const groupsHTML = Object.entries(grouped).map(([cat, files]) => `
-      <div class="session-cat">
+      <div class="session-cat" data-category="${cat}" data-session-id="${s.id}" data-session-folder="${s.folder.replace(/"/g,'&quot;')}"
+           ondragover="handleHistoryDragOver(event)" ondragleave="handleHistoryDragLeave(event)" ondrop="handleHistoryDrop(event)">
         <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${cat} (${files.length})</div>
         <div class="file-chips">${files.map(f => `
-          <span class="file-chip-wrap">
+          <span class="file-chip-wrap" draggable="${f.to ? 'true' : 'false'}"
+                ondragstart="handleHistoryDragStart(event, '${s.id}', '${f.name.replace(/'/g,"\\'")}', '${(f.to||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <span class="file-chip" title="${f.name}">${f.name}</span>
             ${f.to ? `
             <button class="file-chip-action" title="${lang === 'en' ? 'Open location' : 'Άνοιγμα τοποθεσίας'}" onclick="openFileLocation('${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
@@ -350,6 +352,52 @@ async function undoSingleFile(sessionId, fileName, from, to) {
     loadHistory();
   } else {
     showToast(lang === 'en' ? 'Failed to undo file' : 'Αποτυχία αναίρεσης');
+  }
+}
+
+// ── History drag and drop recategorize ──────────────────────────
+let draggedHistoryFile = null;
+
+function handleHistoryDragStart(e, sessionId, fileName, filePath) {
+  if (!filePath) { e.preventDefault(); return; }
+  draggedHistoryFile = { sessionId, fileName, filePath };
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function handleHistoryDragOver(e) {
+  if (!draggedHistoryFile) return;
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over-cat');
+}
+
+function handleHistoryDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over-cat');
+}
+
+async function handleHistoryDrop(e) {
+  e.preventDefault();
+  const targetEl = e.currentTarget;
+  targetEl.classList.remove('drag-over-cat');
+  if (!draggedHistoryFile) return;
+
+  const newCategory = targetEl.dataset.category;
+  const sessionFolder = targetEl.dataset.sessionFolder;
+  const { sessionId, fileName, filePath } = draggedHistoryFile;
+  draggedHistoryFile = null;
+
+  const result = await window.api.recategorizeFile({
+    sessionId: parseInt(sessionId),
+    fileName,
+    oldPath: filePath,
+    newCategory,
+    sessionFolder
+  });
+
+  if (result.ok) {
+    showToast(lang === 'en' ? `Moved to ${newCategory}` : `Μετακινήθηκε στο ${newCategory}`);
+    loadHistory();
+  } else {
+    showToast(lang === 'en' ? 'Failed to move file' : 'Αποτυχία μετακίνησης');
   }
 }
 

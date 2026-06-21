@@ -878,6 +878,42 @@ ipcMain.handle('get-path-for-file', async (_, filePath) => {
   }
 });
 
+ipcMain.handle('recategorize-file', async (_, { sessionId, fileName, oldPath, newCategory, sessionFolder }) => {
+  try {
+    const destFolder = path.join(sessionFolder, newCategory);
+    if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+    const newPath = getUniqueDest(destFolder, fileName);
+
+    if (!fs.existsSync(oldPath)) return { ok: false, error: 'File not found' };
+
+    fs.renameSync(oldPath, newPath);
+
+    const oldDir = path.dirname(oldPath);
+    try {
+      if (fs.existsSync(oldDir) && fs.readdirSync(oldDir).length === 0) fs.rmdirSync(oldDir);
+    } catch (e) {}
+
+    const sessions = readLog();
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      const file = session.moved.find(m => m.name === fileName && m.to === oldPath);
+      if (file) {
+        file.category = newCategory;
+        file.to = newPath;
+      }
+      writeLog(sessions);
+    }
+
+    return { ok: true, newPath };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('get-watcher-status', async () => {
+  return { active: !!activeWatcher, folder: watcherFolder };
+});
+
 ipcMain.handle('get-watcher-status', async () => {
   return { active: !!activeWatcher, folder: watcherFolder };
 });
