@@ -33,6 +33,7 @@ async function init() {
   document.getElementById('newCatName').addEventListener('keydown',     e => { if (e.key === 'Enter') addCategory(); });
 
   renderRecentFolders('organize');
+  initAllDragDrop();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -1121,6 +1122,50 @@ function useRecentFolder(context, folderPath) {
   if (context === 'duplicates') setDupFolder(folderPath);
   if (context === 'cleanup')    setCleanupFolder(folderPath);
   if (context === 'watcher')    document.getElementById('watcherFolderInput').value = folderPath;
+}
+
+// ── Drag and Drop ─────────────────────────────────────────────────
+function setupFolderDragDrop(rowSelector, onFolderDropped) {
+  const row = document.querySelector(rowSelector);
+  if (!row) return;
+
+  row.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.add('drag-over');
+  });
+
+  row.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.remove('drag-over');
+  });
+
+  row.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    row.classList.remove('drag-over');
+
+    const files = e.dataTransfer.files;
+    if (!files.length) return;
+
+    const filePath = window.api.getDroppedFilePath(files[0]);
+    if (!filePath) return;
+
+    const folderPath = await window.api.getPathForFile(filePath);
+    if (folderPath) onFolderDropped(folderPath);
+  });
+}
+
+function initAllDragDrop() {
+  setupFolderDragDrop('#page-organize .folder-row', setFolder);
+  setupFolderDragDrop('#page-group .folder-row', setGroupFolder);
+  setupFolderDragDrop('#page-duplicates .folder-row', setDupFolder);
+  setupFolderDragDrop('#page-cleanup .folder-row', setCleanupFolder);
+  setupFolderDragDrop('#page-watcher .folder-row', (folder) => {
+    document.getElementById('watcherFolderInput').value = folder;
+    trackRecentFolder(folder);
+  });
 }
 
 // ── Helpers ───────────────────────────────────────────────────────

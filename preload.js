@@ -1,6 +1,7 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  getDroppedFilePath: (file) => webUtils.getPathForFile(file),
   preview:         (folder) => ipcRenderer.invoke('preview', folder),
   organize:        (folder) => ipcRenderer.invoke('organize', folder),
   undo:            (moves)  => ipcRenderer.invoke('undo', moves),
@@ -38,8 +39,9 @@ contextBridge.exposeInMainWorld('api', {
  exportPdf:      (path)    => ipcRenderer.invoke('export-pdf', path),
  showSaveDialog: (opts)    => ipcRenderer.invoke('show-save-dialog', opts),
  scanCleanup:    (opts)   => ipcRenderer.invoke('scan-cleanup', opts),
-runCleanup:     (opts)   => ipcRenderer.invoke('run-cleanup', opts),
-restoreCleanup: (files)  => ipcRenderer.invoke('restore-cleanup', files),
-getRecentFolders: ()       => ipcRenderer.invoke('get-recent-folders'),
-addRecentFolder:  (folder) => ipcRenderer.invoke('add-recent-folder', folder),
+ runCleanup:     (opts)   => ipcRenderer.invoke('run-cleanup', opts),
+ restoreCleanup: (files)  => ipcRenderer.invoke('restore-cleanup', files),
+ getRecentFolders: ()       => ipcRenderer.invoke('get-recent-folders'),
+ addRecentFolder:  (folder) => ipcRenderer.invoke('add-recent-folder', folder),
+ getPathForFile: (filePath) => ipcRenderer.invoke('get-path-for-file', filePath),
 });
