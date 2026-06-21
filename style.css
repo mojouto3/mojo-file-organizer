@@ -939,3 +939,32 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .folder-row.drag-over input {
   border-color: var(--green);
 }
+
+/* ── Enhanced History ── */
+.session-open-folder {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; padding: 4px; border-radius: 4px; display: flex;
+  opacity: 0; transition: opacity 0.15s, color 0.15s, background 0.15s;
+}
+.session-open-folder i { width: 13px; height: 13px; }
+.session-header:hover .session-open-folder { opacity: 1; }
+.session-open-folder:hover { color: var(--green); background: var(--green-dim); }
+
+.file-chip-wrap {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 2px 2px 8px;
+}
+.file-chip-wrap .file-chip {
+  background: none; border: none; padding: 0; margin-right: 2px;
+}
+.file-chip-action {
+  background: none; border: none; color: var(--text-dim);
+  cursor: pointer; padding: 3px; border-radius: 3px; display: flex;
+  opacity: 0; transition: opacity 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+.file-chip-action i { width: 10px; height: 10px; }
+.file-chip-wrap:hover .file-chip-action { opacity: 1; }
+.file-chip-action:hover { color: var(--green); background: var(--green-dim); }
+.file-chip-undo:hover { color: var(--danger); background: rgba(224,85,85,0.10); }
