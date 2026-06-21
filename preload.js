@@ -44,4 +44,7 @@ contextBridge.exposeInMainWorld('api', {
  getRecentFolders: ()       => ipcRenderer.invoke('get-recent-folders'),
  addRecentFolder:  (folder) => ipcRenderer.invoke('add-recent-folder', folder),
  getPathForFile: (filePath) => ipcRenderer.invoke('get-path-for-file', filePath),
+ openFileLocation: (filePath) => ipcRenderer.invoke('open-file-location', filePath),
+ openFolder:       (folder)   => ipcRenderer.invoke('open-folder', folder),
+ undoSingleFile:   (opts)     => ipcRenderer.invoke('undo-single-file', opts),
 });

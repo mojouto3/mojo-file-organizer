@@ -295,13 +295,23 @@ async function loadHistory() {
     const grouped = {};
     for (const f of s.moved) {
       if (!grouped[f.category]) grouped[f.category] = [];
-      grouped[f.category].push(f.name);
+      grouped[f.category].push(f);
     }
 
-    const groupsHTML = Object.entries(grouped).map(([cat, names]) => `
+    const groupsHTML = Object.entries(grouped).map(([cat, files]) => `
       <div class="session-cat">
-        <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${cat} (${names.length})</div>
-        <div class="file-chips">${names.map(n => `<span class="file-chip" title="${n}">${n}</span>`).join('')}</div>
+        <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${cat} (${files.length})</div>
+        <div class="file-chips">${files.map(f => `
+          <span class="file-chip-wrap">
+            <span class="file-chip" title="${f.name}">${f.name}</span>
+            ${f.to ? `
+            <button class="file-chip-action" title="${lang === 'en' ? 'Open location' : 'Άνοιγμα τοποθεσίας'}" onclick="openFileLocation('${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+              <i data-lucide="folder-open"></i>
+            </button>
+            <button class="file-chip-action file-chip-undo" title="${lang === 'en' ? 'Undo this file' : 'Αναίρεση αρχείου'}" onclick="undoSingleFile(${s.id}, '${f.name.replace(/'/g,"\\'")}', '${(f.from||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+              <i data-lucide="undo-2"></i>
+            </button>` : ''}
+          </span>`).join('')}</div>
       </div>`).join('');
 
     const el = document.createElement('div');
@@ -310,8 +320,11 @@ async function loadHistory() {
       <div class="session-header" onclick="toggleSession(this)">
         <div class="session-date">${dateStr} ${timeStr}</div>
         <div class="session-folder" title="${s.folder}">${s.folder}</div>
-        <span class="session-type">${s.type === 'smart-group' ? 'Smart Group' : 'Organize'}</span>
+        <span class="session-type">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
         <span class="session-badge">${s.total} moved</span>
+        <button class="session-open-folder" title="${lang === 'en' ? 'Open folder' : 'Άνοιγμα φακέλου'}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+          <i data-lucide="folder-open"></i>
+        </button>
         <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
         <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
       </div>
@@ -319,6 +332,25 @@ async function loadHistory() {
     list.appendChild(el);
   }
   lucide.createIcons();
+}
+
+async function openSessionFolder(folder) {
+  await window.api.openFolder(folder);
+}
+
+async function openFileLocation(filePath) {
+  await window.api.openFileLocation(filePath);
+}
+
+async function undoSingleFile(sessionId, fileName, from, to) {
+  if (!from) { showToast(lang === 'en' ? 'Cannot undo this file' : 'Δεν μπορεί να αναιρεθεί'); return; }
+  const result = await window.api.undoSingleFile({ sessionId, fileName, from, to });
+  if (result.ok) {
+    showToast(lang === 'en' ? 'File restored' : 'Το αρχείο επαναφέρθηκε');
+    loadHistory();
+  } else {
+    showToast(lang === 'en' ? 'Failed to undo file' : 'Αποτυχία αναίρεσης');
+  }
 }
 
 function toggleSession(header) { header.closest('.session').classList.toggle('open'); }

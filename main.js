@@ -341,7 +341,7 @@ ipcMain.handle('organize', async (_, folderPath) => {
       catch (e) { errors.push({ name: f.name, error: e.message }); }
     }
     if (moved.length > 0 || errors.length > 0) {
-      appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'organize', moved: moved.map(m => ({ name: m.name, category: m.category })), errors, total: moved.length });
+      appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'organize', moved: moved.map(m => ({ name: m.name, category: m.category, from: m.from, to: m.to })), errors, total: moved.length });
       sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} organized successfully`);
       updateTrayTooltip();
     }
@@ -404,7 +404,7 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
       }
     }
     if (moved.length > 0 || errors.length > 0) {
-      appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'smart-group', moved: moved.map(m => ({ name: m.name, category: m.group })), errors, total: moved.length });
+      appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'smart-group', moved: moved.map(m => ({ name: m.name, category: m.group, from: m.from, to: m.to })), errors, total: moved.length });
       sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} grouped successfully`);
       updateTrayTooltip();
     }
@@ -684,6 +684,48 @@ ipcMain.handle('restore-cleanup', async (_, files) => {
   return { restored, errors };
 });
 
+// ── IPC: File Explorer ────────────────────────────────────────────
+ipcMain.handle('open-file-location', async (_, filePath) => {
+  try {
+    shell.showItemInFolder(filePath);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('open-folder', async (_, folderPath) => {
+  try {
+    await shell.openPath(folderPath);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+ipcMain.handle('undo-single-file', async (_, { sessionId, fileName, from, to }) => {
+  try {
+    if (fs.existsSync(to)) {
+      fs.renameSync(to, from);
+      const dir = path.dirname(to);
+      if (fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
+
+      // Update the session log
+      const sessions = readLog();
+      const session = sessions.find(s => s.id === sessionId);
+      if (session) {
+        session.moved = session.moved.filter(m => m.name !== fileName);
+        session.total = session.moved.length;
+        writeLog(sessions);
+      }
+      return { ok: true };
+    }
+    return { ok: false, error: 'File not found' };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
 // ── IPC: Window ───────────────────────────────────────────────────
 ipcMain.on('minimize', () => mainWindow.minimize());
 ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
@@ -797,14 +839,14 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
         try {
           fs.renameSync(filePath, dest);
           appendSession({
-            id: Date.now(),
-            timestamp: new Date().toISOString(),
-            folder: folderPath,
-            type: 'watcher',
-            moved: [{ name: filename, category: cat }],
-            errors: [],
-            total: 1
-          });
+          id: Date.now(),
+          timestamp: new Date().toISOString(),
+          folder: folderPath,
+          type: 'watcher',
+          moved: [{ name: filename, category: cat, from: filePath, to: dest }],
+          errors: [],
+          total: 1
+        });
           sendNotification('Mojo File Organizer', `Auto-organized: ${filename} -> ${cat}/`);
           if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: cat });
           updateTrayTooltip();
