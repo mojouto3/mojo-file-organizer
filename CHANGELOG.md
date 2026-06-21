@@ -4,6 +4,13 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.6.1] - 2026-06-21
+
+### Fixed
+- Removed duplicate IPC handler causing a JavaScript error on startup
+
+---
+
 ## [3.6.0] - 2026-06-21
 
 ### Added
