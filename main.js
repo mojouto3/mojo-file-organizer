@@ -913,7 +913,3 @@ ipcMain.handle('recategorize-file', async (_, { sessionId, fileName, oldPath, ne
 ipcMain.handle('get-watcher-status', async () => {
   return { active: !!activeWatcher, folder: watcherFolder };
 });
-
-ipcMain.handle('get-watcher-status', async () => {
-  return { active: !!activeWatcher, folder: watcherFolder };
-});
