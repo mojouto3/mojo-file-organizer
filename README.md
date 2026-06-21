@@ -230,11 +230,13 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ### UI/UX
 - [ ] Portable version (no installer needed)
 - [ ] Folder size treemap visualization
+- [ ] Drag and drop folder selection
+- [ ] Enhanced History with per-file actions (open location, undo single file)
+- [ ] Drag and drop to recategorize files in History
 
 ### Features
 - [ ] File preview on hover (image thumbnails in organize preview)
 - [ ] Scheduled cleanup (automatic cleanup like auto-schedule for organize)
-- [ ] Drag and drop files into the app
 
 ### Smart Features
 - [ ] Auto-detect duplicate apps and installers
