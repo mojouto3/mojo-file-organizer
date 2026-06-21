@@ -827,6 +827,15 @@ ipcMain.handle('stop-watcher', async () => {
   return { ok: true };
 });
 
+ipcMain.handle('get-path-for-file', async (_, filePath) => {
+  try {
+    const stat = fs.statSync(filePath);
+    return stat.isDirectory() ? filePath : path.dirname(filePath);
+  } catch (e) {
+    return null;
+  }
+});
+
 ipcMain.handle('get-watcher-status', async () => {
   return { active: !!activeWatcher, folder: watcherFolder };
 });

@@ -926,3 +926,16 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .recent-folder-chip:hover {
   background: var(--green-dim); border-color: var(--green); color: var(--green);
 }
+
+/* ── Drag and Drop ── */
+.folder-row {
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 8px;
+}
+.folder-row.drag-over {
+  background: var(--green-dim);
+  box-shadow: 0 0 0 2px var(--green) inset;
+}
+.folder-row.drag-over input {
+  border-color: var(--green);
+}
