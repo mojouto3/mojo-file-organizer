@@ -15,12 +15,13 @@ jobs:
           RELEASE_URL: ${{ github.event.release.html_url }}
           RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          BODY_SHORT=$(echo "$RELEASE_BODY" | head -c 800)
+          BODY_SHORT=$(echo "$RELEASE_BODY" | head -c 750)
+          DOWNLOAD_LINE="[⬇ Download $RELEASE_TAG]($RELEASE_URL)"
 
           PAYLOAD=$(jq -n \
             --arg title "Mojo File Organizer $RELEASE_TAG" \
             --arg url "$RELEASE_URL" \
-            --arg desc "$BODY_SHORT" \
+            --arg desc "$BODY_SHORT"$'\n\n'"$DOWNLOAD_LINE" \
             --arg version "$RELEASE_TAG" \
             '{
               username: "Mojo File Organizer",
