@@ -947,6 +947,40 @@ ipcMain.handle('stop-watcher', async () => {
   return { ok: true };
 });
 
+// ── IPC: File Preview ─────────────────────────────────────────────
+const IMAGE_EXTS = new Set(['.jpg','.jpeg','.png','.gif','.bmp','.webp','.avif','.ico','.tiff']);
+const TEXT_EXTS  = new Set(['.txt','.md','.js','.ts','.py','.css','.html','.json','.xml','.yaml','.yml','.sh','.bat','.ps1','.java','.cpp','.c','.h','.cs','.go','.rb','.php','.sql','.log','.ini','.env','.rtf']);
+
+ipcMain.handle('file-preview', async (_, filePath) => {
+  try {
+    if (!fs.existsSync(filePath)) return { type: 'missing' };
+    const stat = fs.statSync(filePath);
+    const ext  = path.extname(filePath).toLowerCase();
+    const size = stat.size;
+
+    if (IMAGE_EXTS.has(ext)) {
+      if (size > 10 * 1024 * 1024) return { type: 'info', ext, size }; // skip >10MB
+      const data = fs.readFileSync(filePath).toString('base64');
+      const mime = ext === '.png' ? 'image/png' : ext === '.gif' ? 'image/gif' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+      return { type: 'image', src: `data:${mime};base64,${data}`, size };
+    }
+
+    if (TEXT_EXTS.has(ext)) {
+      const buf   = Buffer.alloc(2048);
+      const fd    = fs.openSync(filePath, 'r');
+      const bytes = fs.readSync(fd, buf, 0, 2048, 0);
+      fs.closeSync(fd);
+      const text  = buf.slice(0, bytes).toString('utf8');
+      const lines = text.split('\n').slice(0, 10).join('\n');
+      return { type: 'text', ext, lines, size };
+    }
+
+    return { type: 'info', ext, size };
+  } catch (e) {
+    return { type: 'error', message: e.message };
+  }
+});
+
 ipcMain.handle('get-path-for-file', async (_, filePath) => {
   try {
     const stat = fs.statSync(filePath);

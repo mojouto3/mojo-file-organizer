@@ -310,6 +310,7 @@ async function loadHistory() {
         <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${cat} (${files.length})</div>
         <div class="file-chips">${files.map(f => `
           <span class="file-chip-wrap" draggable="${f.to ? 'true' : 'false'}"
+                ${f.to ? `data-preview-path="${f.to.replace(/\\/g,'\\\\').replace(/"/g,'&quot;')}"` : ''}
                 ondragstart="handleHistoryDragStart(event, '${s.id}', '${f.name.replace(/'/g,"\\'")}', '${(f.to||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <span class="file-chip" title="${f.name}">${f.name}</span>
             ${f.to ? `
@@ -340,6 +341,7 @@ async function loadHistory() {
     list.appendChild(el);
   }
   lucide.createIcons();
+  attachPreviewsToHistory();
 }
 
 async function openSessionFolder(folder) {
@@ -1352,6 +1354,96 @@ if (window.api.onUpdateAvailable) {
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
   return map[cat] || 'folder';
+}
+
+// ── File Preview Tooltip ─────────────────────────────────────────
+let _previewTimer   = null;
+let _previewVisible = false;
+
+function formatBytes(b) {
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileIcon(ext) {
+  const map = { '.mp4':' video', '.mkv':'video', '.avi':'video', '.mov':'video',
+    '.mp3':'music', '.wav':'music', '.flac':'music', '.aac':'music',
+    '.pdf':'file-text', '.doc':'file-text', '.docx':'file-text',
+    '.zip':'archive', '.rar':'archive', '.7z':'archive',
+    '.exe':'package', '.msi':'package',
+    '.ttf':'type', '.otf':'type',
+    '.torrent':'download' };
+  return map[ext] || 'file';
+}
+
+function showFilePreview(filePath, mouseX, mouseY) {
+  window.api.filePreview(filePath).then(result => {
+    if (!result || result.type === 'missing' || result.type === 'error') return;
+    const tooltip  = document.getElementById('filePreviewTooltip');
+    const inner    = document.getElementById('filePreviewInner');
+
+    if (result.type === 'image') {
+      inner.innerHTML = `<img src="${result.src}" alt="preview"/>`;
+    } else if (result.type === 'text') {
+      const escaped = result.lines.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      inner.innerHTML = `<div class="fpt-text">${escaped}</div>`;
+    } else {
+      const ext  = result.ext || '';
+      const icon = getFileIcon(ext);
+      inner.innerHTML = `
+        <div class="fpt-info">
+          <i data-lucide="${icon}"></i>
+          <span class="fpt-ext">${ext || 'file'}</span>
+          <span class="fpt-size">${formatBytes(result.size || 0)}</span>
+        </div>`;
+      lucide.createIcons({ nodes: [inner] });
+    }
+
+    positionPreviewTooltip(tooltip, mouseX, mouseY);
+    tooltip.classList.remove('hidden');
+    _previewVisible = true;
+  });
+}
+
+function positionPreviewTooltip(tooltip, mx, my) {
+  tooltip.style.left = '0px'; tooltip.style.top = '0px';
+  tooltip.classList.remove('hidden');
+  const tw = tooltip.offsetWidth  || 250;
+  const th = tooltip.offsetHeight || 200;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const offset = 14;
+  let x = mx + offset, y = my + offset;
+  if (x + tw > vw - 8) x = mx - tw - offset;
+  if (y + th > vh - 8) y = my - th - offset;
+  tooltip.style.left = `${Math.max(8, x)}px`;
+  tooltip.style.top  = `${Math.max(8, y)}px`;
+}
+
+function hideFilePreview() {
+  clearTimeout(_previewTimer);
+  _previewTimer = null;
+  _previewVisible = false;
+  document.getElementById('filePreviewTooltip').classList.add('hidden');
+}
+
+function attachFilePreview(el, filePath) {
+  el.addEventListener('mouseenter', (e) => {
+    clearTimeout(_previewTimer);
+    _previewTimer = setTimeout(() => showFilePreview(filePath, e.clientX, e.clientY), 400);
+  });
+  el.addEventListener('mousemove', (e) => {
+    if (_previewVisible) {
+      positionPreviewTooltip(document.getElementById('filePreviewTooltip'), e.clientX, e.clientY);
+    }
+  });
+  el.addEventListener('mouseleave', () => hideFilePreview());
+}
+
+function attachPreviewsToHistory() {
+  document.querySelectorAll('.file-chip-wrap[data-preview-path]').forEach(el => {
+    attachFilePreview(el, el.dataset.previewPath);
+  });
 }
 
 // ── Confirm Modal ─────────────────────────────────────────────────

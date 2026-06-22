@@ -52,5 +52,6 @@ contextBridge.exposeInMainWorld('api', {
   checkForUpdates:  ()       => ipcRenderer.invoke('check-for-updates'),
   openReleasePage:  (url)    => ipcRenderer.invoke('open-release-page', url),
   onUpdateAvailable: (cb)    => ipcRenderer.on('update-available', (_, data) => cb(data)),
+  filePreview:      (p)      => ipcRenderer.invoke('file-preview', p),
   
 });
