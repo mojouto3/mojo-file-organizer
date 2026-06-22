@@ -1,0 +1,41 @@
+name: Discord Release Notification
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord embed
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          URL="${{ github.event.release.html_url }}"
+
+          # Get release body, escape for JSON, truncate to 900 chars
+          BODY=$(cat << 'BODY_EOF'
+          ${{ github.event.release.body }}
+          BODY_EOF
+          )
+          BODY_SHORT=$(echo "$BODY" | head -c 900 | sed 's/"/\\"/g' | sed 's/\n/\\n/g' | tr -d '\r')
+
+          curl -s -X POST "$DISCORD_WEBHOOK" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"username\": \"Mojo File Organizer\",
+              \"embeds\": [{
+                \"title\": \"Mojo File Organizer ${VERSION}\",
+                \"url\": \"${URL}\",
+                \"description\": \"${BODY_SHORT}\",
+                \"color\": 4053821,
+                \"fields\": [
+                  { \"name\": \"Version\", \"value\": \"${VERSION}\", \"inline\": true },
+                  { \"name\": \"Platform\", \"value\": \"Windows x64\", \"inline\": true }
+                ],
+                \"footer\": { \"text\": \"mojouto3/mojo-file-organizer\" },
+                \"timestamp\": \"${{ github.event.release.published_at }}\"
+              }]
+            }"
