@@ -1121,3 +1121,9 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .ignore-chip button:hover { color: var(--danger); }
 .ignore-chip button i { width: 11px; height: 11px; }
+
+/* ── Empty state hint ── */
+.empty-state-hint {
+  font-size: 11px; color: var(--text-dim);
+  max-width: 260px; text-align: center; line-height: 1.6;
+}
