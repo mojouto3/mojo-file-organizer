@@ -4,6 +4,25 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.7.0] - 2026-06-22
+
+### Added
+- Check for Updates: automatic silent check on startup, manual button in Settings, update banner when a newer version is available, opens GitHub release page in browser
+- File preview on hover: hover over any file chip in History to see a floating preview tooltip with image thumbnails, first lines of text and code files, or file type and size for other formats
+- Ignore List: define folders and file extensions to skip across all operations (Organize, Smart Group, Watcher, Cleanup, Duplicates), configurable from Settings with chip interface and reset to defaults
+- Empty states: all tabs now show a friendly icon, message and hint when there is no content to display (History, Stats, Duplicates, Cleanup, Watcher)
+- Settings accordion: all Settings cards are now collapsible with chevron indicator, Appearance expanded by default, state persists across sessions
+- Custom confirm dialogs: all native browser confirm() dialogs replaced with styled in-app modals matching the app theme, fully translated in all 5 languages
+
+### Fixed
+- Filename conflict on organize: conflicting files now use Windows-style suffix (2), (3) instead of _1, _2
+
+### Changed
+- Settings tab hover highlight now covers the full tab width with accent color tint
+- Reset button in Categories uses accent color outline for better visibility
+
+---
+
 ## [3.6.1] - 2026-06-21
 
 ### Fixed
