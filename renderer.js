@@ -429,7 +429,19 @@ async function clearLog() {
 // ── Stats ─────────────────────────────────────────────────────────
 async function loadStats() {
   const stats = await window.api.getStats();
-  document.getElementById('statsGrid').innerHTML = `
+  const empty = document.getElementById('statsEmpty');
+  const grid  = document.getElementById('statsGrid');
+
+  if (!stats.totalFiles) {
+    grid.innerHTML = '';
+    document.getElementById('chartWrap').innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    lucide.createIcons();
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  grid.innerHTML = `
     <div class="stat-card"><div class="stat-num">${stats.totalFiles.toLocaleString()}</div><div class="stat-label">Total Files Organized</div></div>
     <div class="stat-card"><div class="stat-num">${stats.totalSessions}</div><div class="stat-label">Sessions</div></div>
     <div class="stat-card"><div class="stat-num">${Object.keys(stats.byCategory).length}</div><div class="stat-label">Categories Used</div></div>`;
@@ -791,9 +803,8 @@ async function startWatcher() {
   const result = await window.api.startWatcher(folder);
   if (result.ok) {
     setWatcherActive(true);
-    if (!document.getElementById('page-watcher').classList.contains('hidden')) {
-  document.getElementById('watcherLogCard').classList.remove('hidden');
-  }
+    const empty = document.getElementById('watcherEmpty');
+    if (empty) { empty.classList.remove('hidden'); lucide.createIcons(); }
     showToast(lang === 'en' ? 'Watching for new files...' : 'Παρακολούθηση ενεργή...');
   } else {
     showToast(lang === 'en' ? 'Failed to start watcher' : 'Αποτυχία εκκίνησης');
@@ -817,6 +828,9 @@ function addWatcherEvent(filename, category) {
   document.getElementById('watcherEventCount').textContent = `${watcherEventCount} event${watcherEventCount !== 1 ? 's' : ''}`;
 
   const log = document.getElementById('watcherLog');
+  const empty = document.getElementById('watcherEmpty');
+  if (empty) empty.classList.add('hidden');
+
   const now = new Date().toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
   const el = document.createElement('div');
@@ -836,6 +850,8 @@ function clearWatcherLog() {
   document.getElementById('watcherLog').innerHTML = '';
   watcherEventCount = 0;
   document.getElementById('watcherEventCount').textContent = '0 events';
+  const empty = document.getElementById('watcherEmpty');
+  if (empty) empty.classList.remove('hidden');
 }
 
 // ── Themes ───────────────────────────────────────────────────────
@@ -934,8 +950,10 @@ function setAgeThreshold(months, btnEl) {
 }
 
 async function scanCleanup() {
-  if (!currentCleanupFolder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  if (!currentCleanupFolder) { showToast(tr('selectFolderFirst')); return; }
   showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
+  const preScan = document.getElementById('cleanupPreScan');
+  if (preScan) preScan.classList.add('hidden');
 
   const results = await window.api.scanCleanup({ folderPath: currentCleanupFolder, oldFilesMonths: ageThresholdMonths });
   cleanupScanResults = results;
