@@ -314,8 +314,8 @@ function getUniqueDest(destFolder, filename) {
   let dest = path.join(destFolder, filename);
   if (!fs.existsSync(dest)) return dest;
   const ext = path.extname(filename), base = path.basename(filename, ext);
-  let i = 1;
-  do { dest = path.join(destFolder, `${base}_${i}${ext}`); i++; } while (fs.existsSync(dest));
+  let i = 2;
+  do { dest = path.join(destFolder, `${base} (${i})${ext}`); i++; } while (fs.existsSync(dest));
   return dest;
 }
 // ── Bookmarks helpers ─────────────────────────────────────────────
