@@ -13,21 +13,20 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_URL: ${{ github.event.release.html_url }}
-          RELEASE_BODY: ${{ github.event.release.body }}
         run: |
-          BODY_SHORT=$(echo "$RELEASE_BODY" | head -c 800)
+          echo "Webhook is set: $([ -n "$DISCORD_WEBHOOK" ] && echo YES || echo NO)"
+          echo "Tag: $RELEASE_TAG"
 
           PAYLOAD=$(jq -n \
             --arg title "Mojo File Organizer $RELEASE_TAG" \
             --arg url "$RELEASE_URL" \
-            --arg desc "$BODY_SHORT" \
             --arg version "$RELEASE_TAG" \
             '{
               username: "Mojo File Organizer",
               embeds: [{
                 title: $title,
                 url: $url,
-                description: $desc,
+                description: ("New release available! Click the title to download."),
                 color: 4053821,
                 fields: [
                   { name: "Version", value: $version, inline: true },
@@ -37,6 +36,12 @@ jobs:
               }]
             }')
 
-          curl -s -o /dev/null -w "%{http_code}" -X POST "$DISCORD_WEBHOOK" \
+          echo "Payload built successfully"
+
+          HTTP_CODE=$(curl -v -o /tmp/response.txt -w "%{http_code}" \
+            -X POST "$DISCORD_WEBHOOK" \
             -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+            -d "$PAYLOAD" 2>&1)
+
+          echo "HTTP Code: $HTTP_CODE"
+          echo "Response: $(cat /tmp/response.txt)"
