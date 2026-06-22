@@ -514,6 +514,49 @@
     </div>
     </div>
   </div>
+  <!-- Ignore List -->
+  <div class="card accordion-card collapsed" id="settingsCard-ignore">
+    <div class="card-header" onclick="toggleSettingsCard('ignore')">
+      <i data-lucide="shield-off" class="card-icon"></i>
+      <span class="card-title" data-i18n="ignoreList">Ignore List</span>
+      <span class="accordion-hint" id="ignoreCountHint"></span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
+    </div>
+    <div class="card-body">
+      <p class="card-desc" data-i18n="ignoreListDesc">Files and folders matching these rules will be skipped in all operations.</p>
+
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title" data-i18n="ignoredExtensions">Ignored Extensions</div>
+          <div class="setting-desc" data-i18n="ignoredExtensionsDesc">e.g. .dll .sys .lnk</div>
+        </div>
+      </div>
+      <div class="ignore-chips" id="ignoreExtChips"></div>
+      <div class="input-row" style="margin-top:8px">
+        <input type="text" id="newIgnoreExt" placeholder=".dll"/>
+        <button class="btn btn-green btn-sm" onclick="addIgnoreExt()"><i data-lucide="plus"></i></button>
+      </div>
+
+      <div class="setting-row" style="margin-top:16px">
+        <div class="setting-info">
+          <div class="setting-title" data-i18n="ignoredFolders">Ignored Folders</div>
+          <div class="setting-desc" data-i18n="ignoredFoldersDesc">e.g. node_modules .git</div>
+        </div>
+      </div>
+      <div class="ignore-chips" id="ignoreFolderChips"></div>
+      <div class="input-row" style="margin-top:8px">
+        <input type="text" id="newIgnoreFolder" placeholder="node_modules"/>
+        <button class="btn btn-green btn-sm" onclick="addIgnoreFolder()"><i data-lucide="plus"></i></button>
+      </div>
+
+      <div class="action-row" style="margin-top:16px">
+        <button class="btn btn-accent-outline btn-sm" onclick="resetIgnoreList()">
+          <i data-lucide="refresh-cw"></i><span data-i18n="resetToDefaults">Reset to defaults</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- About & Updates -->
   <div class="card accordion-card collapsed" id="settingsCard-about">
     <div class="card-header" onclick="toggleSettingsCard('about')">

@@ -281,6 +281,24 @@ function readCategories() {
   return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
 }
 function writeCategories(c) { fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(c, null, 2)); }
+
+// ── Ignore list helpers ───────────────────────────────────────────
+const IGNORE_FILE = path.join(os.homedir(), 'mojo-organizer.ignore.json');
+const DEFAULT_IGNORE = { folders: ['node_modules', '.git', '.svn', '.venv', '__pycache__', '.DS_Store'], extensions: ['.sys', '.dll', '.lnk', '.ini', '.db', '.log'] };
+
+function readIgnoreList() {
+  try { if (fs.existsSync(IGNORE_FILE)) return JSON.parse(fs.readFileSync(IGNORE_FILE, 'utf8')); } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_IGNORE));
+}
+function writeIgnoreList(list) { fs.writeFileSync(IGNORE_FILE, JSON.stringify(list, null, 2)); }
+
+function shouldIgnore(filename, ignoreList) {
+  const ext = path.extname(filename).toLowerCase();
+  const nameLower = filename.toLowerCase();
+  if (ignoreList.extensions.some(e => e.toLowerCase() === ext)) return true;
+  if (ignoreList.folders.some(f => f.toLowerCase() === nameLower)) return true;
+  return false;
+}
 function getCategory(ext, cats) {
   const e = ext.toLowerCase();
   for (const cat of cats) { if (cat.enabled && cat.extensions.includes(e)) return cat.name; }
@@ -385,6 +403,10 @@ ipcMain.handle('save-settings', async (_, s) => {
 });
 
 // ── IPC: Categories ───────────────────────────────────────────────
+ipcMain.handle('get-ignore-list',   async ()      => readIgnoreList());
+ipcMain.handle('save-ignore-list',  async (_, l)  => { writeIgnoreList(l); return true; });
+ipcMain.handle('reset-ignore-list', async ()      => { writeIgnoreList(DEFAULT_IGNORE); return DEFAULT_IGNORE; });
+
 ipcMain.handle('get-categories',   async ()    => readCategories());
 ipcMain.handle('save-categories',  async (_, c) => { writeCategories(c); return true; });
 ipcMain.handle('reset-categories', async ()    => { writeCategories(DEFAULT_CATEGORIES); return DEFAULT_CATEGORIES; });
@@ -392,10 +414,12 @@ ipcMain.handle('reset-categories', async ()    => { writeCategories(DEFAULT_CATE
 // ── IPC: Preview & Organize ───────────────────────────────────────
 ipcMain.handle('preview', async (_, folderPath) => {
   const cats = readCategories();
+  const ignore = readIgnoreList();
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
+      if (shouldIgnore(f.name, ignore)) continue;
       const cat = getCategory(path.extname(f.name), cats);
       if (cat) results.push({ name: f.name, category: cat });
     }
@@ -405,10 +429,12 @@ ipcMain.handle('preview', async (_, folderPath) => {
 
 ipcMain.handle('organize', async (_, folderPath) => {
   const cats = readCategories();
+  const ignore = readIgnoreList();
   const moved = [], errors = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
+      if (shouldIgnore(f.name, ignore)) continue;
       const cat = getCategory(path.extname(f.name), cats);
       if (!cat) continue;
       const destFolder = path.join(folderPath, cat);
@@ -449,11 +475,13 @@ ipcMain.handle('save-groups', async (_, g) => { writeGroups(g); return true; });
 
 ipcMain.handle('preview-groups', async (_, folderPath) => {
   const groups = readGroups();
+  const ignore = readIgnoreList();
   if (!groups.length) return [];
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
+      if (shouldIgnore(f.name, ignore)) continue;
       for (const g of groups) {
         if (filenameMatchesGroup(f.name, g.name)) { results.push({ name: f.name, group: g.name }); break; }
       }
@@ -464,10 +492,12 @@ ipcMain.handle('preview-groups', async (_, folderPath) => {
 
 ipcMain.handle('organize-groups', async (_, folderPath) => {
   const groups = readGroups();
+  const ignore = readIgnoreList();
   const moved = [], errors = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
+      if (shouldIgnore(f.name, ignore)) continue;
       for (const g of groups) {
         if (filenameMatchesGroup(f.name, g.name)) {
           const folderName = g.name.charAt(0).toUpperCase() + g.name.slice(1);
@@ -642,17 +672,20 @@ function formatBytes(bytes) {
 }
 
 function scanFolder(folderPath) {
+  const ignore = readIgnoreList();
   const installers = [], junk = [], emptyFolders = [];
   try {
     const items = fs.readdirSync(folderPath, { withFileTypes: true });
     for (const item of items) {
       const fullPath = path.join(folderPath, item.name);
       if (item.isDirectory()) {
+        if (shouldIgnore(item.name, ignore)) continue;
         try {
           const contents = fs.readdirSync(fullPath);
           if (contents.length === 0) emptyFolders.push({ name: item.name, path: fullPath, size: 0 });
         } catch (e) {}
       } else {
+        if (shouldIgnore(item.name, ignore)) continue;
         const ext = path.extname(item.name).toLowerCase();
         const nameLower = item.name.toLowerCase();
         const size = getFileSize(fullPath);
@@ -824,10 +857,11 @@ function hashFile(filePath) {
 }
 
 ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
+  const ignore = readIgnoreList();
   const results = {};
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true })
-      .filter(f => f.isFile())
+      .filter(f => f.isFile() && !shouldIgnore(f.name, ignore))
       .map(f => ({ name: f.name, path: path.join(folderPath, f.name), size: fs.statSync(path.join(folderPath, f.name)).size }));
 
     for (const file of files) {
@@ -906,6 +940,9 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
           const stat = fs.statSync(filePath);
           if (!stat.isFile()) return;
         } catch (e) { return; }
+
+        const ignore = readIgnoreList();
+        if (shouldIgnore(filename, ignore)) return;
 
         const cat = getCategory(path.extname(filename), cats);
         if (!cat) return;

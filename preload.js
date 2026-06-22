@@ -53,5 +53,8 @@ contextBridge.exposeInMainWorld('api', {
   openReleasePage:  (url)    => ipcRenderer.invoke('open-release-page', url),
   onUpdateAvailable: (cb)    => ipcRenderer.on('update-available', (_, data) => cb(data)),
   filePreview:      (p)      => ipcRenderer.invoke('file-preview', p),
+  getIgnoreList:    ()       => ipcRenderer.invoke('get-ignore-list'),
+  saveIgnoreList:   (l)      => ipcRenderer.invoke('save-ignore-list', l),
+  resetIgnoreList:  ()       => ipcRenderer.invoke('reset-ignore-list'),
   
 });

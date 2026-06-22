@@ -40,6 +40,7 @@ async function init() {
   initAllDragDrop();
   initVersionDisplay();
   restoreAccordionState();
+  loadIgnoreList();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -1354,6 +1355,78 @@ if (window.api.onUpdateAvailable) {
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
   return map[cat] || 'folder';
+}
+
+// ── Ignore List ───────────────────────────────────────────────────
+let ignoreList = { folders: [], extensions: [] };
+
+async function loadIgnoreList() {
+  ignoreList = await window.api.getIgnoreList();
+  renderIgnoreChips();
+}
+
+function renderIgnoreChips() {
+  const extEl    = document.getElementById('ignoreExtChips');
+  const folderEl = document.getElementById('ignoreFolderChips');
+  const hint     = document.getElementById('ignoreCountHint');
+  if (!extEl || !folderEl) return;
+
+  extEl.innerHTML = ignoreList.extensions.map((e, i) => `
+    <span class="ignore-chip">
+      <span>${e}</span>
+      <button onclick="removeIgnoreExt(${i})"><i data-lucide="x"></i></button>
+    </span>`).join('');
+
+  folderEl.innerHTML = ignoreList.folders.map((f, i) => `
+    <span class="ignore-chip">
+      <span>${f}</span>
+      <button onclick="removeIgnoreFolder(${i})"><i data-lucide="x"></i></button>
+    </span>`).join('');
+
+  const total = ignoreList.extensions.length + ignoreList.folders.length;
+  if (hint) hint.textContent = `${total} rule${total !== 1 ? 's' : ''}`;
+  lucide.createIcons();
+}
+
+async function addIgnoreExt() {
+  const input = document.getElementById('newIgnoreExt');
+  let val = input.value.trim().toLowerCase();
+  if (!val) return;
+  if (!val.startsWith('.')) val = '.' + val;
+  if (ignoreList.extensions.includes(val)) { showToast(tr('alreadyExists')); return; }
+  ignoreList.extensions.push(val);
+  await window.api.saveIgnoreList(ignoreList);
+  input.value = '';
+  renderIgnoreChips();
+}
+
+async function removeIgnoreExt(i) {
+  ignoreList.extensions.splice(i, 1);
+  await window.api.saveIgnoreList(ignoreList);
+  renderIgnoreChips();
+}
+
+async function addIgnoreFolder() {
+  const input = document.getElementById('newIgnoreFolder');
+  const val = input.value.trim();
+  if (!val) return;
+  if (ignoreList.folders.includes(val)) { showToast(tr('alreadyExists')); return; }
+  ignoreList.folders.push(val);
+  await window.api.saveIgnoreList(ignoreList);
+  input.value = '';
+  renderIgnoreChips();
+}
+
+async function removeIgnoreFolder(i) {
+  ignoreList.folders.splice(i, 1);
+  await window.api.saveIgnoreList(ignoreList);
+  renderIgnoreChips();
+}
+
+async function resetIgnoreList() {
+  if (!await showConfirm(tr('confirmResetIgnore'))) return;
+  ignoreList = await window.api.resetIgnoreList();
+  renderIgnoreChips();
 }
 
 // ── File Preview Tooltip ─────────────────────────────────────────
