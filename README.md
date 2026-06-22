@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.6.1-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.7.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -95,6 +95,18 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Active tab and accent elements follow the selected color throughout the app
 - Five languages: English, Greek, German, Spanish, Russian
 
+### File Preview on Hover
+- Hover over any file chip in History to see a floating preview tooltip
+- Images: rendered as thumbnail
+- Text and code files: first lines shown in monospace
+- Other file types: file icon, extension and size
+
+### Ignore List
+- Define folders and extensions to skip across all operations
+- Applied to: Organize, Smart Group, Watcher, Cleanup and Duplicates
+- Configurable from Settings with chip interface
+- Default rules cover common system and development files
+
 ### Settings and Customization
 - Custom categories and extensions
 - Enable/disable categories
@@ -104,6 +116,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Auto-schedule with custom days and time
 - Tray Quick Actions: organize without opening the app
 - Tray tooltip shows quick stats (file count and size) for the default folder, updated automatically
+- Ignore List: skip specific folders and extensions from all operations
+- Check for Updates: manual and automatic update notifications
 
 ---
 
@@ -185,6 +199,8 @@ Coming soon.
 - Default Folder, Start with Windows, Minimize to Tray
 - Auto-Schedule: choose days and time
 - Categories: customize extensions or create new ones
+- Ignore List: add folders and extensions to skip during all operations
+- About and Updates: check for new versions manually or get notified automatically
 
 ### Tray Quick Actions
 Right-click the tray icon to organize without opening the app.
@@ -241,17 +257,22 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Roadmap
 
-### UI/UX
-- [ ] Portable version (no installer needed)
+### v3.8
+- [ ] Size filter for organize operations
+- [ ] Onboarding screen for first-time users
+- [ ] Scheduled cleanup
+
+### v3.9
+- [ ] Batch rename rules during organize
 - [ ] Folder size treemap visualization
 
-### Features
-- [ ] File preview on hover (image thumbnails in organize preview)
-- [ ] Scheduled cleanup (automatic cleanup like auto-schedule for organize)
-
-### Smart Features
+### v3.10
 - [ ] Auto-detect duplicate apps and installers
 - [ ] Suggested cleanup based on session history
+
+### v3.11
+- [ ] Windows Explorer context menu integration
+- [ ] Portable version (no installer needed)
 
 ---
 
