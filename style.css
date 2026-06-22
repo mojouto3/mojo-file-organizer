@@ -1105,3 +1105,19 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   text-transform: uppercase;
 }
 .fpt-info .fpt-size { font-size: 10px; color: var(--text-dim); }
+
+/* ── Ignore list chips ── */
+.ignore-chips { display: flex; flex-wrap: wrap; gap: 6px; min-height: 28px; }
+.ignore-chip {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 3px 10px 3px 12px;
+  font-size: 11px; color: var(--text-dim);
+}
+.ignore-chip button {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); padding: 0; display: flex; align-items: center;
+  transition: color 0.15s;
+}
+.ignore-chip button:hover { color: var(--danger); }
+.ignore-chip button i { width: 11px; height: 11px; }
