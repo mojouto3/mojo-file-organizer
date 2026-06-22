@@ -11,6 +11,10 @@ let currentGroupFolder = null;
 let scheduleFolder = null;
 
 // ── Init ──────────────────────────────────────────────────────────
+function tr(key) {
+  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || TRANSLATIONS.en[key] || key;
+}
+
 async function init() {
   lucide.createIcons();
   appSettings = await window.api.getSettings();
@@ -34,6 +38,8 @@ async function init() {
 
   renderRecentFolders('organize');
   initAllDragDrop();
+  initVersionDisplay();
+  restoreAccordionState();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -411,7 +417,7 @@ async function deleteSession(e, id) {
 }
 
 async function clearLog() {
-  if (!confirm(lang === 'en' ? 'Clear all history?' : 'Διαγραφή όλου του ιστορικού;')) return;
+  if (!await showConfirm(tr('confirmClearHistory'))) return;
   await window.api.clearLog();
   loadHistory();
   showToast(lang === 'en' ? 'History cleared' : 'Καθαρίστηκε');
@@ -575,6 +581,8 @@ function renderCatSettings() {
     list.appendChild(row);
   }
   lucide.createIcons();
+  const hint = document.getElementById('categoriesCountHint');
+  if (hint) hint.textContent = `${categories.length} ${categories.length === 1 ? 'category' : 'categories'}`;
 }
 
 function toggleCatSetting(header) { header.closest('.cat-setting-row').classList.toggle('open'); }
@@ -588,7 +596,7 @@ async function toggleCat(e, i) {
 
 async function deleteCat(e, i) {
   e.stopPropagation();
-  if (!confirm(`Delete "${categories[i].name}"?`)) return;
+  if (!await showConfirm(tr('confirmDeleteCategory').replace('{name}', categories[i].name))) return;
   categories.splice(i, 1);
   await window.api.saveCategories(categories);
   renderCatSettings();
@@ -627,7 +635,7 @@ async function addCategory() {
 }
 
 async function resetCategories() {
-  if (!confirm(lang === 'en' ? 'Reset to default categories?' : 'Επαναφορά στις προεπιλογές;')) return;
+  if (!await showConfirm(tr('confirmResetCategories'))) return;
   categories = await window.api.resetCategories();
   renderCatSettings();
   showToast(lang === 'en' ? 'Reset to defaults' : 'Επαναφορά');
@@ -719,7 +727,7 @@ async function deleteSelected() {
     return { path: pathEl.title, name: nameEl.textContent, size: 0 };
   });
 
-  if (!confirm(lang === 'en' ? `Delete ${files.length} file(s)?` : `Διαγραφή ${files.length} αρχείων;`)) return;
+  if (!await showConfirm(tr('confirmDeleteFiles').replace('{count}', files.length))) return;
 
   const result = await window.api.deleteDuplicates(files);
   lastDeletedDups = result.deleted;
@@ -1070,7 +1078,7 @@ async function runCleanup() {
     .filter(Boolean).reduce((s, arr) => s + arr.length, 0);
 
   if (totalCount === 0) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }
-  if (!confirm(lang === 'en' ? `Delete ${totalCount} item(s)?` : `Διαγραφή ${totalCount} στοιχείων;`)) return;
+  if (!await showConfirm(tr('confirmDeleteItems').replace('{count}', totalCount))) return;
 
   const result = await window.api.runCleanup(toDelete);
   lastCleanupDeleted = result.deleted;
@@ -1248,11 +1256,125 @@ function initAllDragDrop() {
   });
 }
 
+// ── Updates ───────────────────────────────────────────────────────
+let latestReleaseUrl = null;
+
+async function initVersionDisplay() {
+  try {
+    const v = await window.api.getAppVersion();
+    const txt = document.getElementById('aboutVersionText');
+    if (txt) txt.textContent = `v${v}`;
+    const hint = document.getElementById('aboutVersionHint');
+    if (hint) hint.textContent = `v${v}`;
+    const tbVersion = document.querySelector('.titlebar-version');
+    if (tbVersion) tbVersion.textContent = `v${v}`;
+  } catch (e) {}
+}
+
+// ── Settings accordion ───────────────────────────────────────────
+const SETTINGS_ACCORDION_KEY = 'mojo-settings-accordion-state';
+
+function getAccordionState() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_ACCORDION_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+
+function saveAccordionState(state) {
+  try { localStorage.setItem(SETTINGS_ACCORDION_KEY, JSON.stringify(state)); }
+  catch (e) {}
+}
+
+function toggleSettingsCard(name) {
+  const card = document.getElementById(`settingsCard-${name}`);
+  if (!card) return;
+  const collapsed = card.classList.toggle('collapsed');
+  const state = getAccordionState();
+  state[name] = collapsed;
+  saveAccordionState(state);
+}
+
+function restoreAccordionState() {
+  const state = getAccordionState();
+  for (const name of Object.keys(state)) {
+    const card = document.getElementById(`settingsCard-${name}`);
+    if (card) card.classList.toggle('collapsed', state[name]);
+  }
+}
+
+async function checkForUpdates() {
+  const btn = document.getElementById('checkUpdatesBtn');
+  const msg = document.getElementById('updateStatusMsg');
+  if (btn) btn.disabled = true;
+  if (msg) { msg.className = 'status-msg'; msg.textContent = tr('checkingForUpdates'); }
+
+  const result = await window.api.checkForUpdates();
+  if (btn) btn.disabled = false;
+  if (!msg) return;
+
+  if (!result.ok) {
+    msg.className = 'status-msg err';
+    msg.textContent = tr('updateCheckFailed');
+    return;
+  }
+  if (result.updateAvailable) {
+    latestReleaseUrl = result.releaseUrl;
+    msg.className = 'status-msg ok';
+    msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion);
+    showUpdateBanner(result);
+  } else {
+    msg.className = 'status-msg ok';
+    msg.textContent = tr('upToDate');
+  }
+}
+
+function showUpdateBanner(result) {
+  latestReleaseUrl = result.releaseUrl;
+  const banner = document.getElementById('updateBanner');
+  const text = document.getElementById('updateBannerText');
+  if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion);
+  if (banner) banner.classList.remove('hidden');
+}
+
+function dismissUpdateBanner() {
+  const banner = document.getElementById('updateBanner');
+  if (banner) banner.classList.add('hidden');
+}
+
+function openReleasePage() {
+  window.api.openReleasePage(latestReleaseUrl);
+}
+
+if (window.api.onUpdateAvailable) {
+  window.api.onUpdateAvailable((result) => showUpdateBanner(result));
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
   return map[cat] || 'folder';
 }
+
+// ── Confirm Modal ─────────────────────────────────────────────────
+let _confirmResolve = null;
+
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    _confirmResolve = resolve;
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmOverlay').classList.remove('hidden');
+    lucide.createIcons();
+  });
+}
+
+function resolveConfirm(result) {
+  document.getElementById('confirmOverlay').classList.add('hidden');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && _confirmResolve) resolveConfirm(false);
+  if (e.key === 'Enter' && _confirmResolve) resolveConfirm(true);
+});
 
 function showToast(msg) {
   const t = document.getElementById('toast');
