@@ -24,6 +24,14 @@
   </div>
 </div>
 
+<!-- Update banner -->
+<div class="update-banner hidden" id="updateBanner">
+  <i data-lucide="sparkles"></i>
+  <span id="updateBannerText" data-i18n="updateBannerText">A new version is available!</span>
+  <button class="btn btn-green btn-sm" onclick="openReleasePage()" data-i18n="viewRelease">View Release</button>
+  <button class="win-btn" onclick="dismissUpdateBanner()"><i data-lucide="x"></i></button>
+</div>
+
 <!-- Tab bar -->
 <div class="tabbar">
   <button class="tab active" id="tab-organize" onclick="showTab('organize')">
@@ -360,11 +368,13 @@
 <div class="page hidden" id="page-settings">
 
   <!-- Appearance -->
-  <div class="card">
-    <div class="card-header">
+  <div class="card accordion-card" id="settingsCard-appearance">
+    <div class="card-header" onclick="toggleSettingsCard('appearance')">
       <i data-lucide="palette" class="card-icon"></i>
       <span class="card-title" data-i18n="appearance">Appearance</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
     </div>
+    <div class="card-body">
     <div class="setting-row">
       <div class="setting-info">
         <div class="setting-title" data-i18n="theme">Theme</div>
@@ -397,14 +407,17 @@
       </div>
       <input type="color" id="customAccentColor" value="#3ddb3d" onchange="setAccent(this.value, null)" class="color-picker-input"/>
     </div>
+    </div>
   </div>
 
   <!-- General -->
-  <div class="card">
-    <div class="card-header">
+  <div class="card accordion-card collapsed" id="settingsCard-general">
+    <div class="card-header" onclick="toggleSettingsCard('general')">
       <i data-lucide="sliders" class="card-icon"></i>
       <span class="card-title" data-i18n="general">General</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
     </div>
+    <div class="card-body">
     <div class="setting-row">
       <div class="setting-info">
         <div class="setting-title" data-i18n="language">Language</div>
@@ -443,14 +456,17 @@
       </div>
       <button class="setting-toggle" id="toggleMinimizeTray" onclick="toggleSetting('minimizeToTray')"></button>
     </div>
+    </div>
   </div>
 
   <!-- Auto-Schedule -->
-  <div class="card">
-    <div class="card-header">
+  <div class="card accordion-card collapsed" id="settingsCard-schedule">
+    <div class="card-header" onclick="toggleSettingsCard('schedule')">
       <i data-lucide="calendar" class="card-icon"></i>
       <span class="card-title" data-i18n="autoSchedule">Auto-Schedule</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
     </div>
+    <div class="card-body">
     <p class="card-desc" data-i18n="autoScheduleDesc">Choose which days and time to run automatically.</p>
     <div class="schedule-folder-row">
       <input type="text" id="scheduleFolderInput" readonly placeholder="Select folder to auto-organize..."/>
@@ -475,25 +491,63 @@
       <button class="btn btn-danger-outline" onclick="disableSchedule()"><i data-lucide="square"></i><span data-i18n="disable">Disable</span></button>
     </div>
     <div id="scheduleMsg" class="status-msg"></div>
+    </div>
   </div>
 
   <!-- Categories -->
-  <div class="card">
-    <div class="card-header">
+  <div class="card accordion-card collapsed" id="settingsCard-categories">
+    <div class="card-header" onclick="toggleSettingsCard('categories')">
       <i data-lucide="layers" class="card-icon"></i>
       <span class="card-title" data-i18n="categoriesExtensions">Categories & Extensions</span>
-      <button class="btn btn-outline btn-sm" onclick="resetCategories()" style="margin-left:auto">
+      <span class="accordion-hint" id="categoriesCountHint"></span>
+      <button class="btn btn-accent-outline btn-sm" onclick="event.stopPropagation(); resetCategories()">
         <i data-lucide="refresh-cw"></i><span data-i18n="reset">Reset</span>
       </button>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
     </div>
+    <div class="card-body">
     <p class="card-desc" data-i18n="categoriesDesc">Enable/disable categories, add or remove extensions, or create your own.</p>
     <div class="cat-settings-list" id="catSettingsList"></div>
     <div class="input-row" style="margin-top:12px">
       <input type="text" id="newCatName" placeholder="New category name (e.g. 3D Models)..."/>
       <button class="btn btn-green" onclick="addCategory()"><i data-lucide="plus"></i><span data-i18n="addCategory">Add Category</span></button>
     </div>
+    </div>
+  </div>
+  <!-- About & Updates -->
+  <div class="card accordion-card collapsed" id="settingsCard-about">
+    <div class="card-header" onclick="toggleSettingsCard('about')">
+      <i data-lucide="info" class="card-icon"></i>
+      <span class="card-title" data-i18n="aboutUpdates">About & Updates</span>
+      <span class="accordion-hint" id="aboutVersionHint">v3.6.1</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
+    </div>
+    <div class="card-body">
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="currentVersion">Current Version</div>
+        <div class="setting-desc" id="aboutVersionText">v3.6.1</div>
+      </div>
+      <button class="btn btn-outline btn-sm" id="checkUpdatesBtn" onclick="checkForUpdates()">
+        <i data-lucide="refresh-cw"></i><span data-i18n="checkForUpdates">Check for Updates</span>
+      </button>
+    </div>
+    <div id="updateStatusMsg" class="status-msg"></div>
+    </div>
   </div>
 
+</div>
+
+<!-- Confirm Modal -->
+<div class="confirm-overlay hidden" id="confirmOverlay" onclick="if(event.target===this) resolveConfirm(false)">
+  <div class="confirm-modal">
+    <div class="confirm-icon"><i data-lucide="alert-triangle"></i></div>
+    <p class="confirm-message" id="confirmMessage"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-outline" id="confirmCancelBtn" onclick="resolveConfirm(false)" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-danger-outline" id="confirmOkBtn" onclick="resolveConfirm(true)" data-i18n="confirmYes">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <!-- Toast -->

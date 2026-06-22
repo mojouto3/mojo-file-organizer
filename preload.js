@@ -48,5 +48,9 @@ contextBridge.exposeInMainWorld('api', {
   openFolder:       (folder)   => ipcRenderer.invoke('open-folder', folder),
   undoSingleFile:   (opts)     => ipcRenderer.invoke('undo-single-file', opts),
   recategorizeFile: (opts) => ipcRenderer.invoke('recategorize-file', opts),
+  getAppVersion:    ()       => ipcRenderer.invoke('get-app-version'),
+  checkForUpdates:  ()       => ipcRenderer.invoke('check-for-updates'),
+  openReleasePage:  (url)    => ipcRenderer.invoke('open-release-page', url),
+  onUpdateAvailable: (cb)    => ipcRenderer.on('update-available', (_, data) => cb(data)),
   
 });

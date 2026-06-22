@@ -159,6 +159,8 @@ input[type="text"]:focus { border-color: #444; }
 .btn-green:hover { background: var(--green-hover); }
 .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
 .btn-danger-outline:hover { background: var(--danger); color: #fff; }
+.btn-accent-outline { background: transparent; color: var(--accent, var(--green)); border: 1px solid var(--accent, var(--green)); }
+.btn-accent-outline:hover { background: var(--accent, var(--green)); color: #111; }
 .btn-lg { padding: 10px 22px; font-size: 13px; }
 .btn-sm { padding: 4px 10px; font-size: 11px; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -639,8 +641,9 @@ input[type="text"]:focus { border-color: #444; }
 }
 .tab::before {
   content: '';
-  position: absolute; bottom: 0; left: 8px; right: 8px; top: 6px;
-  border-radius: 6px 6px 0 0; background: rgba(255,255,255,0.025);
+  position: absolute; inset: 0;
+  border-radius: 4px 4px 0 0;
+  background: rgba(255,255,255,0.05);
   opacity: 0; transition: opacity 0.18s ease;
   z-index: -1;
 }
@@ -981,3 +984,89 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .file-chip-wrap[draggable="true"] { cursor: grab; }
 .file-chip-wrap[draggable="true"]:active { cursor: grabbing; }
+/* ── Update banner ── */
+.update-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(90deg, var(--surface2), var(--surface));
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px;
+  font-size: 12px; color: var(--text);
+}
+.update-banner i[data-lucide="sparkles"] {
+  width: 14px; height: 14px; color: var(--accent); flex-shrink: 0;
+}
+.update-banner span { flex: 1; }
+.update-banner .win-btn { width: 24px; height: 24px; }
+
+/* ── Settings accordion ── */
+.accordion-card {
+  padding: 0;
+}
+.accordion-card .card-header {
+  cursor: pointer; user-select: none;
+  margin-bottom: 0;
+  padding: 14px 16px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: background 0.15s ease;
+}
+.accordion-card.collapsed .card-header {
+  border-radius: var(--radius);
+}
+.accordion-card .card-header:hover {
+  background: color-mix(in srgb, var(--accent, var(--green)) 10%, transparent);
+}
+.accordion-card .card-body {
+  padding: 0 16px 16px;
+  animation: accordionOpen 0.15s ease;
+}
+.accordion-card.collapsed .card-body {
+  display: none;
+}
+.accordion-chevron {
+  width: 16px; height: 16px; color: var(--text-dim);
+  margin-left: auto; flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.accordion-card.collapsed .accordion-chevron { transform: rotate(-90deg); }
+.accordion-hint {
+  font-size: 11px; color: var(--text-dim);
+  margin-left: auto; flex-shrink: 0;
+  white-space: nowrap;
+}
+@keyframes accordionOpen {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Confirm modal ── */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 24px;
+  width: 320px; max-width: 90vw;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  animation: confirmIn 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes confirmIn {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.confirm-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(224,85,85,0.12); color: var(--danger);
+  display: flex; align-items: center; justify-content: center;
+}
+.confirm-icon i { width: 20px; height: 20px; }
+.confirm-message {
+  font-size: 13px; color: var(--text); text-align: center;
+  line-height: 1.5; margin: 0;
+}
+.confirm-actions {
+  display: flex; gap: 8px; width: 100%; margin-top: 4px;
+}
+.confirm-actions .btn { flex: 1; justify-content: center; }

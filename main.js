@@ -1,7 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, Notification, nativeImage } = require('electron');
-const path = require('path');
-const fs   = require('fs');
-const os   = require('os');
+const path  = require('path');
+const fs    = require('fs');
+const os    = require('os');
+const https = require('https');
+
+const APP_VERSION = require('./package.json').version;
+const UPDATE_REPO = 'mojouto3/mojo-file-organizer';
 
 let mainWindow;
 let tray = null;
@@ -138,6 +142,64 @@ function sendNotification(title, body) {
   }
 }
 
+// ── Check for Updates ────────────────────────────────────────────
+function compareVersions(a, b) {
+  // Returns 1 if a > b, -1 if a < b, 0 if equal. Ignores leading "v".
+  const pa = a.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+  const pb = b.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
+function fetchLatestRelease() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'api.github.com',
+      path: `/repos/${UPDATE_REPO}/releases/latest`,
+      headers: { 'User-Agent': 'mojo-file-organizer' },
+      timeout: 8000
+    };
+    const req = https.get(options, (res) => {
+      if (res.statusCode !== 200) {
+        res.resume();
+        return reject(new Error(`GitHub API returned ${res.statusCode}`));
+      }
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(e); }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('Request timed out')));
+    req.on('error', reject);
+  });
+}
+
+async function checkForUpdates() {
+  try {
+    const release = await fetchLatestRelease();
+    const latestVersion = (release.tag_name || '').replace(/^v/i, '');
+    if (!latestVersion) return { ok: false, error: 'No release tag found' };
+    const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
+    return {
+      ok: true,
+      updateAvailable,
+      currentVersion: APP_VERSION,
+      latestVersion,
+      releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
+      releaseNotes: (release.body || '').slice(0, 500),
+      publishedAt: release.published_at || null
+    };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
 // ── Window ────────────────────────────────────────────────────────
 function createWindow() {
   const settings = readSettings();
@@ -185,6 +247,14 @@ app.whenReady().then(() => {
   createWindow();
   const s = readSettings();
   applyStartWithWindows(s.startWithWindows);
+
+  // Silent startup check (only notifies renderer if a newer version exists)
+  setTimeout(async () => {
+    const result = await checkForUpdates();
+    if (result.ok && result.updateAvailable && mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', result);
+    }
+  }, 4000);
 });
 
 app.on('window-all-closed', () => {});
@@ -256,6 +326,14 @@ function readBookmarks() {
   return [];
 }
 function writeBookmarks(b) { fs.writeFileSync(BOOKMARKS_FILE, JSON.stringify(b, null, 2)); }
+
+// ── IPC: Updates ──────────────────────────────────────────────────
+ipcMain.handle('get-app-version', async () => APP_VERSION);
+ipcMain.handle('check-for-updates', async () => checkForUpdates());
+ipcMain.handle('open-release-page', async (_, url) => {
+  shell.openExternal(url || `https://github.com/${UPDATE_REPO}/releases/latest`);
+  return true;
+});
 
 // ── IPC: Bookmarks ────────────────────────────────────────────────
 ipcMain.handle('get-bookmarks', async () => readBookmarks());
