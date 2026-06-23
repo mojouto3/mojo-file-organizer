@@ -1144,19 +1144,49 @@ function updateCleanupTotal() {
 
 function previewCleanup() {
   if (!cleanupScanResults) return;
-  const lines = [];
-  if (document.getElementById('check-installers')?.checked)
-    cleanupScanResults.installers.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
-  if (document.getElementById('check-junk')?.checked)
-    cleanupScanResults.junk.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
-  if (document.getElementById('check-duplicates')?.checked)
-    cleanupScanResults.duplicates.files.forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
-  if (document.getElementById('check-oldFiles')?.checked)
-    (cleanupScanResults.oldFiles?.files || []).forEach(f => lines.push(`${f.name} (${formatSize(f.size)})`));
-  if (document.getElementById('check-emptyFolders')?.checked)
-    cleanupScanResults.emptyFolders.folders.forEach(f => lines.push(`${f.name} (empty folder)`));
 
-  alert(lines.length ? lines.join('\n') : 'Nothing selected');
+  const sections = [];
+
+  if (document.getElementById('check-installers')?.checked && cleanupScanResults.installers.files.length) {
+    sections.push({ label: tr('installers'), files: cleanupScanResults.installers.files });
+  }
+  if (document.getElementById('check-junk')?.checked && cleanupScanResults.junk.files.length) {
+    sections.push({ label: tr('junkFiles'), files: cleanupScanResults.junk.files });
+  }
+  if (document.getElementById('check-duplicates')?.checked && cleanupScanResults.duplicates.files.length) {
+    sections.push({ label: tr('duplicateFiles'), files: cleanupScanResults.duplicates.files });
+  }
+  if (document.getElementById('check-oldFiles')?.checked && (cleanupScanResults.oldFiles?.files || []).length) {
+    sections.push({ label: tr('oldFiles'), files: cleanupScanResults.oldFiles.files });
+  }
+  if (document.getElementById('check-emptyFolders')?.checked && cleanupScanResults.emptyFolders.folders.length) {
+    sections.push({ label: tr('emptyFolders'), files: cleanupScanResults.emptyFolders.folders.map(f => ({ name: f.name, size: 0 })) });
+  }
+
+  const totalCount = sections.reduce((s, sec) => s + sec.files.length, 0);
+  if (!totalCount) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }
+
+  const body = sections.map(sec => `
+    <div class="preview-section">
+      <div class="preview-section-label">${sec.label} <span class="preview-section-count">${sec.files.length}</span></div>
+      ${sec.files.map(f => `
+        <div class="preview-file-row">
+          <span class="preview-file-name">${f.name}</span>
+          <span class="preview-file-size">${f.size ? formatSize(f.size) : tr('emptyFolders')}</span>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const modal = document.getElementById('previewCleanupModal');
+  const countEl = document.getElementById('previewCleanupCount');
+  const bodyEl = document.getElementById('previewCleanupBody');
+
+  if (countEl) countEl.textContent = totalCount;
+  if (bodyEl) bodyEl.innerHTML = body;
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closePreviewCleanup() {
+  document.getElementById('previewCleanupModal')?.classList.add('hidden');
 }
 
 async function runCleanup() {
