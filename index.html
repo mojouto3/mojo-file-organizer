@@ -336,6 +336,55 @@
     <p data-i18n="noCleanup">No scan run yet.</p>
     <span class="empty-state-hint" data-i18n="noCleanupHint">Select a folder and click Scan Folder to find files that can be cleaned up.</span>
   </div>
+
+  <!-- Cleanup Schedule -->
+  <div class="card" style="margin-top:0">
+    <div class="card-header">
+      <i data-lucide="calendar" class="card-icon"></i>
+      <span class="card-title" data-i18n="scheduledCleanup">Scheduled Cleanup</span>
+    </div>
+    <p class="card-desc" data-i18n="scheduledCleanupDesc">Choose which sections to clean automatically and when.</p>
+
+    <div class="setting-row" style="margin-bottom:8px">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="cleanupSections">Sections to clean</div>
+      </div>
+    </div>
+    <div class="cleanup-section-checks">
+      <label class="section-check"><input type="checkbox" id="csInstaller" checked/><span data-i18n="installers">Installers</span></label>
+      <label class="section-check"><input type="checkbox" id="csJunk" checked/><span data-i18n="junkFiles">Temp &amp; Junk</span></label>
+      <label class="section-check"><input type="checkbox" id="csOldFiles" checked/><span data-i18n="oldFiles">Old Files</span></label>
+      <label class="section-check"><input type="checkbox" id="csEmptyFolders" checked/><span data-i18n="emptyFolders">Empty Folders</span></label>
+    </div>
+
+    <div class="schedule-folder-row" style="margin-top:12px">
+      <input type="text" id="cleanupScheduleFolder" readonly placeholder="Select folder to auto-clean..."/>
+      <button class="btn btn-outline btn-sm" onclick="pickCleanupScheduleFolder()"><i data-lucide="folder-open"></i></button>
+    </div>
+
+    <div class="days-row" id="cleanupDaysRow">
+      <button class="day-btn" data-day="MON" onclick="toggleCleanupDay(this)">Mon</button>
+      <button class="day-btn" data-day="TUE" onclick="toggleCleanupDay(this)">Tue</button>
+      <button class="day-btn" data-day="WED" onclick="toggleCleanupDay(this)">Wed</button>
+      <button class="day-btn" data-day="THU" onclick="toggleCleanupDay(this)">Thu</button>
+      <button class="day-btn" data-day="FRI" onclick="toggleCleanupDay(this)">Fri</button>
+      <button class="day-btn" data-day="SAT" onclick="toggleCleanupDay(this)">Sat</button>
+      <button class="day-btn" data-day="SUN" onclick="toggleCleanupDay(this)">Sun</button>
+    </div>
+
+    <div class="time-row">
+      <i data-lucide="clock" style="width:14px;height:14px;color:var(--text-dim)"></i>
+      <span class="setting-desc" data-i18n="time">Time:</span>
+      <input type="time" id="cleanupScheduleTime" value="10:00" class="time-input"/>
+    </div>
+
+    <div class="action-row">
+      <button class="btn btn-green" onclick="enableCleanupSchedule()"><i data-lucide="play"></i><span data-i18n="enableAutoRun">Enable Auto-Run</span></button>
+      <button class="btn btn-danger-outline" onclick="disableCleanupSchedule()"><i data-lucide="square"></i><span data-i18n="disable">Disable</span></button>
+    </div>
+    <div id="cleanupScheduleMsg" class="status-msg"></div>
+  </div>
+
 </div>
 
 <!-- ══ WATCHER ══ -->

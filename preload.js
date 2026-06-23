@@ -56,5 +56,7 @@ contextBridge.exposeInMainWorld('api', {
   getIgnoreList:    ()       => ipcRenderer.invoke('get-ignore-list'),
   saveIgnoreList:   (l)      => ipcRenderer.invoke('save-ignore-list', l),
   resetIgnoreList:  ()       => ipcRenderer.invoke('reset-ignore-list'),
+  scheduleCleanup:  (opts)   => ipcRenderer.invoke('schedule-cleanup', opts),
+  unscheduleCleanup: ()      => ipcRenderer.invoke('unschedule-cleanup'),
   
 });

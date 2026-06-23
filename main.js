@@ -30,6 +30,13 @@ const DEFAULT_SETTINGS = {
     time: '09:00',
     folder: ''
   },
+  cleanupSchedule: {
+    enabled: false,
+    days: ['MON'],
+    time: '10:00',
+    folder: '',
+    sections: ['installers', 'junk', 'oldFiles', 'emptyFolders']
+  },
   sizeFilter: {
     minKB: 0,
     maxKB: 0
@@ -247,11 +254,26 @@ function createWindow() {
   });
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   createTray();
   createWindow();
   const s = readSettings();
   applyStartWithWindows(s.startWithWindows);
+
+  // Handle scheduled cleanup run
+  const cleanupIdx = process.argv.indexOf('--cleanup');
+  if (cleanupIdx !== -1) {
+    const folder = process.argv[cleanupIdx + 1];
+    const sectionsIdx = process.argv.indexOf('--sections');
+    const sections = sectionsIdx !== -1 ? process.argv[sectionsIdx + 1].split(',') : ['installers','junk','oldFiles','emptyFolders'];
+    if (folder) {
+      mainWindow.webContents.once('did-finish-load', async () => {
+        const months = s.cleanupSchedule?.oldFilesMonths || 6;
+        const results = await ipcMain.emit('run-cleanup-silent', null, { folderPath: folder, sections, oldFilesMonths: months });
+        sendNotification('Mojo File Organizer', 'Scheduled cleanup completed');
+      });
+    }
+  }
 
   // Silent startup check (only notifies renderer if a newer version exists)
   setTimeout(async () => {
@@ -585,6 +607,32 @@ ipcMain.handle('unschedule', async () => {
     await new Promise(r => exec(`schtasks /delete /tn "MojoFileOrganizer_${day}" /f`, r));
   }
   await new Promise(r => exec('schtasks /delete /tn "MojoFileOrganizer" /f', r));
+  return { ok: true };
+});
+
+
+ipcMain.handle('schedule-cleanup', async (_, { days, time, folder, sections }) => {
+  const { exec } = require('child_process');
+  const exePath = app.getPath('exe');
+  const sectionsArg = sections.join(',');
+  const results = [];
+  await new Promise(r => exec('schtasks /delete /tn "MojoCleanup" /f', r));
+  for (const day of days) {
+    const cmd = `schtasks /create /tn "MojoCleanup_${day}" /tr "\"${exePath}\" --hidden --cleanup \"${folder}\" --sections ${sectionsArg}" /sc weekly /d ${day} /st ${time} /f`;
+    await new Promise((resolve) => {
+      exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
+    });
+  }
+  return results.every(r => r.ok) ? { ok: true } : { ok: false };
+});
+
+ipcMain.handle('unschedule-cleanup', async () => {
+  const { exec } = require('child_process');
+  const days = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  for (const day of days) {
+    await new Promise(r => exec(`schtasks /delete /tn "MojoCleanup_${day}" /f`, r));
+  }
+  await new Promise(r => exec('schtasks /delete /tn "MojoCleanup" /f', r));
   return { ok: true };
 });
 

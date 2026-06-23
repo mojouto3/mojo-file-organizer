@@ -43,6 +43,7 @@ async function init() {
   loadIgnoreList();
   loadSizeFilter();
   initOnboarding();
+  initCleanupScheduleUI();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -566,6 +567,78 @@ async function disableSchedule() {
   const el = document.getElementById('scheduleMsg');
   el.className = 'status-msg ok';
   el.textContent = lang === 'en' ? '✓ Auto-run disabled' : '✓ Απενεργοποιήθηκε';
+}
+
+// ── Cleanup Schedule ─────────────────────────────────────────────
+async function pickCleanupScheduleFolder() {
+  const f = await window.api.pickFolder();
+  if (f) {
+    document.getElementById('cleanupScheduleFolder').value = f;
+    if (!appSettings.cleanupSchedule) appSettings.cleanupSchedule = {};
+    appSettings.cleanupSchedule.folder = f;
+    await window.api.saveSettings(appSettings);
+  }
+}
+
+function toggleCleanupDay(btn) { btn.classList.toggle('active'); }
+
+function getCleanupSelectedDays() {
+  return [...document.querySelectorAll('#cleanupDaysRow .day-btn.active')].map(b => b.dataset.day);
+}
+
+function getCleanupSelectedSections() {
+  const sections = [];
+  if (document.getElementById('csInstaller')?.checked) sections.push('installers');
+  if (document.getElementById('csJunk')?.checked) sections.push('junk');
+  if (document.getElementById('csOldFiles')?.checked) sections.push('oldFiles');
+  if (document.getElementById('csEmptyFolders')?.checked) sections.push('emptyFolders');
+  return sections;
+}
+
+async function enableCleanupSchedule() {
+  const days = getCleanupSelectedDays();
+  const time = document.getElementById('cleanupScheduleTime').value;
+  const folder = appSettings.cleanupSchedule?.folder || '';
+  const sections = getCleanupSelectedSections();
+
+  if (!days.length) { showToast(tr('selectDayFirst')); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
+  if (!sections.length) { showToast(tr('selectSectionFirst')); return; }
+
+  appSettings.cleanupSchedule = { ...appSettings.cleanupSchedule, enabled: true, days, time, folder, sections };
+  await window.api.saveSettings(appSettings);
+
+  const result = await window.api.scheduleCleanup({ days, time, folder, sections });
+  const el = document.getElementById('cleanupScheduleMsg');
+  el.className = result.ok ? 'status-msg ok' : 'status-msg err';
+  el.textContent = result.ok ? tr('scheduledMsg') : tr('scheduleFailedMsg');
+}
+
+async function disableCleanupSchedule() {
+  await window.api.unscheduleCleanup();
+  if (appSettings.cleanupSchedule) appSettings.cleanupSchedule.enabled = false;
+  await window.api.saveSettings(appSettings);
+  const el = document.getElementById('cleanupScheduleMsg');
+  el.className = 'status-msg ok';
+  el.textContent = tr('autoRunDisabled');
+}
+
+function initCleanupScheduleUI() {
+  const cs = appSettings.cleanupSchedule;
+  if (!cs) return;
+  if (cs.folder) document.getElementById('cleanupScheduleFolder').value = cs.folder;
+  if (cs.time) document.getElementById('cleanupScheduleTime').value = cs.time;
+  if (cs.days) {
+    document.querySelectorAll('#cleanupDaysRow .day-btn').forEach(b => {
+      b.classList.toggle('active', cs.days.includes(b.dataset.day));
+    });
+  }
+  if (cs.sections) {
+    if (document.getElementById('csInstaller')) document.getElementById('csInstaller').checked = cs.sections.includes('installers');
+    if (document.getElementById('csJunk')) document.getElementById('csJunk').checked = cs.sections.includes('junk');
+    if (document.getElementById('csOldFiles')) document.getElementById('csOldFiles').checked = cs.sections.includes('oldFiles');
+    if (document.getElementById('csEmptyFolders')) document.getElementById('csEmptyFolders').checked = cs.sections.includes('emptyFolders');
+  }
 }
 
 // ── Categories settings ───────────────────────────────────────────

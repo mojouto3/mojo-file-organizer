@@ -1258,3 +1258,15 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .ob-next-btn i { width: 13px; height: 13px; }
 .ob-next-btn:hover { background: var(--green-hover); }
+
+/* ── Cleanup schedule section checks ── */
+.cleanup-section-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.section-check {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 12px; color: var(--text-dim); cursor: pointer;
+  transition: all 0.15s;
+}
+.section-check:has(input:checked) { border-color: var(--accent, var(--green)); color: var(--accent, var(--green)); background: var(--green-dim); }
+.section-check input { display: none; }
