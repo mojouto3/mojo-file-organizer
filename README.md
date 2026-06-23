@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.7.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.8.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -107,6 +107,16 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Configurable from Settings with chip interface
 - Default rules cover common system and development files
 
+### Size Filter
+- Set minimum and/or maximum file size thresholds
+- Files outside the range are silently skipped during Organize and Smart Group
+- Configurable from Settings > General (0 = disabled)
+
+### Onboarding
+- 5-step welcome tour shown automatically on first launch
+- Covers core features, tools, customization, history and theme/language setup
+- Reopenable from Settings > About & Updates
+
 ### Settings and Customization
 - Custom categories and extensions
 - Enable/disable categories
@@ -197,6 +207,7 @@ Coming soon.
 - Appearance: switch Dark/Light theme and accent color
 - Language: EN, GR, DE, ES, RU
 - Default Folder, Start with Windows, Minimize to Tray
+- Size Filter: skip files below or above a size threshold
 - Auto-Schedule: choose days and time
 - Categories: customize extensions or create new ones
 - Ignore List: add folders and extensions to skip during all operations
@@ -256,11 +267,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ---
 
 ## Roadmap
-
-### v3.8
-- [ ] Size filter for organize operations
-- [ ] Onboarding screen for first-time users
-- [ ] Scheduled cleanup
 
 ### v3.9
 - [ ] Batch rename rules during organize

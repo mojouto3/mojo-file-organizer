@@ -4,6 +4,15 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.8.0] - 2026-06-23
+
+### Added
+- Size filter: set minimum and/or maximum file size thresholds to skip files outside the range during Organize and Smart Group operations, configurable from Settings > General
+- Onboarding screen: 5-step welcome tour shown automatically on first launch, covering core features, tools, customization, history and theme/language setup. Reopenable from Settings > About & Updates
+- Scheduled cleanup: automatic cleanup operations via Windows Task Scheduler, with selectable sections (Installers, Temp/Junk, Old Files, Empty Folders), folder, days and time
+
+---
+
 ## [3.7.0] - 2026-06-22
 
 ### Added
