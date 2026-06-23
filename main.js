@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   minimizeToTray: true,
   startWithWindows: false,
   defaultFolder: '',
+  onboardingComplete: false,
   schedule: {
     enabled: false,
     days: ['MON'],

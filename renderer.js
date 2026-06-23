@@ -42,6 +42,7 @@ async function init() {
   restoreAccordionState();
   loadIgnoreList();
   loadSizeFilter();
+  initOnboarding();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -1374,6 +1375,99 @@ if (window.api.onUpdateAvailable) {
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
   return map[cat] || 'folder';
+}
+
+// ── Onboarding ────────────────────────────────────────────────────
+const OB_TOTAL = 5;
+let obCurrent = 0;
+let obTheme = 'dark';
+let obLang = 'en';
+
+async function initOnboarding() {
+  const s = await window.api.getSettings();
+  if (s.onboardingComplete) return;
+  obTheme = s.theme || 'dark';
+  obLang  = s.language || 'en';
+  obRender();
+  document.getElementById('obOverlay').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function obRender() {
+  const track = document.getElementById('obTrack');
+  if (track) track.style.transform = `translateX(-${obCurrent * 480}px)`;
+
+  document.querySelectorAll('.ob-dot').forEach((d, i) => {
+    d.className = 'ob-dot' + (i === obCurrent ? ' active' : i < obCurrent ? ' done' : '');
+  });
+
+  const backBtn = document.getElementById('obBackBtn');
+  const nextBtn = document.getElementById('obNextBtn');
+  if (backBtn) backBtn.classList.toggle('hidden', obCurrent === 0);
+
+  if (nextBtn) {
+    if (obCurrent === OB_TOTAL - 1) {
+      nextBtn.innerHTML = `<span>${tr('letsGo')}</span><i data-lucide="rocket"></i>`;
+    } else {
+      nextBtn.innerHTML = `<span>${tr('next')}</span><i data-lucide="arrow-right"></i>`;
+    }
+  }
+
+  if (obCurrent === OB_TOTAL - 1) {
+    document.querySelectorAll('.ob-theme-btn').forEach(b => b.classList.remove('ob-sel'));
+    const activeTheme = document.getElementById(obTheme === 'dark' ? 'obDarkBtn' : 'obLightBtn');
+    if (activeTheme) activeTheme.classList.add('ob-sel');
+    document.querySelectorAll('.ob-lang-btn').forEach(b => {
+      b.classList.toggle('ob-sel', b.dataset.lang === obLang);
+    });
+  }
+  lucide.createIcons();
+}
+
+function obGo(dir) {
+  if (dir === 1 && obCurrent === OB_TOTAL - 1) { obComplete(); return; }
+  obCurrent = Math.max(0, Math.min(OB_TOTAL - 1, obCurrent + dir));
+  obRender();
+}
+
+function obSkip() { obComplete(); }
+
+function obSetTheme(t) {
+  obTheme = t;
+  setTheme(t);
+  obRender();
+}
+
+function obSetLang(l) {
+  obLang = l;
+  changeLanguage(l);
+  obRender();
+}
+
+async function obComplete() {
+  const s = await window.api.getSettings();
+  s.onboardingComplete = true;
+  s.theme = obTheme;
+  s.language = obLang;
+  await window.api.saveSettings(s);
+  const overlay = document.getElementById('obOverlay');
+  if (overlay) {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.2s ease';
+    setTimeout(() => overlay.classList.add('hidden'), 200);
+  }
+}
+
+function obReopen() {
+  obCurrent = 0;
+  obRender();
+  const overlay = document.getElementById('obOverlay');
+  if (overlay) {
+    overlay.style.opacity = '1';
+    overlay.style.transition = '';
+    overlay.classList.remove('hidden');
+    lucide.createIcons();
+  }
 }
 
 // ── Size Filter ───────────────────────────────────────────────────

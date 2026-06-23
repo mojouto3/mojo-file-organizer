@@ -1141,3 +1141,120 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   transition: border-color 0.15s;
 }
 .size-filter-row input:focus { outline: none; border-color: var(--accent, var(--green)); }
+
+/* ── Onboarding ── */
+.ob-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  animation: obOverlayIn 0.2s ease;
+}
+@keyframes obOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ob-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+  width: 480px; max-width: calc(100vw - 32px);
+  overflow: hidden;
+  animation: obModalIn 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes obModalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.ob-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 24px 0;
+}
+.ob-logo {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--green);
+  flex-shrink: 0;
+}
+.ob-appname { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+.ob-dots { display: flex; gap: 6px; margin-left: auto; }
+.ob-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border); transition: background 0.3s;
+}
+.ob-dot.active { background: var(--green); }
+.ob-dot.done { background: var(--green-dim); }
+.ob-viewport { overflow: hidden; }
+.ob-track {
+  display: flex;
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+}
+.ob-step {
+  min-width: 480px; max-width: 480px;
+  padding: 24px 28px 20px;
+}
+.ob-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--green-dim); border: 1px solid rgba(61,219,61,0.2);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+}
+.ob-icon i { width: 24px; height: 24px; color: var(--green); }
+.ob-title { font-size: 19px; font-weight: 600; color: var(--text); margin: 0 0 6px; }
+.ob-desc { font-size: 12px; color: var(--text-dim); line-height: 1.7; margin: 0 0 16px; }
+.ob-features { display: flex; flex-direction: column; gap: 8px; }
+.ob-feature {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface2); border-radius: 10px; padding: 11px 14px;
+}
+.ob-feature i { width: 16px; height: 16px; color: var(--green); flex-shrink: 0; margin-top: 2px; }
+.ob-feature p { margin: 0; font-size: 12px; font-weight: 600; color: var(--text); }
+.ob-feature span { font-size: 11px; color: var(--text-dim); }
+.ob-section { margin-bottom: 16px; }
+.ob-section-label {
+  font-size: 11px; color: var(--text-dim); text-transform: uppercase;
+  letter-spacing: 0.5px; margin: 0 0 8px;
+}
+.ob-theme-row { display: flex; gap: 8px; }
+.ob-theme-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 9px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text-dim); font-size: 12px; cursor: pointer;
+  transition: all 0.15s;
+}
+.ob-theme-btn i { width: 14px; height: 14px; }
+.ob-theme-btn.ob-sel { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.ob-lang-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.ob-lang-btn {
+  padding: 9px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--text-dim); font-size: 12px; cursor: pointer; text-align: left;
+  transition: all 0.15s;
+}
+.ob-lang-btn.ob-sel { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.ob-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px 20px;
+  border-top: 1px solid var(--border);
+}
+.ob-skip {
+  font-size: 11px; color: var(--text-dim); background: none;
+  border: none; cursor: pointer; padding: 0; transition: color 0.15s;
+}
+.ob-skip:hover { color: var(--text); }
+.ob-actions { display: flex; gap: 8px; }
+.ob-back-btn {
+  background: none; border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 12px;
+  padding: 7px 14px; border-radius: 8px; cursor: pointer; transition: all 0.15s;
+}
+.ob-back-btn:hover { border-color: var(--border-mid); color: var(--text); }
+.ob-next-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green); color: #111; font-size: 12px; font-weight: 700;
+  padding: 7px 18px; border-radius: 8px; border: none; cursor: pointer;
+  transition: background 0.15s;
+}
+.ob-next-btn i { width: 13px; height: 13px; }
+.ob-next-btn:hover { background: var(--green-hover); }

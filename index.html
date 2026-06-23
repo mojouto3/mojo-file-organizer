@@ -601,10 +601,19 @@
     <div class="setting-row">
       <div class="setting-info">
         <div class="setting-title" data-i18n="currentVersion">Current Version</div>
-        <div class="setting-desc" id="aboutVersionText">v3.6.1</div>
+        <div class="setting-desc" id="aboutVersionText">v3.7.0</div>
       </div>
       <button class="btn btn-outline btn-sm" id="checkUpdatesBtn" onclick="checkForUpdates()">
         <i data-lucide="refresh-cw"></i><span data-i18n="checkForUpdates">Check for Updates</span>
+      </button>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="welcomeGuide">Welcome Guide</div>
+        <div class="setting-desc" data-i18n="welcomeGuideDesc">Reopen the onboarding tour</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="obReopen()">
+        <i data-lucide="book-open"></i><span data-i18n="showWelcomeGuide">Show guide</span>
       </button>
     </div>
     <div id="updateStatusMsg" class="status-msg"></div>
@@ -628,6 +637,115 @@
 <!-- File preview tooltip -->
 <div class="file-preview-tooltip hidden" id="filePreviewTooltip">
   <div class="fpt-inner" id="filePreviewInner"></div>
+</div>
+
+<!-- Onboarding -->
+<div class="ob-overlay hidden" id="obOverlay">
+  <div class="ob-modal">
+
+    <div class="ob-header">
+      <div class="ob-logo">MFO</div>
+      <span class="ob-appname">Mojo File Organizer</span>
+      <div class="ob-dots" id="obDots">
+        <div class="ob-dot active" data-i="0"></div>
+        <div class="ob-dot" data-i="1"></div>
+        <div class="ob-dot" data-i="2"></div>
+        <div class="ob-dot" data-i="3"></div>
+        <div class="ob-dot" data-i="4"></div>
+      </div>
+    </div>
+
+    <div class="ob-viewport">
+      <div class="ob-track" id="obTrack">
+
+        <!-- Step 1: Welcome -->
+        <div class="ob-step">
+          <div class="ob-icon"><i data-lucide="sparkles"></i></div>
+          <p class="ob-title" data-i18n="obStep1Title">Welcome to Mojo</p>
+          <p class="ob-desc" data-i18n="obStep1Desc">Your modern file organizer for Windows. Let's take a quick tour so you can get the most out of it.</p>
+          <div class="ob-features">
+            <div class="ob-feature"><i data-lucide="zap"></i><div><p data-i18n="obStep1F1">One-click organize</p><span data-i18n="obStep1F1Desc">Sort any folder instantly by file type</span></div></div>
+            <div class="ob-feature"><i data-lucide="eye"></i><div><p data-i18n="obStep1F2">Smart preview</p><span data-i18n="obStep1F2Desc">See exactly what will move before committing</span></div></div>
+            <div class="ob-feature"><i data-lucide="rotate-ccw"></i><div><p data-i18n="obStep1F3">Undo anytime</p><span data-i18n="obStep1F3Desc">Restore everything with a single click</span></div></div>
+          </div>
+        </div>
+
+        <!-- Step 2: Tools -->
+        <div class="ob-step">
+          <div class="ob-icon"><i data-lucide="layout-grid"></i></div>
+          <p class="ob-title" data-i18n="obStep2Title">Powerful tools</p>
+          <p class="ob-desc" data-i18n="obStep2Desc">Beyond basic organizing — Mojo comes packed with tools for every situation.</p>
+          <div class="ob-features">
+            <div class="ob-feature"><i data-lucide="copy"></i><div><p data-i18n="obStep2F1">Duplicate finder</p><span data-i18n="obStep2F1Desc">Find identical files by content or name</span></div></div>
+            <div class="ob-feature"><i data-lucide="trash-2"></i><div><p data-i18n="obStep2F2">Cleanup tab</p><span data-i18n="obStep2F2Desc">Remove junk, temp files and empty folders</span></div></div>
+            <div class="ob-feature"><i data-lucide="radio"></i><div><p data-i18n="obStep2F3">File Watcher</p><span data-i18n="obStep2F3Desc">Auto-organize new files as they arrive</span></div></div>
+          </div>
+        </div>
+
+        <!-- Step 3: Customize -->
+        <div class="ob-step">
+          <div class="ob-icon"><i data-lucide="sliders"></i></div>
+          <p class="ob-title" data-i18n="obStep3Title">Fully customizable</p>
+          <p class="ob-desc" data-i18n="obStep3Desc">Mojo adapts to your workflow — not the other way around.</p>
+          <div class="ob-features">
+            <div class="ob-feature"><i data-lucide="layers"></i><div><p data-i18n="obStep3F1">Custom categories</p><span data-i18n="obStep3F1Desc">Add, edit or disable any file type category</span></div></div>
+            <div class="ob-feature"><i data-lucide="shield-off"></i><div><p data-i18n="obStep3F2">Ignore list</p><span data-i18n="obStep3F2Desc">Always skip folders and extensions you choose</span></div></div>
+            <div class="ob-feature"><i data-lucide="calendar"></i><div><p data-i18n="obStep3F3">Auto-schedule</p><span data-i18n="obStep3F3Desc">Run organize automatically on your chosen days</span></div></div>
+          </div>
+        </div>
+
+        <!-- Step 4: History -->
+        <div class="ob-step">
+          <div class="ob-icon"><i data-lucide="history"></i></div>
+          <p class="ob-title" data-i18n="obStep4Title">Track everything</p>
+          <p class="ob-desc" data-i18n="obStep4Desc">Every action is logged so you always know what happened — and can undo it.</p>
+          <div class="ob-features">
+            <div class="ob-feature"><i data-lucide="list"></i><div><p data-i18n="obStep4F1">Session history</p><span data-i18n="obStep4F1Desc">Full log of every organize session</span></div></div>
+            <div class="ob-feature"><i data-lucide="bar-chart-2"></i><div><p data-i18n="obStep4F2">Statistics</p><span data-i18n="obStep4F2Desc">See how many files organized and by category</span></div></div>
+            <div class="ob-feature"><i data-lucide="file-search"></i><div><p data-i18n="obStep4F3">File preview</p><span data-i18n="obStep4F3Desc">Hover a file in history to preview it instantly</span></div></div>
+          </div>
+        </div>
+
+        <!-- Step 5: Customize theme/lang -->
+        <div class="ob-step">
+          <div class="ob-icon"><i data-lucide="palette"></i></div>
+          <p class="ob-title" data-i18n="obStep5Title">Make it yours</p>
+          <p class="ob-desc" data-i18n="obStep5Desc">Choose your language and theme before you start.</p>
+
+          <div class="ob-section">
+            <p class="ob-section-label" data-i18n="theme">Theme</p>
+            <div class="ob-theme-row">
+              <button class="ob-theme-btn" id="obDarkBtn" onclick="obSetTheme('dark')"><i data-lucide="moon"></i><span data-i18n="dark">Dark</span></button>
+              <button class="ob-theme-btn" id="obLightBtn" onclick="obSetTheme('light')"><i data-lucide="sun"></i><span data-i18n="light">Light</span></button>
+            </div>
+          </div>
+
+          <div class="ob-section">
+            <p class="ob-section-label" data-i18n="language">Language</p>
+            <div class="ob-lang-grid">
+              <button class="ob-lang-btn" data-lang="en" onclick="obSetLang('en')">🇬🇧 English</button>
+              <button class="ob-lang-btn" data-lang="gr" onclick="obSetLang('gr')">🇬🇷 Ελληνικά</button>
+              <button class="ob-lang-btn" data-lang="de" onclick="obSetLang('de')">🇩🇪 Deutsch</button>
+              <button class="ob-lang-btn" data-lang="es" onclick="obSetLang('es')">🇪🇸 Español</button>
+              <button class="ob-lang-btn" data-lang="ru" onclick="obSetLang('ru')">🇷🇺 Русский</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="ob-footer">
+      <button class="ob-skip" id="obSkipBtn" onclick="obSkip()" data-i18n="skip">Skip</button>
+      <div class="ob-actions">
+        <button class="ob-back-btn hidden" id="obBackBtn" onclick="obGo(-1)" data-i18n="back">Back</button>
+        <button class="ob-next-btn" id="obNextBtn" onclick="obGo(1)">
+          <span data-i18n="next">Next</span><i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- Toast -->
