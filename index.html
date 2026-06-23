@@ -671,6 +671,23 @@
 
 </div>
 
+<!-- Cleanup Preview Modal -->
+<div class="confirm-overlay hidden" id="previewCleanupModal" onclick="if(event.target===this) closePreviewCleanup()">
+  <div class="confirm-modal preview-modal">
+    <div class="preview-modal-header">
+      <div>
+        <p class="preview-modal-title" data-i18n="previewTitle">Preview</p>
+        <p class="preview-modal-subtitle"><span id="previewCleanupCount">0</span> <span data-i18n="itemsToDelete">items will be deleted</span></p>
+      </div>
+      <button class="win-btn" onclick="closePreviewCleanup()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="preview-modal-body" id="previewCleanupBody"></div>
+    <div class="confirm-actions" style="margin-top:12px">
+      <button class="btn btn-outline" onclick="closePreviewCleanup()" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Modal -->
 <div class="confirm-overlay hidden" id="confirmOverlay" onclick="if(event.target===this) resolveConfirm(false)">
   <div class="confirm-modal">

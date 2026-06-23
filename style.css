@@ -1270,3 +1270,40 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .section-check:has(input:checked) { border-color: var(--accent, var(--green)); color: var(--accent, var(--green)); background: var(--green-dim); }
 .section-check input { display: none; }
+
+/* ── Cleanup preview modal ── */
+.preview-modal {
+  width: 420px; max-width: 90vw;
+  align-items: stretch; gap: 0;
+  padding: 0;
+}
+.preview-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 18px 20px 12px; border-bottom: 1px solid var(--border);
+}
+.preview-modal-title { font-size: 14px; font-weight: 600; color: var(--text); margin: 0 0 2px; }
+.preview-modal-subtitle { font-size: 12px; color: var(--text-dim); margin: 0; }
+.preview-modal-body {
+  max-height: 340px; overflow-y: auto;
+  padding: 8px 20px;
+}
+.preview-modal-body::-webkit-scrollbar { width: 4px; }
+.preview-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.preview-section { margin-bottom: 12px; }
+.preview-section-label {
+  font-size: 11px; font-weight: 600; color: var(--accent, var(--green));
+  text-transform: uppercase; letter-spacing: 0.4px;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+}
+.preview-section-count {
+  background: var(--green-dim); color: var(--accent, var(--green));
+  border-radius: 10px; padding: 1px 7px; font-size: 10px;
+}
+.preview-file-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 8px; border-radius: 6px; gap: 8px;
+}
+.preview-file-row:hover { background: var(--surface2); }
+.preview-file-name { font-size: 12px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview-file-size { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+.preview-modal .confirm-actions { padding: 0 20px 16px; }
