@@ -1002,6 +1002,11 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .accordion-card {
   padding: 0;
 }
+.accordion-card:hover,
+.accordion-card:not(.collapsed) {
+  border-color: rgba(61,219,61,0.2);
+  box-shadow: 0 0 0 1px rgba(61,219,61,0.04);
+}
 .accordion-card .card-header {
   cursor: pointer; user-select: none;
   margin-bottom: 0;
@@ -1014,6 +1019,13 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .accordion-card .card-header:hover {
   background: color-mix(in srgb, var(--accent, var(--green)) 10%, transparent);
+}
+.accordion-card:hover .card-icon,
+.accordion-card:hover .accordion-chevron {
+  color: var(--accent, var(--green));
+}
+.accordion-card:hover .card-title {
+  color: var(--text);
 }
 .accordion-card .card-body {
   padding: 0 16px 16px;
