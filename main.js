@@ -28,6 +28,10 @@ const DEFAULT_SETTINGS = {
     days: ['MON'],
     time: '09:00',
     folder: ''
+  },
+  sizeFilter: {
+    minKB: 0,
+    maxKB: 0
   }
 };
 
@@ -299,6 +303,16 @@ function shouldIgnore(filename, ignoreList) {
   if (ignoreList.folders.some(f => f.toLowerCase() === nameLower)) return true;
   return false;
 }
+
+function shouldIgnoreSize(filePath, sizeFilter) {
+  if (!sizeFilter || (!sizeFilter.minKB && !sizeFilter.maxKB)) return false;
+  try {
+    const sizeKB = fs.statSync(filePath).size / 1024;
+    if (sizeFilter.minKB > 0 && sizeKB < sizeFilter.minKB) return true;
+    if (sizeFilter.maxKB > 0 && sizeKB > sizeFilter.maxKB) return true;
+  } catch (e) {}
+  return false;
+}
 function getCategory(ext, cats) {
   const e = ext.toLowerCase();
   for (const cat of cats) { if (cat.enabled && cat.extensions.includes(e)) return cat.name; }
@@ -415,11 +429,14 @@ ipcMain.handle('reset-categories', async ()    => { writeCategories(DEFAULT_CATE
 ipcMain.handle('preview', async (_, folderPath) => {
   const cats = readCategories();
   const ignore = readIgnoreList();
+  const { sizeFilter } = readSettings();
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
+      const fullPath = path.join(folderPath, f.name);
+      if (shouldIgnoreSize(fullPath, sizeFilter)) continue;
       const cat = getCategory(path.extname(f.name), cats);
       if (cat) results.push({ name: f.name, category: cat });
     }
@@ -430,16 +447,18 @@ ipcMain.handle('preview', async (_, folderPath) => {
 ipcMain.handle('organize', async (_, folderPath) => {
   const cats = readCategories();
   const ignore = readIgnoreList();
+  const { sizeFilter } = readSettings();
   const moved = [], errors = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
+      const src = path.join(folderPath, f.name);
+      if (shouldIgnoreSize(src, sizeFilter)) continue;
       const cat = getCategory(path.extname(f.name), cats);
       if (!cat) continue;
       const destFolder = path.join(folderPath, cat);
       if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
-      const src = path.join(folderPath, f.name);
       const dest = getUniqueDest(destFolder, f.name);
       try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat, from: src, to: dest }); }
       catch (e) { errors.push({ name: f.name, error: e.message }); }
@@ -476,12 +495,15 @@ ipcMain.handle('save-groups', async (_, g) => { writeGroups(g); return true; });
 ipcMain.handle('preview-groups', async (_, folderPath) => {
   const groups = readGroups();
   const ignore = readIgnoreList();
+  const { sizeFilter } = readSettings();
   if (!groups.length) return [];
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
+      const fullPath = path.join(folderPath, f.name);
+      if (shouldIgnoreSize(fullPath, sizeFilter)) continue;
       for (const g of groups) {
         if (filenameMatchesGroup(f.name, g.name)) { results.push({ name: f.name, group: g.name }); break; }
       }
@@ -493,11 +515,14 @@ ipcMain.handle('preview-groups', async (_, folderPath) => {
 ipcMain.handle('organize-groups', async (_, folderPath) => {
   const groups = readGroups();
   const ignore = readIgnoreList();
+  const { sizeFilter } = readSettings();
   const moved = [], errors = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
+      const src = path.join(folderPath, f.name);
+      if (shouldIgnoreSize(src, sizeFilter)) continue;
       for (const g of groups) {
         if (filenameMatchesGroup(f.name, g.name)) {
           const folderName = g.name.charAt(0).toUpperCase() + g.name.slice(1);
@@ -943,6 +968,9 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
 
         const ignore = readIgnoreList();
         if (shouldIgnore(filename, ignore)) return;
+
+        const { sizeFilter } = readSettings();
+        if (shouldIgnoreSize(filePath, sizeFilter)) return;
 
         const cat = getCategory(path.extname(filename), cats);
         if (!cat) return;

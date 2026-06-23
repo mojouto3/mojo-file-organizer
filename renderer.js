@@ -41,6 +41,7 @@ async function init() {
   initVersionDisplay();
   restoreAccordionState();
   loadIgnoreList();
+  loadSizeFilter();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -1373,6 +1374,23 @@ if (window.api.onUpdateAvailable) {
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
   return map[cat] || 'folder';
+}
+
+// ── Size Filter ───────────────────────────────────────────────────
+async function loadSizeFilter() {
+  const s = await window.api.getSettings();
+  const min = document.getElementById('sizeFilterMin');
+  const max = document.getElementById('sizeFilterMax');
+  if (min) min.value = s.sizeFilter?.minKB || 0;
+  if (max) max.value = s.sizeFilter?.maxKB || 0;
+}
+
+async function saveSizeFilter() {
+  const min = parseInt(document.getElementById('sizeFilterMin').value) || 0;
+  const max = parseInt(document.getElementById('sizeFilterMax').value) || 0;
+  const s = await window.api.getSettings();
+  s.sizeFilter = { minKB: min, maxKB: max };
+  await window.api.saveSettings(s);
 }
 
 // ── Ignore List ───────────────────────────────────────────────────
