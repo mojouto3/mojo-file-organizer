@@ -4,6 +4,13 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.8.1] - 2026-06-23
+
+### Fixed
+- Cleanup Preview: replaced native browser alert() dialog with a styled in-app modal matching the app theme, grouped by section with file names and sizes
+
+---
+
 ## [3.8.0] - 2026-06-23
 
 ### Added
