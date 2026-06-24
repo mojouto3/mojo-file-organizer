@@ -94,7 +94,7 @@ async function setFolder(folder) {
 
 async function showPreview(folder) {
   const files = await window.api.preview(folder);
-  if (!files.length) { showToast(lang === 'en' ? 'No sortable files found!' : 'Δεν βρέθηκαν αρχεία!'); return; }
+  if (!files.length) { showToast(tr('noSortableFiles')); return; }
 
   const grouped = {};
   for (const f of files) {
@@ -168,10 +168,10 @@ async function organize() {
 }
 
 async function undo() {
-  if (!lastMoves.length) { showToast(lang === 'en' ? 'Nothing to undo!' : 'Τίποτα για αναίρεση!'); return; }
+  if (!lastMoves.length) { showToast(tr('nothingToUndo')); return; }
   const r = await window.api.undo(lastMoves);
   lastMoves = [];
-  showToast(lang === 'en' ? `Restored ${r.restored.length} file(s)` : `Επαναφορά ${r.restored.length} αρχείων`);
+  showToast(tr('restoredFiles').replace('{count}', r.restored.length));
   resetOrganize();
 }
 
@@ -199,12 +199,12 @@ async function addGroup() {
   const input = document.getElementById('groupNameInput');
   const name = input.value.trim();
   if (!name) return;
-  if (groups.find(g => g.name.toLowerCase() === name.toLowerCase())) { showToast(lang === 'en' ? 'Already exists!' : 'Υπάρχει ήδη!'); return; }
+  if (groups.find(g => g.name.toLowerCase() === name.toLowerCase())) { showToast(tr('alreadyExists')); return; }
   groups.push({ name });
   await window.api.saveGroups(groups);
   renderGroupChips();
   input.value = '';
-  showToast(lang === 'en' ? `"${name}" added` : `Προστέθηκε το "${name}"`);
+  showToast(tr('groupAdded').replace('{name}', name));
 }
 
 async function removeGroup(i) {
@@ -212,7 +212,7 @@ async function removeGroup(i) {
   groups.splice(i, 1);
   await window.api.saveGroups(groups);
   renderGroupChips();
-  showToast(lang === 'en' ? `"${name}" removed` : 'Αφαιρέθηκε');
+  showToast(tr('groupRemoved').replace('{name}', name));
 }
 
 async function pickGroupFolder()   { const f = await window.api.pickFolder();   if (f) setGroupFolder(f); }
@@ -226,9 +226,9 @@ async function setGroupFolder(folder) {
 }
 
 async function showGroupPreview(folder) {
-  if (!groups.length) { showToast(lang === 'en' ? 'Add at least one group first!' : 'Προσθέστε μια ομάδα πρώτα!'); return; }
+  if (!groups.length) { showToast(tr('addGroupFirst')); return; }
   const files = await window.api.previewGroups(folder);
-  if (!files.length) { showToast(lang === 'en' ? 'No matching files found!' : 'Δεν βρέθηκαν αρχεία!'); return; }
+  if (!files.length) { showToast(tr('noMatchingFiles')); return; }
 
   const list = document.getElementById('groupPreviewList');
   list.innerHTML = files.map(f => `
@@ -272,10 +272,10 @@ async function organizeGroups() {
 }
 
 async function undoGroups() {
-  if (!lastGroupMoves.length) { showToast(lang === 'en' ? 'Nothing to undo!' : 'Τίποτα για αναίρεση!'); return; }
+  if (!lastGroupMoves.length) { showToast(tr('nothingToUndo')); return; }
   const r = await window.api.undo(lastGroupMoves);
   lastGroupMoves = [];
-  showToast(lang === 'en' ? `Restored ${r.restored.length} file(s)` : `Επαναφορά ${r.restored.length} αρχείων`);
+  showToast(tr('restoredFiles').replace('{count}', r.restored.length));
   resetGroup();
 }
 
@@ -318,10 +318,10 @@ async function loadHistory() {
                 ondragstart="handleHistoryDragStart(event, '${s.id}', '${f.name.replace(/'/g,"\\'")}', '${(f.to||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <span class="file-chip" title="${f.name}">${f.name}</span>
             ${f.to ? `
-            <button class="file-chip-action" title="${lang === 'en' ? 'Open location' : 'Άνοιγμα τοποθεσίας'}" onclick="openFileLocation('${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+            <button class="file-chip-action" title="${tr('openLocation')}" onclick="openFileLocation('${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
               <i data-lucide="folder-open"></i>
             </button>
-            <button class="file-chip-action file-chip-undo" title="${lang === 'en' ? 'Undo this file' : 'Αναίρεση αρχείου'}" onclick="undoSingleFile(${s.id}, '${f.name.replace(/'/g,"\\'")}', '${(f.from||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+            <button class="file-chip-action file-chip-undo" title="${tr('undoFile')}" onclick="undoSingleFile(${s.id}, '${f.name.replace(/'/g,"\\'")}', '${(f.from||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
               <i data-lucide="undo-2"></i>
             </button>` : ''}
           </span>`).join('')}</div>
@@ -335,7 +335,7 @@ async function loadHistory() {
         <div class="session-folder" title="${s.folder}">${s.folder}</div>
         <span class="session-type">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
         <span class="session-badge">${s.total} moved</span>
-        <button class="session-open-folder" title="${lang === 'en' ? 'Open folder' : 'Άνοιγμα φακέλου'}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+        <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
           <i data-lucide="folder-open"></i>
         </button>
         <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
@@ -357,13 +357,13 @@ async function openFileLocation(filePath) {
 }
 
 async function undoSingleFile(sessionId, fileName, from, to) {
-  if (!from) { showToast(lang === 'en' ? 'Cannot undo this file' : 'Δεν μπορεί να αναιρεθεί'); return; }
+  if (!from) { showToast(tr('cannotUndo')); return; }
   const result = await window.api.undoSingleFile({ sessionId, fileName, from, to });
   if (result.ok) {
-    showToast(lang === 'en' ? 'File restored' : 'Το αρχείο επαναφέρθηκε');
+    showToast(tr('fileRestored'));
     loadHistory();
   } else {
-    showToast(lang === 'en' ? 'Failed to undo file' : 'Αποτυχία αναίρεσης');
+    showToast(tr('failedUndoFile'));
   }
 }
 
@@ -406,10 +406,10 @@ async function handleHistoryDrop(e) {
   });
 
   if (result.ok) {
-    showToast(lang === 'en' ? `Moved to ${newCategory}` : `Μετακινήθηκε στο ${newCategory}`);
+    showToast(tr('movedToCategory').replace('{category}', newCategory));
     loadHistory();
   } else {
-    showToast(lang === 'en' ? 'Failed to move file' : 'Αποτυχία μετακίνησης');
+    showToast(tr('failedMoveFile'));
   }
 }
 
@@ -419,14 +419,14 @@ async function deleteSession(e, id) {
   e.stopPropagation();
   await window.api.deleteSession(id);
   loadHistory();
-  showToast(lang === 'en' ? 'Session deleted' : 'Διαγράφηκε');
+  showToast(tr('sessionDeleted'));
 }
 
 async function clearLog() {
   if (!await showConfirm(tr('confirmClearHistory'))) return;
   await window.api.clearLog();
   loadHistory();
-  showToast(lang === 'en' ? 'History cleared' : 'Καθαρίστηκε');
+  showToast(tr('historyCleared'));
 }
 
 // ── Stats ─────────────────────────────────────────────────────────
@@ -503,8 +503,8 @@ async function toggleSetting(key) {
   const idMap = { startWithWindows: 'toggleStartWindows', minimizeToTray: 'toggleMinimizeTray' };
   document.getElementById(idMap[key]).classList.toggle('on', appSettings[key]);
   showToast(appSettings[key]
-    ? (lang === 'en' ? 'Enabled' : 'Ενεργοποιήθηκε')
-    : (lang === 'en' ? 'Disabled' : 'Απενεργοποιήθηκε'));
+    ? (tr('enabled'))
+    : (tr('disabled')));
 }
 
 async function pickDefaultFolder() {
@@ -512,14 +512,14 @@ async function pickDefaultFolder() {
   if (f) {
     document.getElementById('settingDefaultFolder').value = f;
     await saveSetting('defaultFolder', f);
-    showToast(lang === 'en' ? 'Default folder set' : 'Ορίστηκε ο προεπιλεγμένος φάκελος');
+    showToast(tr('defaultFolderSet'));
   }
 }
 
 async function clearDefaultFolder() {
   document.getElementById('settingDefaultFolder').value = '';
   await saveSetting('defaultFolder', '');
-  showToast(lang === 'en' ? 'Default folder cleared' : 'Αφαιρέθηκε');
+  showToast(tr('defaultFolderCleared'));
 }
 
 async function pickScheduleFolder() {
@@ -546,8 +546,8 @@ async function enableSchedule() {
   const time = document.getElementById('scheduleTime').value;
   const folder = appSettings.schedule?.folder || '';
 
-  if (!days.length) { showToast(lang === 'en' ? 'Select at least one day!' : 'Επιλέξτε τουλάχιστον μία μέρα!'); return; }
-  if (!folder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  if (!days.length) { showToast(tr('selectDayFirst')); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
 
   appSettings.schedule = { ...appSettings.schedule, enabled: true, days, time, folder };
   await window.api.saveSettings(appSettings);
@@ -556,8 +556,8 @@ async function enableSchedule() {
   const el = document.getElementById('scheduleMsg');
   el.className = result.ok ? 'status-msg ok' : 'status-msg err';
   el.textContent = result.ok
-    ? (lang === 'en' ? `✓ Scheduled — ${days.join(', ')} at ${time}` : `✓ Ενεργοποιήθηκε — ${days.join(', ')} στις ${time}`)
-    : (lang === 'en' ? '✗ Failed — try running as Administrator' : '✗ Αποτυχία — δοκιμάστε ως Διαχειριστής');
+    ? tr('scheduledDays').replace('{days}', days.join(', ')).replace('{time}', time)
+    : tr('scheduleFailedMsg');
 }
 
 async function disableSchedule() {
@@ -566,7 +566,7 @@ async function disableSchedule() {
   await window.api.saveSettings(appSettings);
   const el = document.getElementById('scheduleMsg');
   el.className = 'status-msg ok';
-  el.textContent = lang === 'en' ? '✓ Auto-run disabled' : '✓ Απενεργοποιήθηκε';
+  el.textContent = tr('autoRunDisabled');
 }
 
 // ── Cleanup Schedule ─────────────────────────────────────────────
@@ -690,7 +690,7 @@ async function deleteCat(e, i) {
   categories.splice(i, 1);
   await window.api.saveCategories(categories);
   renderCatSettings();
-  showToast(lang === 'en' ? 'Category deleted' : 'Διαγράφηκε');
+  showToast(tr('categoryDeleted'));
 }
 
 async function addExt(i) {
@@ -716,19 +716,19 @@ async function addCategory() {
   const input = document.getElementById('newCatName');
   const name = input.value.trim();
   if (!name) return;
-  if (categories.find(c => c.name.toLowerCase() === name.toLowerCase())) { showToast(lang === 'en' ? 'Already exists!' : 'Υπάρχει ήδη!'); return; }
+  if (categories.find(c => c.name.toLowerCase() === name.toLowerCase())) { showToast(tr('alreadyExists')); return; }
   categories.push({ id: name.toLowerCase().replace(/\s+/g,'-'), name, icon: 'folder', enabled: true, extensions: [] });
   await window.api.saveCategories(categories);
   input.value = '';
   renderCatSettings();
-  showToast(lang === 'en' ? `"${name}" created` : `Δημιουργήθηκε το "${name}"`);
+  showToast(tr('categoryCreated').replace('{name}', name));
 }
 
 async function resetCategories() {
   if (!await showConfirm(tr('confirmResetCategories'))) return;
   categories = await window.api.resetCategories();
   renderCatSettings();
-  showToast(lang === 'en' ? 'Reset to defaults' : 'Επαναφορά');
+  showToast(tr('resetToDefaults'));
 }
 
 // ── Duplicate Finder ─────────────────────────────────────────────
@@ -745,13 +745,13 @@ function setDupFolder(folder) {
 }
 
 async function scanDuplicates(mode) {
-  if (!currentDupFolder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  if (!currentDupFolder) { showToast(tr('selectFolderFirst')); return; }
 
   // Toggle active button
   document.getElementById('scanContentBtn').classList.toggle('active', mode === 'content');
   document.getElementById('scanNameBtn').classList.toggle('active', mode === 'name');
 
-  showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
+  showToast(tr('scanning'));
   const result = await window.api.scanDuplicates({ folderPath: currentDupFolder, mode });
 
   const card  = document.getElementById('dupResultsCard');
@@ -808,7 +808,7 @@ function toggleDupRow(row, filePath, fileName, fileSize) {
 
 async function deleteSelected() {
   const selectedRows = document.querySelectorAll('.dup-row.selected');
-  if (!selectedRows.length) { showToast(lang === 'en' ? 'Select files to delete!' : 'Επιλέξτε αρχεία!'); return; }
+  if (!selectedRows.length) { showToast(tr('selectFilesFirst')); return; }
 
   const files = [...selectedRows].map(row => {
     const pathEl = row.querySelector('.dup-filepath');
@@ -823,7 +823,7 @@ async function deleteSelected() {
   lastDeletedDups = result.deleted;
 
   document.getElementById('undoDupBtn').style.display = result.deleted.length ? 'flex' : 'none';
-  showToast(lang === 'en' ? `${result.deleted.length} file(s) deleted` : `Διαγράφηκαν ${result.deleted.length} αρχεία`);
+  showToast(tr('deletedFiles').replace('{count}', result.deleted.length));
 
   const lastMode = document.getElementById('scanContentBtn').classList.contains('active') ? 'content' : 'name';
   await scanDuplicates(lastMode);
@@ -834,7 +834,7 @@ async function undoDuplicates() {
   const result = await window.api.restoreDuplicates(lastDeletedDups);
   lastDeletedDups = [];
   document.getElementById('undoDupBtn').style.display = 'none';
-  showToast(lang === 'en' ? `Restored ${result.restored.length} file(s)` : `Επαναφορά ${result.restored.length} αρχείων`);
+  showToast(tr('restoredDupFiles').replace('{count}', result.restored.length));
   await scanDuplicates('content');
 }
 
@@ -873,23 +873,23 @@ async function useDownloadsWatcher() {
 
 async function startWatcher() {
   const folder = document.getElementById('watcherFolderInput').value;
-  if (!folder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
 
   const result = await window.api.startWatcher(folder);
   if (result.ok) {
     setWatcherActive(true);
     const empty = document.getElementById('watcherEmpty');
     if (empty) { empty.classList.remove('hidden'); lucide.createIcons(); }
-    showToast(lang === 'en' ? 'Watching for new files...' : 'Παρακολούθηση ενεργή...');
+    showToast(tr('watchingFiles'));
   } else {
-    showToast(lang === 'en' ? 'Failed to start watcher' : 'Αποτυχία εκκίνησης');
+    showToast(tr('failedStartWatcher'));
   }
 }
 
 async function stopWatcher() {
   await window.api.stopWatcher();
   setWatcherActive(false);
-  showToast(lang === 'en' ? 'Watcher stopped' : 'Παρακολούθηση διακόπηκε');
+  showToast(tr('watcherStopped'));
 }
 
 function setWatcherActive(active) {
@@ -1026,7 +1026,7 @@ function setAgeThreshold(months, btnEl) {
 
 async function scanCleanup() {
   if (!currentCleanupFolder) { showToast(tr('selectFolderFirst')); return; }
-  showToast(lang === 'en' ? 'Scanning...' : 'Σάρωση...');
+  showToast(tr('scanning'));
   const preScan = document.getElementById('cleanupPreScan');
   if (preScan) preScan.classList.add('hidden');
 
@@ -1051,43 +1051,43 @@ async function scanCleanup() {
   const sections = [
     {
       id: 'installers', icon: '⚙️',
-      title: lang === 'en' ? 'Installers' : 'Εγκαταστάτες',
+      title: tr('installers'),
       desc: '.exe .msi .pkg .dmg',
       size: results.installers.totalSize,
       count: results.installers.files.length,
-      label: lang === 'en' ? 'files' : 'αρχεία'
+      label: tr('filesLabel')
     },
     {
       id: 'junk', icon: '🗑️',
-      title: lang === 'en' ? 'Temp and Junk' : 'Προσωρινά αρχεία',
+      title: tr('junkFiles'),
       desc: '.tmp .log .cache .bak',
       size: results.junk.totalSize,
       count: results.junk.files.length,
-      label: lang === 'en' ? 'files' : 'αρχεία'
+      label: tr('filesLabel')
     },
     {
       id: 'duplicates', icon: '📄',
-      title: lang === 'en' ? 'Duplicate Files' : 'Διπλότυπα αρχεία',
-      desc: lang === 'en' ? 'Identical files by content' : 'Ίδιο περιεχόμενο',
+      title: tr('duplicateFiles'),
+      desc: tr('identicalByContent'),
       size: results.duplicates.totalSize,
       count: results.duplicates.files.length,
-      label: lang === 'en' ? 'files' : 'αρχεία'
+      label: tr('filesLabel')
     },
     {
       id: 'oldFiles', icon: '🕒',
-      title: lang === 'en' ? 'Old Files' : 'Παλιά αρχεία',
-      desc: lang === 'en' ? `Not used in ${ageThresholdMonths} month(s)` : `Αχρησιμοποίητα ${ageThresholdMonths} μήνες`,
+      title: tr('oldFiles'),
+      desc: tr('notUsedMonths').replace('{count}', ageThresholdMonths),
       size: results.oldFiles?.totalSize || 0,
       count: results.oldFiles?.files.length || 0,
-      label: lang === 'en' ? 'files' : 'αρχεία'
+      label: tr('filesLabel')
     },
     {
       id: 'emptyFolders', icon: '📁',
-      title: lang === 'en' ? 'Empty Folders' : 'Άδειοι φάκελοι',
-      desc: lang === 'en' ? 'Folders with no files' : 'Φάκελοι χωρίς αρχεία',
+      title: tr('emptyFolders'),
+      desc: tr('foldersNoFiles'),
       size: 0,
       count: results.emptyFolders.count,
-      label: lang === 'en' ? 'folders' : 'φάκελοι'
+      label: tr('foldersLabel')
     }
   ];
 
@@ -1164,7 +1164,7 @@ function previewCleanup() {
   }
 
   const totalCount = sections.reduce((s, sec) => s + sec.files.length, 0);
-  if (!totalCount) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }
+  if (!totalCount) { showToast(tr('nothingSelected')); return; }
 
   const body = sections.map(sec => `
     <div class="preview-section">
@@ -1203,14 +1203,14 @@ async function runCleanup() {
   const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.oldFiles, toDelete.emptyFolders]
     .filter(Boolean).reduce((s, arr) => s + arr.length, 0);
 
-  if (totalCount === 0) { showToast(lang === 'en' ? 'Nothing selected!' : 'Τίποτα επιλεγμένο!'); return; }
+  if (totalCount === 0) { showToast(tr('nothingSelected')); return; }
   if (!await showConfirm(tr('confirmDeleteItems').replace('{count}', totalCount))) return;
 
   const result = await window.api.runCleanup(toDelete);
   lastCleanupDeleted = result.deleted;
 
   document.getElementById('undoCleanupBtn').style.display = result.deleted.length ? 'flex' : 'none';
-  showToast(lang === 'en' ? `${result.deleted.length} item(s) cleaned!` : `Καθαρίστηκαν ${result.deleted.length} στοιχεία!`);
+  showToast(tr('cleanedItems').replace('{count}', result.deleted.length));
   await scanCleanup();
 }
 
@@ -1219,7 +1219,7 @@ async function undoCleanup() {
   const result = await window.api.restoreCleanup(lastCleanupDeleted);
   lastCleanupDeleted = [];
   document.getElementById('undoCleanupBtn').style.display = 'none';
-  showToast(lang === 'en' ? `Restored ${result.restored.length} item(s)` : `Επαναφορά ${result.restored.length} στοιχείων`);
+  showToast(tr('restoredItems').replace('{count}', result.restored.length));
   await scanCleanup();
 }
 
@@ -1248,12 +1248,12 @@ function renderBookmarkPanel(context) {
   let html = `
     <div class="bookmark-add-row">
       <button class="btn btn-green btn-sm" onclick="bookmarkCurrentFolder('${context}')">
-        <i data-lucide="bookmark-plus"></i> ${lang === 'en' ? 'Bookmark current folder' : 'Αποθήκευση τρέχοντος φακέλου'}
+        <i data-lucide="bookmark-plus"></i> ${tr('bookmarkCurrentFolder')}
       </button>
     </div>`;
 
   if (!bookmarksList.length) {
-    html += `<div class="bookmark-empty">${lang === 'en' ? 'No bookmarks yet.' : 'Δεν υπάρχουν σελιδοδείκτες ακόμα.'}</div>`;
+    html += `<div class="bookmark-empty">${tr('noBookmarks')}</div>`;
   } else {
     html += bookmarksList.map(b => `
       <div class="bookmark-item" onclick="useBookmark('${context}', '${b.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
@@ -1290,17 +1290,17 @@ function useBookmark(context, folderPath) {
 
 async function bookmarkCurrentFolder(context) {
   const folder = getCurrentFolderForContext(context);
-  if (!folder) { showToast(lang === 'en' ? 'Select a folder first!' : 'Επιλέξτε φάκελο πρώτα!'); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
 
   bookmarksList = await window.api.addBookmark(folder);
-  showToast(lang === 'en' ? 'Bookmark added!' : 'Προστέθηκε σελιδοδείκτης!');
+  showToast(tr('bookmarkAdded'));
   renderBookmarkPanel(context);
 }
 
 async function removeBookmarkItem(id, context) {
   bookmarksList = await window.api.removeBookmark(id);
   renderBookmarkPanel(context);
-  showToast(lang === 'en' ? 'Bookmark removed' : 'Αφαιρέθηκε');
+  showToast(tr('bookmarkRemoved'));
 }
 
 // ── Recent Folders ────────────────────────────────────────────────
@@ -1314,7 +1314,7 @@ async function getRecentFoldersHTML(context) {
   if (!recent.length) return '';
   return `
     <div class="recent-folders-row">
-      <span class="recent-folders-label">${lang === 'en' ? 'Recent:' : 'Πρόσφατα:'}</span>
+      <span class="recent-folders-label">${tr('recentLabel')}</span>
       ${recent.map(r => `
         <button class="recent-folder-chip" title="${r.path}" onclick="useRecentFolder('${context}', '${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
           ${r.name}
@@ -1576,17 +1576,37 @@ function obReopen() {
 // ── Size Filter ───────────────────────────────────────────────────
 async function loadSizeFilter() {
   const s = await window.api.getSettings();
-  const min = document.getElementById('sizeFilterMin');
-  const max = document.getElementById('sizeFilterMax');
-  if (min) min.value = s.sizeFilter?.minKB || 0;
-  if (max) max.value = s.sizeFilter?.maxKB || 0;
+  const minKB = s.sizeFilter?.minKB || 0;
+  const maxKB = s.sizeFilter?.maxKB || 0;
+  const minEl = document.getElementById('sizeFilterMin');
+  const maxEl = document.getElementById('sizeFilterMax');
+  const minUnit = document.getElementById('sizeFilterMinUnit');
+  const maxUnit = document.getElementById('sizeFilterMaxUnit');
+  if (minKB >= 1024 && minKB % 1024 === 0) {
+    if (minEl) minEl.value = minKB / 1024;
+    if (minUnit) minUnit.value = 'MB';
+  } else {
+    if (minEl) minEl.value = minKB;
+    if (minUnit) minUnit.value = 'KB';
+  }
+  if (maxKB >= 1024 && maxKB % 1024 === 0) {
+    if (maxEl) maxEl.value = maxKB / 1024;
+    if (maxUnit) maxUnit.value = 'MB';
+  } else {
+    if (maxEl) maxEl.value = maxKB;
+    if (maxUnit) maxUnit.value = 'KB';
+  }
 }
 
 async function saveSizeFilter() {
-  const min = parseInt(document.getElementById('sizeFilterMin').value) || 0;
-  const max = parseInt(document.getElementById('sizeFilterMax').value) || 0;
+  const minVal  = parseInt(document.getElementById('sizeFilterMin').value) || 0;
+  const maxVal  = parseInt(document.getElementById('sizeFilterMax').value) || 0;
+  const minUnit = document.getElementById('sizeFilterMinUnit').value;
+  const maxUnit = document.getElementById('sizeFilterMaxUnit').value;
+  const minKB = minUnit === 'MB' ? minVal * 1024 : minVal;
+  const maxKB = maxUnit === 'MB' ? maxVal * 1024 : maxVal;
   const s = await window.api.getSettings();
-  s.sizeFilter = { minKB: min, maxKB: max };
+  s.sizeFilter = { minKB, maxKB };
   await window.api.saveSettings(s);
 }
 
