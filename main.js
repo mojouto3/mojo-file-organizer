@@ -757,6 +757,59 @@ const INSTALLER_EXTS = ['.exe','.msi','.msix','.appx','.apk','.deb','.rpm','.pkg
 const JUNK_EXTS = ['.tmp','.log','.cache','.bak','.temp','.old','.DS_Store'];
 const JUNK_NAMES = ['thumbs.db','desktop.ini','.ds_store'];
 
+// ── Duplicate app detection ───────────────────────────────────────
+function parseInstallerInfo(filename) {
+  const ext  = path.extname(filename);
+  const base = path.basename(filename, ext);
+  // Extract version number (e.g. 3.0.20, 115.0, 2024.1.2)
+  const versionMatch = base.match(/[\._\-\s]v?(\d+[\.\d]+\d)/i);
+  const version = versionMatch ? versionMatch[1] : null;
+  // Normalize app name: remove version, common suffixes, separators
+  let appName = base
+    .replace(/[\._\-\s]v?\d+[\.\d]*\d/gi, '')
+    .replace(/[\._\-\s]?(setup|install|installer|x64|x86|x32|win|win64|win32|amd64|portable|full|offline)/gi, '')
+    .replace(/[\._\-\s]+/g, ' ')
+    .trim()
+    .toLowerCase();
+  return { appName, version, filename };
+}
+
+function compareVersions(a, b) {
+  if (!a) return -1;
+  if (!b) return 1;
+  const pa = a.split('.').map(n => parseInt(n) || 0);
+  const pb = b.split('.').map(n => parseInt(n) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
+    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
+  }
+  return 0;
+}
+
+function detectDuplicateApps(installers) {
+  // Group by normalized app name
+  const groups = {};
+  for (const file of installers) {
+    const { appName, version } = parseInstallerInfo(file.name);
+    if (!appName) continue;
+    if (!groups[appName]) groups[appName] = [];
+    groups[appName].push({ ...file, version });
+  }
+  // Only keep groups with 2+ versions
+  const duplicateGroups = [];
+  for (const [appName, files] of Object.entries(groups)) {
+    if (files.length < 2) continue;
+    // Sort by version descending
+    files.sort((a, b) => compareVersions(b.version, a.version));
+    duplicateGroups.push({
+      appName,
+      keep: files[0],
+      delete: files.slice(1)
+    });
+  }
+  return duplicateGroups;
+}
+
 function getFileSize(filePath) {
   try { return fs.statSync(filePath).size; } catch (e) { return 0; }
 }
@@ -845,11 +898,12 @@ ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
     junk:       { files: junk,       totalSize: junk.reduce((s, f) => s + f.size, 0) },
     duplicates: { files: duplicates, totalSize: duplicates.reduce((s, f) => s + f.size, 0) },
     emptyFolders: { folders: emptyFolders, count: emptyFolders.length },
-    oldFiles: { files: oldFiles, totalSize: oldFiles.reduce((s, f) => s + f.size, 0) }
+    oldFiles: { files: oldFiles, totalSize: oldFiles.reduce((s, f) => s + f.size, 0) },
+    duplicateApps: detectDuplicateApps(installers)
   };
 });
 
-ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders, oldFiles }) => {
+ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders, oldFiles, dupApps }) => {
   const trashDir = path.join(os.homedir(), '.mojo-trash');
   if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
   const deleted = [], errors = [];
@@ -870,6 +924,7 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
   if (installers) installers.forEach(deleteFile);
   if (junk)       junk.forEach(deleteFile);
   if (duplicates) duplicates.forEach(deleteFile);
+  if (dupApps)    dupApps.forEach(deleteFile);
   if (emptyFolders) emptyFolders.forEach(deleteFolder);
   if (oldFiles) oldFiles.forEach(deleteFile);
 
