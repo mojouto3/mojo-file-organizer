@@ -1239,6 +1239,51 @@ async function scanCleanup() {
     </div>`).join('');
 
   updateCleanupTotal();
+
+  // Render duplicate apps if found
+  const dupApps = results.duplicateApps || [];
+  const dupAppsContainer = document.getElementById('cleanupSections');
+  if (dupApps.length > 0) {
+    const totalOldSize = dupApps.reduce((s, g) => s + g.delete.reduce((ss, f) => ss + f.size, 0), 0);
+    const dupAppsEl = document.createElement('div');
+    dupAppsEl.className = 'cleanup-section dup-apps-section';
+    dupAppsEl.id = 'cleanup-section-dupApps';
+    dupAppsEl.innerHTML = `
+      <div class="cleanup-section-header" onclick="toggleCleanupSection('dupApps')">
+        <input type="checkbox" id="check-dupApps" onchange="updateCleanupTotal()" checked onclick="event.stopPropagation()"/>
+        <i data-lucide="layers" class="cleanup-section-icon"></i>
+        <div class="cleanup-section-info">
+          <div class="cleanup-section-title">${tr('duplicateApps')}</div>
+          <div class="cleanup-section-desc">${tr('duplicateAppsDesc')}</div>
+          <div class="cleanup-section-bar">
+            <div class="cleanup-section-fill" style="width:${totalOldSize ? Math.round((totalOldSize/maxSize)*100) : 0}%"></div>
+          </div>
+        </div>
+        <div class="cleanup-section-stats">
+          <div class="cleanup-section-size">${totalOldSize ? formatSize(totalOldSize) : '—'}</div>
+          <div class="cleanup-section-count">${dupApps.length} ${tr('appsLabel')}</div>
+        </div>
+      </div>
+      <div class="dup-apps-list">
+        ${dupApps.map(g => `
+          <div class="dup-app-group">
+            <div class="dup-app-name">${g.appName}</div>
+            <div class="dup-app-keep">
+              <span class="dup-badge keep">${tr('keep')}</span>
+              <span class="dup-app-file">${g.keep.name}</span>
+              <span class="dup-app-size">${formatSize(g.keep.size)}</span>
+            </div>
+            ${g.delete.map(f => `
+              <div class="dup-app-del">
+                <span class="dup-badge delete">${tr('delete')}</span>
+                <span class="dup-app-file">${f.name}</span>
+                <span class="dup-app-size">${formatSize(f.size)}</span>
+              </div>`).join('')}
+          </div>`).join('')}
+      </div>`;
+    dupAppsContainer.appendChild(dupAppsEl);
+  }
+
   lucide.createIcons();
 }
 
@@ -1263,6 +1308,11 @@ function updateCleanupTotal() {
   if (document.getElementById('check-junk')?.checked)         total += cleanupScanResults.junk.totalSize;
   if (document.getElementById('check-duplicates')?.checked)   total += cleanupScanResults.duplicates.totalSize;
   if (document.getElementById('check-oldFiles')?.checked)     total += (cleanupScanResults.oldFiles?.totalSize || 0);
+  if (document.getElementById('check-dupApps')?.checked) {
+    (cleanupScanResults.duplicateApps || []).forEach(g => {
+      g.delete.forEach(f => { total += f.size; });
+    });
+  }
   document.getElementById('cleanupSelectedSize').textContent = formatSize(total) + ' selected';
 
   const allChecked = ['installers','junk','duplicates','oldFiles','emptyFolders'].every(id => document.getElementById(`check-${id}`)?.checked);
@@ -1319,15 +1369,20 @@ function closePreviewCleanup() {
 async function runCleanup() {
   if (!cleanupScanResults) return;
 
+  const dupAppsFiles = document.getElementById('check-dupApps')?.checked
+    ? (cleanupScanResults.duplicateApps || []).flatMap(g => g.delete)
+    : null;
+
   const toDelete = {
     installers:   document.getElementById('check-installers')?.checked   ? cleanupScanResults.installers.files : null,
     junk:         document.getElementById('check-junk')?.checked         ? cleanupScanResults.junk.files : null,
     duplicates:   document.getElementById('check-duplicates')?.checked   ? cleanupScanResults.duplicates.files : null,
     oldFiles:     document.getElementById('check-oldFiles')?.checked     ? (cleanupScanResults.oldFiles?.files || []) : null,
     emptyFolders: document.getElementById('check-emptyFolders')?.checked ? cleanupScanResults.emptyFolders.folders : null,
+    dupApps:      dupAppsFiles,
   };
 
-  const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.oldFiles, toDelete.emptyFolders]
+  const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.oldFiles, toDelete.emptyFolders, toDelete.dupApps]
     .filter(Boolean).reduce((s, arr) => s + arr.length, 0);
 
   if (totalCount === 0) { showToast(tr('nothingSelected')); return; }
