@@ -75,7 +75,7 @@ function showTab(name) {
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
-  if (name === 'cleanup') {}
+  if (name === 'cleanup') { initRecycleBin(); }
   if (['organize','group','duplicates','cleanup','watcher'].includes(name)) {
     const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher' };
     renderRecentFolders(ctxMap[name]);
@@ -568,6 +568,46 @@ async function disableSchedule() {
   const el = document.getElementById('scheduleMsg');
   el.className = 'status-msg ok';
   el.textContent = tr('autoRunDisabled');
+}
+
+// ── Recycle Bin ───────────────────────────────────────────────────
+async function initRecycleBin() {
+  const result = await window.api.getRecycleBinSize();
+  const sizeDesc = document.getElementById('recycleBinSizeDesc');
+  const sizeHint = document.getElementById('recycleBinSize');
+  const btn = document.getElementById('emptyRecycleBinBtn');
+  if (!result.ok || result.size === 0) {
+    if (sizeDesc) sizeDesc.textContent = tr('recycleBinEmpty');
+    if (sizeHint) sizeHint.textContent = tr('recycleBinEmpty');
+    if (btn) btn.disabled = true;
+  } else {
+    const sizeStr = formatSize(result.size);
+    if (sizeDesc) sizeDesc.textContent = sizeStr;
+    if (sizeHint) sizeHint.textContent = sizeStr;
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function emptyRecycleBin() {
+  const sizeHint = document.getElementById('recycleBinSize');
+  const size = sizeHint?.textContent;
+  if (!await showConfirm(tr('confirmEmptyRecycleBin').replace('{size}', size || ''))) return;
+
+  const btn = document.getElementById('emptyRecycleBinBtn');
+  if (btn) btn.disabled = true;
+
+  const result = await window.api.emptyRecycleBin();
+  const msg = document.getElementById('recycleBinMsg');
+  if (result.ok) {
+    if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('recycleBinEmptied'); }
+    const sizeDesc = document.getElementById('recycleBinSizeDesc');
+    const sizeHint2 = document.getElementById('recycleBinSize');
+    if (sizeDesc) sizeDesc.textContent = tr('recycleBinEmpty');
+    if (sizeHint2) sizeHint2.textContent = tr('recycleBinEmpty');
+  } else {
+    if (msg) { msg.className = 'status-msg err'; msg.textContent = tr('recycleBinFailed'); }
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ── Cleanup Treemap ───────────────────────────────────────────────
