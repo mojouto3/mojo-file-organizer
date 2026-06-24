@@ -570,6 +570,70 @@ async function disableSchedule() {
   el.textContent = tr('autoRunDisabled');
 }
 
+// ── Cleanup Treemap ───────────────────────────────────────────────
+const TREEMAP_COLORS = [
+  'linear-gradient(135deg,#1a5c1a,#2a8a2a)',
+  'linear-gradient(135deg,#1a3a6e,#1f4a8a)',
+  'linear-gradient(135deg,#6e3a1a,#8a4a1f)',
+  'linear-gradient(135deg,#4a1a6e,#5c2288)',
+  'linear-gradient(135deg,#1a5a6e,#1f6e88)',
+  'linear-gradient(135deg,#444,#555)',
+];
+const TREEMAP_DOTS = ['#2a8a2a','#1f4a8a','#8a4a1f','#5c2288','#1f6e88','#555'];
+
+function renderCleanupTreemap(results, totalSize) {
+  const treemap = document.getElementById('cleanupTreemap');
+  const grid    = document.getElementById('treemapGrid');
+  const legend  = document.getElementById('treemapLegend');
+  const tooltip = document.getElementById('treemapTooltip');
+
+  const sections = [
+    { id: 'installers',   label: tr('installers'),     size: results.installers.totalSize },
+    { id: 'junk',         label: tr('junkFiles'),      size: results.junk.totalSize },
+    { id: 'duplicates',   label: tr('duplicateFiles'), size: results.duplicates.totalSize },
+    { id: 'oldFiles',     label: tr('oldFiles'),       size: results.oldFiles?.totalSize || 0 },
+    { id: 'emptyFolders', label: tr('emptyFolders'),   size: 0 },
+  ].filter(s => s.size > 0);
+
+  if (!sections.length) { treemap.classList.add('hidden'); return; }
+
+  grid.innerHTML = '';
+  legend.innerHTML = '';
+
+  sections.forEach((sec, i) => {
+    const pct = totalSize > 0 ? Math.max((sec.size / totalSize) * 100, 4) : 0;
+    const isSmall = pct < 8;
+    const block = document.createElement('div');
+    block.className = 'treemap-block';
+    block.style.background = TREEMAP_COLORS[i % TREEMAP_COLORS.length];
+    block.style.flex = pct.toString();
+    block.innerHTML = isSmall ? '' : `
+      <span class="treemap-block-name">${sec.label}</span>
+      <span class="treemap-block-size">${formatSize(sec.size)}</span>`;
+
+    block.addEventListener('mouseenter', (e) => {
+      document.getElementById('treemapTipName').textContent = sec.label;
+      document.getElementById('treemapTipSize').textContent = formatSize(sec.size);
+      document.getElementById('treemapTipPct').textContent = (totalSize > 0 ? Math.round(sec.size / totalSize * 100) : 0) + '% of total';
+      tooltip.classList.remove('hidden');
+    });
+    block.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
+    block.addEventListener('click', () => {
+      const target = document.getElementById('cleanup-section-' + sec.id);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    grid.appendChild(block);
+
+    const li = document.createElement('div');
+    li.className = 'treemap-legend-item';
+    li.innerHTML = `<div class="treemap-legend-dot" style="background:${TREEMAP_DOTS[i % TREEMAP_DOTS.length]}"></div>${sec.label} ${totalSize > 0 ? Math.round(sec.size / totalSize * 100) : 0}%`;
+    legend.appendChild(li);
+  });
+
+  treemap.classList.remove('hidden');
+}
+
 // ── Rename Rules ──────────────────────────────────────────────────
 let renameRules = { datePrefix: false, dateSuffix: false, spacesToUnderscores: false, lowercaseAll: false, removeSpecialChars: false };
 
@@ -1106,6 +1170,8 @@ async function scanCleanup() {
   document.getElementById('cleanupEmpty').classList.add('hidden');
   document.getElementById('cleanupResultsCard').classList.remove('hidden');
   document.getElementById('cleanupTotalSize').textContent = formatSize(totalSize) + ' found';
+
+  renderCleanupTreemap(results, totalSize);
 
   const maxSize = Math.max(results.installers.totalSize, results.junk.totalSize, results.duplicates.totalSize, results.oldFiles?.totalSize || 0, 1);
 
