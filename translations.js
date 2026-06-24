@@ -213,6 +213,14 @@ const TRANSLATIONS = {
     updateCheckFailed: '✗ Could not check for updates',
     updateBannerText: 'A new version is available!',
     viewRelease: 'View Release',
+    renameRules: 'Rename Rules',
+    renameRulesDesc: 'Apply automatic rename rules during Organize and Smart Group.',
+    rrDatePrefix: 'Add date prefix',
+    rrDateSuffix: 'Add date suffix',
+    rrSpaces: 'Replace spaces with underscores',
+    rrLowercase: 'Lowercase all',
+    rrSpecialChars: 'Remove special characters',
+    rrPreview: 'Live preview',
   },
 
   gr: {
@@ -417,6 +425,14 @@ const TRANSLATIONS = {
     updateCheckFailed: '✗ Αποτυχία ελέγχου ενημερώσεων',
     updateBannerText: 'Υπάρχει διαθέσιμη νέα έκδοση!',
     viewRelease: 'Προβολή Έκδοσης',
+    renameRules: 'Κανόνες Μετονομασίας',
+    renameRulesDesc: 'Εφαρμογή κανόνων μετονομασίας κατά την οργάνωση.',
+    rrDatePrefix: 'Προσθήκη ημερομηνίας στην αρχή',
+    rrDateSuffix: 'Προσθήκη ημερομηνίας στο τέλος',
+    rrSpaces: 'Αντικατάσταση κενών με κάτω παύλα',
+    rrLowercase: 'Μετατροπή σε πεζά',
+    rrSpecialChars: 'Αφαίρεση ειδικών χαρακτήρων',
+    rrPreview: 'Ζωντανή προεπισκόπηση',
   },
 
   de: {
@@ -621,6 +637,14 @@ const TRANSLATIONS = {
     updateCheckFailed: '✗ Update-Prüfung fehlgeschlagen',
     updateBannerText: 'Eine neue Version ist verfügbar!',
     viewRelease: 'Release ansehen',
+    renameRules: 'Umbenennungsregeln',
+    renameRulesDesc: 'Automatische Umbenennungsregeln beim Organisieren anwenden.',
+    rrDatePrefix: 'Datumspräfix hinzufügen',
+    rrDateSuffix: 'Datumsuffix hinzufügen',
+    rrSpaces: 'Leerzeichen durch Unterstriche ersetzen',
+    rrLowercase: 'Alles kleinschreiben',
+    rrSpecialChars: 'Sonderzeichen entfernen',
+    rrPreview: 'Live-Vorschau',
   },
 
   es: {
@@ -815,6 +839,14 @@ const TRANSLATIONS = {
     updateCheckFailed: '✗ No se pudo comprobar actualizaciones',
     updateBannerText: '¡Hay una nueva versión disponible!',
     viewRelease: 'Ver Versión',
+    renameRules: 'Reglas de Renombrado',
+    renameRulesDesc: 'Aplicar reglas de renombrado automático al organizar.',
+    rrDatePrefix: 'Añadir prefijo de fecha',
+    rrDateSuffix: 'Añadir sufijo de fecha',
+    rrSpaces: 'Reemplazar espacios con guiones bajos',
+    rrLowercase: 'Todo en minúsculas',
+    rrSpecialChars: 'Eliminar caracteres especiales',
+    rrPreview: 'Vista previa en vivo',
   },
 
   ru: {
@@ -1019,6 +1051,14 @@ const TRANSLATIONS = {
     updateCheckFailed: '✗ Не удалось проверить обновления',
     updateBannerText: 'Доступна новая версия!',
     viewRelease: 'Посмотреть релиз',
+    renameRules: 'Правила переименования',
+    renameRulesDesc: 'Применять правила переименования при организации.',
+    rrDatePrefix: 'Добавить префикс даты',
+    rrDateSuffix: 'Добавить суффикс даты',
+    rrSpaces: 'Заменить пробелы подчёркиванием',
+    rrLowercase: 'Всё в нижний регистр',
+    rrSpecialChars: 'Удалить специальные символы',
+    rrPreview: 'Предпросмотр в реальном времени',
   }
 };
 

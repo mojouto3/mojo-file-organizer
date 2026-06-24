@@ -601,6 +601,66 @@
     </div>
     </div>
   </div>
+  <!-- Rename Rules -->
+  <div class="card accordion-card collapsed" id="settingsCard-rename">
+    <div class="card-header" onclick="toggleSettingsCard('rename')">
+      <i data-lucide="pencil" class="card-icon"></i>
+      <span class="card-title" data-i18n="renameRules">Rename Rules</span>
+      <span class="accordion-hint" id="renameRulesHint"></span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
+    </div>
+    <div class="card-body">
+      <p class="card-desc" data-i18n="renameRulesDesc">Apply automatic rename rules during Organize and Smart Group. Rules are applied in order.</p>
+
+      <div class="rename-rules-list">
+        <div class="rename-rule-row" id="rr-datePrefix" onclick="toggleRenameRule('datePrefix')">
+          <button class="setting-toggle" id="rr-toggle-datePrefix"></button>
+          <div class="rename-rule-info">
+            <div class="rename-rule-name" data-i18n="rrDatePrefix">Add date prefix</div>
+            <div class="rename-rule-example">photo.jpg → 2026-06-24_photo.jpg</div>
+          </div>
+        </div>
+        <div class="rename-rule-row" id="rr-dateSuffix" onclick="toggleRenameRule('dateSuffix')">
+          <button class="setting-toggle" id="rr-toggle-dateSuffix"></button>
+          <div class="rename-rule-info">
+            <div class="rename-rule-name" data-i18n="rrDateSuffix">Add date suffix</div>
+            <div class="rename-rule-example">photo.jpg → photo_2026-06-24.jpg</div>
+          </div>
+        </div>
+        <div class="rename-rule-row" id="rr-spacesToUnderscores" onclick="toggleRenameRule('spacesToUnderscores')">
+          <button class="setting-toggle" id="rr-toggle-spacesToUnderscores"></button>
+          <div class="rename-rule-info">
+            <div class="rename-rule-name" data-i18n="rrSpaces">Replace spaces with underscores</div>
+            <div class="rename-rule-example">my file.jpg → my_file.jpg</div>
+          </div>
+        </div>
+        <div class="rename-rule-row" id="rr-lowercaseAll" onclick="toggleRenameRule('lowercaseAll')">
+          <button class="setting-toggle" id="rr-toggle-lowercaseAll"></button>
+          <div class="rename-rule-info">
+            <div class="rename-rule-name" data-i18n="rrLowercase">Lowercase all</div>
+            <div class="rename-rule-example">MyFile.JPG → myfile.jpg</div>
+          </div>
+        </div>
+        <div class="rename-rule-row" id="rr-removeSpecialChars" onclick="toggleRenameRule('removeSpecialChars')">
+          <button class="setting-toggle" id="rr-toggle-removeSpecialChars"></button>
+          <div class="rename-rule-info">
+            <div class="rename-rule-name" data-i18n="rrSpecialChars">Remove special characters</div>
+            <div class="rename-rule-example">my@file!.jpg → myfile.jpg</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rename-preview-wrap">
+        <div class="rename-preview-label" data-i18n="rrPreview">Live preview</div>
+        <div class="rename-preview-row">
+          <span class="rename-preview-in" id="rrPreviewIn">My Photo (1).jpg</span>
+          <i data-lucide="arrow-right" class="rename-preview-arrow"></i>
+          <span class="rename-preview-out" id="rrPreviewOut">My Photo (1).jpg</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Ignore List -->
   <div class="card accordion-card collapsed" id="settingsCard-ignore">
     <div class="card-header" onclick="toggleSettingsCard('ignore')">

@@ -40,6 +40,13 @@ const DEFAULT_SETTINGS = {
   sizeFilter: {
     minKB: 0,
     maxKB: 0
+  },
+  renameRules: {
+    datePrefix: false,
+    dateSuffix: false,
+    spacesToUnderscores: false,
+    lowercaseAll: false,
+    removeSpecialChars: false
   }
 };
 
@@ -327,6 +334,21 @@ function shouldIgnore(filename, ignoreList) {
   return false;
 }
 
+function applyRenameRules(filename, rules) {
+  if (!rules) return filename;
+  const ext  = path.extname(filename);
+  let base   = path.basename(filename, ext);
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (rules.datePrefix)           base = `${today}_${base}`;
+  if (rules.dateSuffix)           base = `${base}_${today}`;
+  if (rules.spacesToUnderscores)  base = base.replace(/ /g, '_');
+  if (rules.lowercaseAll)         base = base.toLowerCase();
+  if (rules.removeSpecialChars)   base = base.replace(/[^\w\-\u0370-\u03FF\u1F00-\u1FFF]/g, '');
+
+  return base + ext;
+}
+
 function shouldIgnoreSize(filePath, sizeFilter) {
   if (!sizeFilter || (!sizeFilter.minKB && !sizeFilter.maxKB)) return false;
   try {
@@ -452,7 +474,7 @@ ipcMain.handle('reset-categories', async ()    => { writeCategories(DEFAULT_CATE
 ipcMain.handle('preview', async (_, folderPath) => {
   const cats = readCategories();
   const ignore = readIgnoreList();
-  const { sizeFilter } = readSettings();
+  const { sizeFilter, renameRules } = readSettings();
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
@@ -461,7 +483,7 @@ ipcMain.handle('preview', async (_, folderPath) => {
       const fullPath = path.join(folderPath, f.name);
       if (shouldIgnoreSize(fullPath, sizeFilter)) continue;
       const cat = getCategory(path.extname(f.name), cats);
-      if (cat) results.push({ name: f.name, category: cat });
+      if (cat) results.push({ name: f.name, newName: applyRenameRules(f.name, renameRules), category: cat });
     }
   } catch (e) {}
   return results;
@@ -470,7 +492,7 @@ ipcMain.handle('preview', async (_, folderPath) => {
 ipcMain.handle('organize', async (_, folderPath) => {
   const cats = readCategories();
   const ignore = readIgnoreList();
-  const { sizeFilter } = readSettings();
+  const { sizeFilter, renameRules } = readSettings();
   const moved = [], errors = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
@@ -482,7 +504,8 @@ ipcMain.handle('organize', async (_, folderPath) => {
       if (!cat) continue;
       const destFolder = path.join(folderPath, cat);
       if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
-      const dest = getUniqueDest(destFolder, f.name);
+      const newName = applyRenameRules(f.name, renameRules);
+      const dest = getUniqueDest(destFolder, newName);
       try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat, from: src, to: dest }); }
       catch (e) { errors.push({ name: f.name, error: e.message }); }
     }
