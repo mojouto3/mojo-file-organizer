@@ -305,6 +305,14 @@ input[type="text"]:focus { border-color: #444; }
 }
 .cat-toggle.on::after { transform: translateX(16px); }
 .cat-setting-name { font-size: 12px; font-weight: 600; flex: 1; }
+.cat-icon-wrap {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: var(--surface2); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background 0.2s;
+}
+.cat-icon-wrap i { width: 13px; height: 13px; color: var(--text-dim); transition: color 0.2s; }
+.cat-setting-row:hover .cat-icon-wrap { background: var(--gdim, rgba(61,219,61,0.08)); }
+.cat-setting-row:hover .cat-icon-wrap i { color: var(--accent, var(--green)); }
 .cat-setting-count { font-size: 10px; color: var(--text-dim); }
 .cat-del-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; opacity: 0; transition: opacity 0.15s; }
 .cat-del-btn i { width: 13px; height: 13px; }
@@ -1337,3 +1345,25 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   padding: 4px 6px; cursor: pointer; transition: border-color 0.15s;
 }
 .size-unit-select:focus { outline: none; border-color: var(--accent, var(--green)); }
+
+/* ── Rename rules ── */
+.rename-rules-list { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.rename-rule-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 9px; padding: 9px 12px; cursor: pointer;
+  transition: border-color 0.18s, background 0.18s;
+}
+.rename-rule-row:hover { border-color: rgba(61,219,61,0.2); }
+.rename-rule-row.active { border-color: rgba(61,219,61,0.25); background: rgba(61,219,61,0.03); }
+.rename-rule-info { flex: 1; }
+.rename-rule-name { font-size: 11px; font-weight: 500; color: var(--text-dim); }
+.rename-rule-row.active .rename-rule-name { color: var(--text); }
+.rename-rule-example { font-size: 10px; color: var(--border-mid, #333); font-family: monospace; margin-top: 2px; }
+.rename-rule-row.active .rename-rule-example { color: #555; }
+.rename-preview-wrap { background: var(--surface2); border-radius: 9px; padding: 10px 12px; }
+.rename-preview-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-dim); margin-bottom: 7px; }
+.rename-preview-row { display: flex; align-items: center; gap: 8px; }
+.rename-preview-in { font-size: 11px; color: var(--text-dim); font-family: monospace; flex: 1; }
+.rename-preview-arrow { width: 12px; height: 12px; color: #444; flex-shrink: 0; }
+.rename-preview-out { font-size: 11px; color: var(--accent, var(--green)); font-family: monospace; flex: 1; font-weight: 500; }

@@ -42,6 +42,7 @@ async function init() {
   restoreAccordionState();
   loadIgnoreList();
   loadSizeFilter();
+  loadRenameRules();
   initOnboarding();
   initCleanupScheduleUI();
 }
@@ -569,6 +570,59 @@ async function disableSchedule() {
   el.textContent = tr('autoRunDisabled');
 }
 
+// ── Rename Rules ──────────────────────────────────────────────────
+let renameRules = { datePrefix: false, dateSuffix: false, spacesToUnderscores: false, lowercaseAll: false, removeSpecialChars: false };
+
+async function loadRenameRules() {
+  const s = await window.api.getSettings();
+  renameRules = s.renameRules || { datePrefix: false, dateSuffix: false, spacesToUnderscores: false, lowercaseAll: false, removeSpecialChars: false };
+  renderRenameRules();
+}
+
+function renderRenameRules() {
+  for (const key of Object.keys(renameRules)) {
+    const row = document.getElementById('rr-' + key);
+    const tog = document.getElementById('rr-toggle-' + key);
+    if (row) row.classList.toggle('active', !!renameRules[key]);
+    if (tog) tog.classList.toggle('on', !!renameRules[key]);
+  }
+  updateRenamePreview();
+  const count = Object.values(renameRules).filter(Boolean).length;
+  const hint = document.getElementById('renameRulesHint');
+  if (hint) hint.textContent = count ? `${count} active` : '';
+}
+
+async function toggleRenameRule(key) {
+  if (key === 'datePrefix' && !renameRules.datePrefix) renameRules.dateSuffix = false;
+  if (key === 'dateSuffix' && !renameRules.dateSuffix) renameRules.datePrefix = false;
+  renameRules[key] = !renameRules[key];
+  await window.api.saveRenameRules(renameRules);
+  renderRenameRules();
+}
+
+function applyRenameRulesPreview(filename) {
+  const dot  = filename.lastIndexOf('.');
+  let base   = dot > 0 ? filename.slice(0, dot) : filename;
+  const ext  = dot > 0 ? filename.slice(dot) : '';
+  const today = new Date().toISOString().slice(0, 10);
+  if (renameRules.datePrefix)          base = `${today}_${base}`;
+  if (renameRules.dateSuffix)          base = `${base}_${today}`;
+  if (renameRules.spacesToUnderscores) base = base.replace(/ /g, '_');
+  if (renameRules.lowercaseAll)        base = base.toLowerCase();
+  if (renameRules.removeSpecialChars)  base = base.replace(/[^\w\-\u0370-\u03FF\u1F00-\u1FFF]/g, '');
+  return base + ext;
+}
+
+function updateRenamePreview() {
+  const sample = 'My Photo (1).jpg';
+  const result = applyRenameRulesPreview(sample);
+  const out = document.getElementById('rrPreviewOut');
+  if (out) {
+    out.textContent = result;
+    out.style.color = result !== sample ? 'var(--accent, var(--green))' : 'var(--text-dim)';
+  }
+}
+
 // ── Cleanup Schedule ─────────────────────────────────────────────
 async function pickCleanupScheduleFolder() {
   const f = await window.api.pickFolder();
@@ -645,8 +699,14 @@ function initCleanupScheduleUI() {
 function renderCatSettings() {
   const list = document.getElementById('catSettingsList');
   list.innerHTML = '';
+  const iconMap = {
+    'Images': 'image', 'Videos': 'video', 'Audio': 'music',
+    'Documents': 'file-text', 'Archives': 'archive', 'Code': 'code',
+    'Installers': 'package', 'Fonts': 'type', 'Torrents': 'download'
+  };
   for (let i = 0; i < categories.length; i++) {
     const cat = categories[i];
+    const icon = iconMap[cat.name] || 'folder';
     const extChips = cat.extensions.map((ext, j) => `
       <span class="ext-chip">${ext}
         <button class="ext-chip-del" onclick="removeExt(${i},${j})"><i data-lucide="x"></i></button>
@@ -656,6 +716,7 @@ function renderCatSettings() {
     row.innerHTML = `
       <div class="cat-setting-header" onclick="toggleCatSetting(this)">
         <button class="cat-toggle ${cat.enabled ? 'on' : ''}" onclick="toggleCat(event,${i})"></button>
+        <span class="cat-icon-wrap"><i data-lucide="${icon}"></i></span>
         <span class="cat-setting-name">${cat.name}</span>
         <span class="cat-setting-count">${cat.extensions.length} ext</span>
         <button class="cat-del-btn" onclick="deleteCat(event,${i})"><i data-lucide="trash-2"></i></button>
