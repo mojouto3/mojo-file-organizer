@@ -523,7 +523,7 @@
       </div>
       <button class="setting-toggle" id="toggleMinimizeTray" onclick="toggleSetting('minimizeToTray')"></button>
     </div>
-    <div class="setting-row">
+    <div class="setting-row" style="margin-top:16px">
       <div class="setting-info">
         <div class="setting-title" data-i18n="sizeFilter">Size Filter</div>
         <div class="setting-desc" data-i18n="sizeFilterDesc">Skip files outside this size range (0 = disabled)</div>
@@ -532,10 +532,16 @@
     <div class="size-filter-row">
       <span data-i18n="sizeFilterMin">Min</span>
       <input type="number" id="sizeFilterMin" min="0" placeholder="0" onchange="saveSizeFilter()"/>
-      <span>KB</span>
-      <span data-i18n="sizeFilterMax">Max</span>
+      <select id="sizeFilterMinUnit" onchange="saveSizeFilter()" class="size-unit-select">
+        <option value="KB">KB</option>
+        <option value="MB">MB</option>
+      </select>
+      <span data-i18n="sizeFilterMax" style="margin-left:8px">Max</span>
       <input type="number" id="sizeFilterMax" min="0" placeholder="0" onchange="saveSizeFilter()"/>
-      <span>KB</span>
+      <select id="sizeFilterMaxUnit" onchange="saveSizeFilter()" class="size-unit-select">
+        <option value="KB">KB</option>
+        <option value="MB">MB</option>
+      </select>
     </div>
     </div>
   </div>
