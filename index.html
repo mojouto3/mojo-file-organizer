@@ -305,6 +305,17 @@
       <span class="badge badge-green" id="cleanupTotalSize"></span>
     </div>
 
+    <!-- Treemap -->
+    <div class="cleanup-treemap hidden" id="cleanupTreemap">
+      <div class="treemap-grid" id="treemapGrid"></div>
+      <div class="treemap-tooltip hidden" id="treemapTooltip">
+        <div class="treemap-tip-name" id="treemapTipName"></div>
+        <div class="treemap-tip-size" id="treemapTipSize"></div>
+        <div class="treemap-tip-pct" id="treemapTipPct"></div>
+      </div>
+      <div class="treemap-legend" id="treemapLegend"></div>
+    </div>
+
     <div class="select-all-row">
       <input type="checkbox" id="selectAllCleanup" onchange="toggleSelectAll(this.checked)" checked/>
       <label for="selectAllCleanup" class="select-all-label" data-i18n="selectAll">Select All</label>
