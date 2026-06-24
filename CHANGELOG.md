@@ -4,6 +4,15 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.10.0] - 2026-06-24
+
+### Added
+- Duplicate app version detection: the Cleanup tab automatically detects older versions of the same installer. Groups installers by app name, marks the newest as KEEP and older ones as DELETE. Integrated with Select All, Clean Selected and Undo.
+- Suggested cleanup: smart suggestions appear at the top of the Cleanup tab based on session history. Three suggestion types: frequently organized folders, old installers that may be safe to delete, and categories with high file counts. Each suggestion is dismissable and persisted in localStorage.
+- Empty Recycle Bin: users can now empty the Windows Recycle Bin directly from the Cleanup tab. Shows current size, button disabled when empty, confirmation dialog before emptying. Uses Windows Shell API via temp PowerShell script.
+
+---
+
 ## [3.9.0] - 2026-06-24
 
 ### Added
