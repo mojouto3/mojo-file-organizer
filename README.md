@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.9.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.10.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -106,6 +106,20 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Applied to: Organize, Smart Group, Watcher, Cleanup and Duplicates
 - Configurable from Settings with chip interface
 - Default rules cover common system and development files
+
+### Duplicate App Version Detection
+- Automatically detects older versions of the same installer during Cleanup scan
+- Groups installers by app name, marks newest as KEEP and older ones as DELETE
+- Appears as a dedicated section in the Cleanup tab
+
+### Suggested Cleanup
+- Smart suggestions appear at the top of the Cleanup tab based on session history
+- Suggests re-organizing frequently used folders, deleting old installers, and viewing stats for busy categories
+- Each suggestion is dismissable and stored in localStorage
+
+### Empty Recycle Bin
+- Empty the Windows Recycle Bin directly from the Cleanup tab
+- Shows current Recycle Bin size, disabled when empty, confirmation before emptying
 
 ### Rename Rules
 - Define optional rename rules applied automatically during Organize and Smart Group
@@ -279,10 +293,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ---
 
 ## Roadmap
-
-### v3.10
-- [ ] Auto-detect duplicate apps and installers
-- [ ] Suggested cleanup based on session history
 
 ### v3.11
 - [ ] Windows Explorer context menu integration
