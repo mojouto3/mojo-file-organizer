@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.8.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.9.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -106,6 +106,18 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Applied to: Organize, Smart Group, Watcher, Cleanup and Duplicates
 - Configurable from Settings with chip interface
 - Default rules cover common system and development files
+
+### Rename Rules
+- Define optional rename rules applied automatically during Organize and Smart Group
+- Rules: add date prefix, add date suffix, replace spaces with underscores, lowercase all, remove special characters
+- Rules are composable and applied in order
+- Live preview in Settings shows result before organizing
+
+### Folder Size Treemap
+- Visual treemap appears in Cleanup tab after every scan
+- Proportional blocks sized by category disk usage
+- Hover for name, size and percentage of total
+- Click a block to scroll to the corresponding cleanup section
 
 ### Size Filter
 - Set minimum and/or maximum file size thresholds
@@ -267,10 +279,6 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 ---
 
 ## Roadmap
-
-### v3.9
-- [ ] Batch rename rules during organize
-- [ ] Folder size treemap visualization
 
 ### v3.10
 - [ ] Auto-detect duplicate apps and installers
