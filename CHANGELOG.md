@@ -4,6 +4,15 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.9.0] - 2026-06-24
+
+### Added
+- Rename rules: define optional rename rules applied automatically during Organize and Smart Group. Available rules: add date prefix, add date suffix, replace spaces with underscores, lowercase all, remove special characters. Rules are composable and applied in order. Live preview in Settings shows result before organizing.
+- Folder size treemap: visual treemap in the Cleanup tab after every scan showing disk usage per category. Proportional blocks with hover tooltips showing name, size and percentage. Click a block to scroll to the corresponding cleanup section.
+- Category icons in Settings: each category row now shows a relevant icon with accent color hover effect.
+
+---
+
 ## [3.8.2] - 2026-06-24
 
 ### Fixed
