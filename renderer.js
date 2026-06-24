@@ -75,7 +75,7 @@ function showTab(name) {
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
-  if (name === 'cleanup') { initRecycleBin(); }
+  if (name === 'cleanup') { initRecycleBin(); loadCleanupSuggestions(); }
   if (['organize','group','duplicates','cleanup','watcher'].includes(name)) {
     const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher' };
     renderRecentFolders(ctxMap[name]);
@@ -568,6 +568,131 @@ async function disableSchedule() {
   const el = document.getElementById('scheduleMsg');
   el.className = 'status-msg ok';
   el.textContent = tr('autoRunDisabled');
+}
+
+// ── Cleanup Suggestions ───────────────────────────────────────────
+const SUGGESTIONS_DISMISSED_KEY = 'mojo-dismissed-suggestions';
+
+function getDismissedSuggestions() {
+  try { return JSON.parse(localStorage.getItem(SUGGESTIONS_DISMISSED_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function dismissSuggestion(id) {
+  const dismissed = getDismissedSuggestions();
+  dismissed.push(id);
+  localStorage.setItem(SUGGESTIONS_DISMISSED_KEY, JSON.stringify(dismissed));
+  document.getElementById('suggestion-' + id)?.remove();
+  const remaining = document.querySelectorAll('.suggestion-row').length;
+  if (!remaining) document.getElementById('cleanupSuggestionsCard')?.classList.add('hidden');
+  else document.getElementById('suggestionsCount').textContent = remaining;
+}
+
+async function loadCleanupSuggestions() {
+  const sessions = await window.api.getLog();
+  if (!sessions || !sessions.length) return;
+
+  const dismissed = getDismissedSuggestions();
+  const suggestions = [];
+  const now = Date.now();
+  const day = 86400000;
+
+  // 1. Folders organized 3+ times in last 30 days
+  const folderCounts = {};
+  sessions.forEach(s => {
+    if (now - new Date(s.timestamp).getTime() > 30 * day) return;
+    folderCounts[s.folder] = (folderCounts[s.folder] || 0) + 1;
+  });
+  Object.entries(folderCounts).forEach(([folder, count]) => {
+    if (count < 3) return;
+    const id = 'freq-' + btoa(folder).slice(0, 16);
+    if (dismissed.includes(id)) return;
+    const name = folder.split(/[\\/]/).pop();
+    suggestions.push({ id, type: 'org', icon: 'refresh-cw',
+      title: tr('suggFreqTitle').replace('{name}', name),
+      desc: tr('suggFreqDesc').replace('{count}', count),
+      action: () => { document.getElementById('cleanupFolderInput').value = folder; appSettings.cleanupFolder = folder; },
+      actionLabel: tr('suggOrganize')
+    });
+  });
+
+  // 2. Large installers moved 30+ days ago
+  const oldInstallers = [];
+  sessions.forEach(s => {
+    const age = now - new Date(s.timestamp).getTime();
+    if (age < 30 * day) return;
+    s.moved?.forEach(m => {
+      if (m.category === 'Installers' || m.category === 'installers') {
+        oldInstallers.push({ name: m.name, folder: s.folder, age: Math.floor(age / day) });
+      }
+    });
+  });
+  if (oldInstallers.length >= 3) {
+    const id = 'old-installers';
+    if (!dismissed.includes(id)) {
+      suggestions.push({ id, type: 'del', icon: 'package',
+        title: tr('suggInstallersTitle').replace('{count}', oldInstallers.length),
+        desc: tr('suggInstallersDesc'),
+        action: () => switchTab('cleanup'),
+        actionLabel: tr('suggRunCleanup')
+      });
+    }
+  }
+
+  // 3. Category with 50+ files across sessions
+  const catCounts = {};
+  sessions.forEach(s => {
+    s.moved?.forEach(m => { catCounts[m.category] = (catCounts[m.category] || 0) + 1; });
+  });
+  const topCat = Object.entries(catCounts).sort((a,b) => b[1]-a[1])[0];
+  if (topCat && topCat[1] >= 50) {
+    const [cat, count] = topCat;
+    const id = 'top-cat-' + cat;
+    if (!dismissed.includes(id)) {
+      suggestions.push({ id, type: 'clean', icon: 'bar-chart-2',
+        title: tr('suggCatTitle').replace('{cat}', cat).replace('{count}', count),
+        desc: tr('suggCatDesc'),
+        action: () => switchTab('stats'),
+        actionLabel: tr('suggViewStats')
+      });
+    }
+  }
+
+  if (!suggestions.length) return;
+
+  const list = document.getElementById('suggestionsList');
+  const card = document.getElementById('cleanupSuggestionsCard');
+  list.innerHTML = '';
+
+  suggestions.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'suggestion-row';
+    row.id = 'suggestion-' + s.id;
+    row.innerHTML = `
+      <div class="suggestion-icon ${s.type}"><i data-lucide="${s.icon}"></i></div>
+      <div class="suggestion-info">
+        <div class="suggestion-title">${s.title}</div>
+        <div class="suggestion-desc">${s.desc}</div>
+      </div>
+      <div class="suggestion-actions">
+        <button class="suggestion-btn" onclick="suggestionAction('${s.id}')">${s.actionLabel}</button>
+        <button class="suggestion-dismiss" onclick="dismissSuggestion('${s.id}')">✕</button>
+      </div>`;
+    list.appendChild(row);
+  });
+
+  // Store actions for later
+  window._suggestionActions = window._suggestionActions || {};
+  suggestions.forEach(s => { window._suggestionActions[s.id] = s.action; });
+
+  document.getElementById('suggestionsCount').textContent = suggestions.length;
+  card.classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function suggestionAction(id) {
+  window._suggestionActions?.[id]?.();
+  dismissSuggestion(id);
 }
 
 // ── Recycle Bin ───────────────────────────────────────────────────
