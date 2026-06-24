@@ -60,5 +60,7 @@ contextBridge.exposeInMainWorld('api', {
   unscheduleCleanup: ()      => ipcRenderer.invoke('unschedule-cleanup'),
   getRenameRules:   ()       => ipcRenderer.invoke('get-settings').then(s => s.renameRules || {}),
   saveRenameRules:  (rules)  => ipcRenderer.invoke('get-settings').then(async s => { s.renameRules = rules; return ipcRenderer.invoke('save-settings', s); }),
+  getRecycleBinSize: ()      => ipcRenderer.invoke('get-recycle-bin-size'),
+  emptyRecycleBin:   ()      => ipcRenderer.invoke('empty-recycle-bin'),
   
 });

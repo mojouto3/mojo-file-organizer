@@ -989,6 +989,43 @@ ipcMain.handle('undo-single-file', async (_, { sessionId, fileName, from, to }) 
   }
 });
 
+// ── IPC: Recycle Bin ─────────────────────────────────────────────
+ipcMain.handle('get-recycle-bin-size', async () => {
+  return new Promise((resolve) => {
+    const { exec } = require('child_process');
+    const cmd = `powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).NameSpace(10).Items() | Measure-Object -Property Size -Sum | Select-Object -ExpandProperty Sum"`;
+    exec(cmd, (err, stdout) => {
+      if (err) { resolve({ ok: false, size: 0 }); return; }
+      const size = parseInt(stdout.trim()) || 0;
+      resolve({ ok: true, size });
+    });
+  });
+});
+
+ipcMain.handle('empty-recycle-bin', async () => {
+  return new Promise((resolve) => {
+    const { exec } = require('child_process');
+    const tmpScript = path.join(os.tmpdir(), 'mojo_empty_recycle.ps1');
+    const script = `
+$code = @'
+using System;
+using System.Runtime.InteropServices;
+public class RecycleBin {
+  [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+  public static extern uint SHEmptyRecycleBin(IntPtr hwnd, string pszRootPath, uint dwFlags);
+}
+'@
+Add-Type -TypeDefinition $code
+[RecycleBin]::SHEmptyRecycleBin([IntPtr]::Zero, $null, 7)
+`;
+    fs.writeFileSync(tmpScript, script, 'utf8');
+    exec(`powershell -NoProfile -ExecutionPolicy Bypass -File "${tmpScript}"`, (err) => {
+      try { fs.unlinkSync(tmpScript); } catch (e) {}
+      resolve({ ok: !err });
+    });
+  });
+});
+
 // ── IPC: Window ───────────────────────────────────────────────────
 ipcMain.on('minimize', () => mainWindow.minimize());
 ipcMain.on('maximize', () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize());
@@ -1004,7 +1041,7 @@ const crypto = require('crypto');
 function hashFile(filePath) {
   try {
     const buffer = fs.readFileSync(filePath);
-    return crypto.createHash('md5').update(buffer).digest('hex');
+    return crypto.createHash('sha256').update(buffer).digest('hex');
   } catch (e) { return null; }
 }
 

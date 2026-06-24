@@ -396,6 +396,25 @@
     <div id="cleanupScheduleMsg" class="status-msg"></div>
   </div>
 
+  <!-- Recycle Bin -->
+  <div class="card" id="recycleBinCard">
+    <div class="card-header">
+      <i data-lucide="trash" class="card-icon"></i>
+      <span class="card-title" data-i18n="recycleBin">Recycle Bin</span>
+      <span class="accordion-hint" id="recycleBinSize"></span>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="recycleBinDesc">Empty the Windows Recycle Bin</div>
+        <div class="setting-desc" id="recycleBinSizeDesc" data-i18n="recycleBinChecking">Checking size...</div>
+      </div>
+      <button class="btn btn-danger-outline btn-sm" id="emptyRecycleBinBtn" onclick="emptyRecycleBin()">
+        <i data-lucide="trash-2"></i><span data-i18n="emptyRecycleBin">Empty Recycle Bin</span>
+      </button>
+    </div>
+    <div id="recycleBinMsg" class="status-msg"></div>
+  </div>
+
 </div>
 
 <!-- ══ WATCHER ══ -->
