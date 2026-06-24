@@ -4,6 +4,19 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.8.2] - 2026-06-24
+
+### Fixed
+- Replaced all remaining hardcoded English/Greek string ternaries with tr() — app is now fully translated in all 5 languages across every scenario
+- Size filter now supports KB and MB units via a dropdown selector instead of plain KB only
+
+### Changed
+- Update banner now slides in with animation and uses accent color border
+- Empty states across all tabs now fade in when they appear
+- Settings accordion cards show green glow border on hover and while open
+
+---
+
 ## [3.8.1] - 2026-06-23
 
 ### Fixed
