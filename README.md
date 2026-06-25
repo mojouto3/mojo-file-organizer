@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.10.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.11.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -55,14 +55,48 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Five sections: Installers, Temp and Junk, Duplicate Files, Old Files, Empty Folders
 - Old Files threshold: 3, 6, 12 months or a custom value
 - Progress bar per section showing relative size
-- Preview before deletion
+- Preview before deletion with styled in-app modal grouped by section
 - Undo support: restore cleaned files instantly
+- Folder size treemap: visual proportional blocks after scan with hover tooltips
+- Smart suggestions based on session history at the top of the tab
+- Scheduled cleanup via Windows Task Scheduler with selectable sections
+
+### Duplicate App Version Detection
+- Automatically detects older versions of the same installer during Cleanup scan
+- Groups installers by app name, marks newest as KEEP and older ones as DELETE
+- Appears as a dedicated section in the Cleanup tab
+
+### Empty Recycle Bin
+- Empty the Windows Recycle Bin directly from the Cleanup tab
+- Shows current size and item count, disabled when empty
+- Confirmation dialog before emptying
+
+### Rename Rules
+- Define optional rename rules applied automatically during Organize and Smart Group
+- Rules: add date prefix, add date suffix, replace spaces with underscores, lowercase all, remove special characters
+- Rules are composable and applied in order
+- Live preview in Settings shows result before organizing
+
+### Windows Explorer Context Menu
+- Right-click any folder in Windows Explorer to see "Organize with Mojo"
+- No admin rights required (uses HKCU registry)
+- Toggle in Settings > General
+- Registry keys cleaned up automatically on uninstall
+
+### Keyboard Shortcuts
+- `Ctrl+1` through `Ctrl+8`: switch tabs instantly
+- `Ctrl+O`: Organize Now
+- `Ctrl+Z`: Undo
+- `Ctrl+P`: Preview
+- `Ctrl+F`: focus search or folder input
+- `Esc`: close any open dialog
+- `?`: show keyboard shortcuts help
+- Click the `?` button in the titlebar to see all shortcuts at any time
 
 ### Folder Bookmarks
 - Star icon to bookmark frequently used folders
 - Available across Organize, Smart Group, Duplicates, Cleanup and Watcher tabs
 - One click to load a bookmarked folder
-- Remove bookmark option
 - Bookmarks saved persistently and shared across all tabs
 
 ### Recent Folders
@@ -73,7 +107,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 ### Drag and Drop
 - Drag a folder from File Explorer directly onto the app instead of using Browse
 - Works across Organize, Smart Group, Duplicates, Cleanup and Watcher tabs
-- Visual feedback while dragging over the drop zone
+- Visual "Drop folder here" overlay while dragging over the drop zone
 
 ### File Watcher
 - Real-time monitoring: watches a folder and auto-organizes new files as they arrive
@@ -82,6 +116,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 
 ### History and Stats
 - Session history: every organize session saved with date, time, folder and file details
+- Search: filter sessions in real time by folder name or filename
+- Export: download any session as a .txt file with one click
 - Open location and Undo this file actions for individual files within a session
 - Open folder action to jump straight to the organized folder
 - Drag and drop a file chip between category sections to recategorize it on disk
@@ -90,10 +126,11 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Export to PDF: professional statistics report with branding
 
 ### Appearance and Languages
-- Dark and Light themes switchable in real time, with smooth animated transitions
+- Dark and Light themes switchable in real time
 - Eight preset accent colors plus custom color picker
 - Active tab and accent elements follow the selected color throughout the app
 - Five languages: English, Greek, German, Spanish, Russian
+- Smooth tab transition animations
 
 ### File Preview on Hover
 - Hover over any file chip in History to see a floating preview tooltip
@@ -107,34 +144,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Configurable from Settings with chip interface
 - Default rules cover common system and development files
 
-### Duplicate App Version Detection
-- Automatically detects older versions of the same installer during Cleanup scan
-- Groups installers by app name, marks newest as KEEP and older ones as DELETE
-- Appears as a dedicated section in the Cleanup tab
-
-### Suggested Cleanup
-- Smart suggestions appear at the top of the Cleanup tab based on session history
-- Suggests re-organizing frequently used folders, deleting old installers, and viewing stats for busy categories
-- Each suggestion is dismissable and stored in localStorage
-
-### Empty Recycle Bin
-- Empty the Windows Recycle Bin directly from the Cleanup tab
-- Shows current Recycle Bin size, disabled when empty, confirmation before emptying
-
-### Rename Rules
-- Define optional rename rules applied automatically during Organize and Smart Group
-- Rules: add date prefix, add date suffix, replace spaces with underscores, lowercase all, remove special characters
-- Rules are composable and applied in order
-- Live preview in Settings shows result before organizing
-
-### Folder Size Treemap
-- Visual treemap appears in Cleanup tab after every scan
-- Proportional blocks sized by category disk usage
-- Hover for name, size and percentage of total
-- Click a block to scroll to the corresponding cleanup section
-
 ### Size Filter
-- Set minimum and/or maximum file size thresholds
+- Set minimum and/or maximum file size thresholds with KB or MB selector
 - Files outside the range are silently skipped during Organize and Smart Group
 - Configurable from Settings > General (0 = disabled)
 
@@ -143,17 +154,26 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Covers core features, tools, customization, history and theme/language setup
 - Reopenable from Settings > About & Updates
 
+### Suggested Cleanup
+- Smart suggestions appear at the top of the Cleanup tab based on session history
+- Suggests re-organizing frequently used folders, deleting old installers, and viewing stats for busy categories
+- Each suggestion is dismissable and stored in localStorage
+
 ### Settings and Customization
-- Custom categories and extensions
+- Custom categories and extensions with category icons
 - Enable/disable categories
 - Default folder on startup
 - Start with Windows
 - Minimize to Tray
-- Auto-schedule with custom days and time
-- Tray Quick Actions: organize without opening the app
-- Tray tooltip shows quick stats (file count and size) for the default folder, updated automatically
+- Windows Explorer context menu toggle
+- Auto-schedule organize with custom days and time
+- Scheduled cleanup with selectable sections, days and time
+- Rename rules with live preview
+- Size filter with KB/MB selector
 - Ignore List: skip specific folders and extensions from all operations
-- Check for Updates: manual and automatic update notifications
+- Tray Quick Actions: organize without opening the app
+- Tray tooltip shows quick stats (file count and size) for the default folder
+- Check for Updates: click the version badge or use the button in Settings
 
 ---
 
@@ -208,7 +228,7 @@ Coming soon.
 1. Select a folder
 2. Choose an Old Files threshold (3, 6, 12 months or custom)
 3. Click Scan Folder
-4. Review the sections to see how much space each category takes
+4. Review the treemap and sections to see how much space each category takes
 5. Check or uncheck what you want to remove
 6. Click Preview to see exactly what will be deleted
 7. Click Clean Selected to remove
@@ -232,12 +252,16 @@ Coming soon.
 ### Settings Tab
 - Appearance: switch Dark/Light theme and accent color
 - Language: EN, GR, DE, ES, RU
-- Default Folder, Start with Windows, Minimize to Tray
-- Size Filter: skip files below or above a size threshold
-- Auto-Schedule: choose days and time
-- Categories: customize extensions or create new ones
+- General: Default Folder, Start with Windows, Minimize to Tray, Windows Explorer context menu, Size Filter
+- Auto-Schedule: organize automatically on chosen days and time
+- Cleanup Schedule: run cleanup automatically with selectable sections
+- Rename Rules: configure automatic file renaming with live preview
+- Categories: customize extensions, add icons, enable/disable or create new ones
 - Ignore List: add folders and extensions to skip during all operations
-- About and Updates: check for new versions manually or get notified automatically
+- About and Updates: click the version badge or use Check for Updates button
+
+### Keyboard Shortcuts
+Press `?` or click the `?` button in the titlebar to see all shortcuts.
 
 ### Tray Quick Actions
 Right-click the tray icon to organize without opening the app.
@@ -294,8 +318,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Roadmap
 
-### v3.11
-- [ ] Windows Explorer context menu integration
+### v3.12
 - [ ] Portable version (no installer needed)
 
 ---
