@@ -1,5 +1,14 @@
 'use strict';
 
+function sanitize(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 let lang = 'en';
 let appSettings = {};
 let categories = [];
@@ -70,7 +79,11 @@ function changeLanguage(l) {
 function showTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(`page-${name}`).classList.remove('hidden');
+  const page = document.getElementById(`page-${name}`);
+  page.classList.remove('hidden');
+  page.classList.remove('tab-enter');
+  void page.offsetWidth; // force reflow
+  page.classList.add('tab-enter');
   document.getElementById(`tab-${name}`).classList.add('active');
   if (name === 'history')  loadHistory();
   if (name === 'stats')    loadStats();
@@ -108,12 +121,11 @@ async function showPreview(folder) {
   grid.innerHTML = '';
   for (const [cat, names] of Object.entries(grouped)) {
     const icon = getCatIcon(cat);
-    const preview = names.slice(0, 3).map(n => `<div class="cat-card-file">${n}</div>`).join('');
+    const preview = names.slice(0, 3).map(n => `<div class="cat-card-file">${n.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('');
     const more = names.length > 3 ? `<div class="cat-card-file" style="color:#444">+${names.length - 3} more</div>` : '';
     grid.innerHTML += `<div class="cat-card">
       <div class="cat-card-name"><i data-lucide="${icon}"></i>${cat}</div>
-      <div class="cat-card-count">${names.length}</div>
-      <div class="cat-card-label">file${names.length !== 1 ? 's' : ''}</div>
+      <div class="cat-card-count">${names.length} <span class="cat-card-label">file${names.length !== 1 ? 's' : ''}</span></div>
       <div class="cat-card-files">${preview}${more}</div>
     </div>`;
   }
@@ -235,7 +247,7 @@ async function showGroupPreview(folder) {
   const list = document.getElementById('groupPreviewList');
   list.innerHTML = files.map(f => `
     <div class="match-item">
-      <span class="match-filename" title="${f.name}">${f.name}</span>
+      <span class="match-filename" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
       <span class="match-arrow"><i data-lucide="arrow-right"></i></span>
       <span class="match-dest">${f.group.charAt(0).toUpperCase() + f.group.slice(1)}/</span>
     </div>`).join('');
@@ -318,7 +330,7 @@ async function loadHistory() {
           <span class="file-chip-wrap" draggable="${f.to ? 'true' : 'false'}"
                 ${f.to ? `data-preview-path="${f.to.replace(/\\/g,'\\\\').replace(/"/g,'&quot;')}"` : ''}
                 ondragstart="handleHistoryDragStart(event, '${s.id}', '${f.name.replace(/'/g,"\\'")}', '${(f.to||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-            <span class="file-chip" title="${f.name}">${f.name}</span>
+            <span class="file-chip" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
             ${f.to ? `
             <button class="file-chip-action" title="${tr('openLocation')}" onclick="openFileLocation('${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
               <i data-lucide="folder-open"></i>
@@ -337,6 +349,9 @@ async function loadHistory() {
         <div class="session-folder" title="${s.folder}">${s.folder}</div>
         <span class="session-type">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
         <span class="session-badge">${s.total} moved</span>
+        <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
+          <i data-lucide="download"></i>
+        </button>
         <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
           <i data-lucide="folder-open"></i>
         </button>
@@ -348,6 +363,38 @@ async function loadHistory() {
   }
   lucide.createIcons();
   attachPreviewsToHistory();
+}
+
+function filterHistory(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('#historyList .session').forEach(el => {
+    const text = el.textContent.toLowerCase();
+    el.style.display = (!q || text.includes(q)) ? '' : 'none';
+  });
+}
+
+async function exportSession(sessionId) {
+  const sessions = await window.api.getLog();
+  const s = sessions.find(x => x.id === sessionId);
+  if (!s) return;
+  const date = new Date(s.timestamp).toLocaleString();
+  const lines = [
+    `Mojo File Organizer - Session Export`,
+    `Date: ${date}`,
+    `Folder: ${s.folder}`,
+    `Type: ${s.type}`,
+    `Total moved: ${s.total}`,
+    ``,
+    `Files moved:`,
+    ...(s.moved || []).map(f => `  ${f.name} → ${f.category}`)
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mojo-session-${s.id}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 async function openSessionFolder(folder) {
@@ -571,6 +618,57 @@ async function disableSchedule() {
   el.textContent = tr('autoRunDisabled');
 }
 
+// ── Keyboard Shortcuts ────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement.tagName;
+  const typing = ['INPUT','TEXTAREA','SELECT'].includes(tag);
+
+  // Esc — close any open modal
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.confirm-overlay:not(.hidden), .ob-overlay:not(.hidden)').forEach(m => {
+      m.classList.add('hidden');
+    });
+    closePreviewCleanup();
+    return;
+  }
+
+  // ? — show shortcuts
+  if (e.key === '?' && !typing) {
+    e.preventDefault();
+    document.getElementById('shortcutsModal')?.classList.toggle('hidden');
+    return;
+  }
+
+  // Ctrl shortcuts
+  if (e.ctrlKey) {
+    switch (e.key) {
+      case 'o': e.preventDefault(); document.querySelector('.btn-green[onclick*="organize"], .btn-main[onclick*="organize"]')?.click(); break;
+      case 'z': e.preventDefault(); document.querySelector('[onclick*="undoOrganize"], [onclick*="undo"]')?.click(); break;
+      case 'p': e.preventDefault(); document.querySelector('[onclick*="previewOrganize"], [onclick*="preview"]')?.click(); break;
+      case 'f': e.preventDefault();
+        const activeTab = document.querySelector('.page:not(.hidden)');
+        if (activeTab?.id === 'page-history') {
+          document.getElementById('historySearch')?.focus();
+        } else {
+          document.querySelector('.page:not(.hidden) input[type="text"]')?.focus();
+        }
+        break;
+      case '1': e.preventDefault(); switchTab('organize'); break;
+      case '2': e.preventDefault(); switchTab('smart-group'); break;
+      case '3': e.preventDefault(); switchTab('history'); break;
+      case '4': e.preventDefault(); switchTab('stats'); break;
+      case '5': e.preventDefault(); switchTab('duplicates'); break;
+      case '6': e.preventDefault(); switchTab('cleanup'); break;
+      case '7': e.preventDefault(); switchTab('watcher'); break;
+      case '8': e.preventDefault(); switchTab('settings'); break;
+    }
+  }
+});
+
+function closeShortcuts() {
+  document.getElementById('shortcutsModal')?.classList.add('hidden');
+}
+
 // ── Context Menu ──────────────────────────────────────────────────
 async function initContextMenuToggle() {
   const s = await window.api.getSettings();
@@ -741,9 +839,9 @@ async function initRecycleBin() {
     if (sizeHint) sizeHint.textContent = tr('recycleBinEmpty');
     if (btn) btn.disabled = true;
   } else {
-    const sizeStr = formatSize(result.size);
-    if (sizeDesc) sizeDesc.textContent = sizeStr;
-    if (sizeHint) sizeHint.textContent = sizeStr;
+    const label = `${formatSize(result.size)} · ${result.count} ${result.count === 1 ? 'item' : 'items'}`;
+    if (sizeDesc) sizeDesc.textContent = label;
+    if (sizeHint) sizeHint.textContent = formatSize(result.size);
     if (btn) btn.disabled = false;
   }
 }
@@ -1105,7 +1203,7 @@ async function scanDuplicates(mode) {
       return `<div class="dup-row ${isKeep ? 'keep-row' : ''}" onclick="toggleDupRow(this, '${f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}', ${f.size})">
         <div class="dup-check ${isKeep ? '' : ''}"><i data-lucide="check"></i></div>
         ${isKeep ? '<span class="keep-badge">KEEP</span>' : '<span class="del-badge">DELETE</span><span class="badge-placeholder" style="display:none"></span>'}
-        <span class="dup-filename" title="${f.name}">${f.name}</span>
+        <span class="dup-filename" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
         <span class="dup-filepath" title="${f.path}">${f.path}</span>
         <span class="dup-size">${size}</span>
       </div>`;
@@ -1476,7 +1574,7 @@ async function scanCleanup() {
             ${g.delete.map(f => `
               <div class="dup-app-del">
                 <span class="dup-badge delete">${tr('delete')}</span>
-                <span class="dup-app-file">${f.name}</span>
+                <span class="dup-app-file">${sanitize(f.name)}</span>
                 <span class="dup-app-size">${formatSize(f.size)}</span>
               </div>`).join('')}
           </div>`).join('')}
@@ -1548,7 +1646,7 @@ function previewCleanup() {
       <div class="preview-section-label">${sec.label} <span class="preview-section-count">${sec.files.length}</span></div>
       ${sec.files.map(f => `
         <div class="preview-file-row">
-          <span class="preview-file-name">${f.name}</span>
+          <span class="preview-file-name">${sanitize(f.name)}</span>
           <span class="preview-file-size">${f.size ? formatSize(f.size) : tr('emptyFolders')}</span>
         </div>`).join('')}
     </div>`).join('');
@@ -1809,29 +1907,29 @@ function restoreAccordionState() {
   }
 }
 
-async function checkForUpdates() {
+async function checkForUpdates(fromBadge = false) {
   const btn = document.getElementById('checkUpdatesBtn');
   const msg = document.getElementById('updateStatusMsg');
   if (btn) btn.disabled = true;
   if (msg) { msg.className = 'status-msg'; msg.textContent = tr('checkingForUpdates'); }
+  if (fromBadge) showToast(tr('checkingForUpdates'));
 
   const result = await window.api.checkForUpdates();
   if (btn) btn.disabled = false;
-  if (!msg) return;
 
   if (!result.ok) {
-    msg.className = 'status-msg err';
-    msg.textContent = tr('updateCheckFailed');
+    if (msg) { msg.className = 'status-msg err'; msg.textContent = tr('updateCheckFailed'); }
+    if (fromBadge) showToast(tr('updateCheckFailed'));
     return;
   }
   if (result.updateAvailable) {
     latestReleaseUrl = result.releaseUrl;
-    msg.className = 'status-msg ok';
-    msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion);
+    if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion); }
     showUpdateBanner(result);
+    if (fromBadge) showToast(tr('updateAvailableMsg').replace('{version}', result.latestVersion));
   } else {
-    msg.className = 'status-msg ok';
-    msg.textContent = tr('upToDate');
+    if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('upToDate'); }
+    if (fromBadge) showToast('✓ ' + tr('upToDate'));
   }
 }
 
