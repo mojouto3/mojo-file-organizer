@@ -25,7 +25,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "Mojo File Organizer"
+      "shortcutName": "Mojo File Organizer",
+      "deleteAppDataOnUninstall": false,
+      "include": "installer.nsh"
     }
   }
 }
