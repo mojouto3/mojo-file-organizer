@@ -132,6 +132,7 @@ async function showPreview(folder) {
   lucide.createIcons();
   document.getElementById('previewCount').textContent = `${files.length} files`;
   document.getElementById('previewCard').classList.remove('hidden');
+  document.getElementById('organizeEmptyState')?.classList.add('hidden');
   document.getElementById('resultsCard').classList.add('hidden');
 }
 
@@ -176,6 +177,7 @@ async function organize() {
   lucide.createIcons();
   document.getElementById('movedCount').textContent = `${result.moved.length} moved`;
   document.getElementById('previewCard').classList.add('hidden');
+  document.getElementById('organizeEmptyState')?.classList.remove('hidden');
   document.getElementById('resultsCard').classList.remove('hidden');
   btn.disabled = false;
   if (result.errors.length) showToast(`${result.errors.length} error(s)`);
@@ -193,6 +195,7 @@ function resetOrganize() {
   currentFolder = null; lastMoves = [];
   document.getElementById('folderInput').value = '';
   document.getElementById('previewCard').classList.add('hidden');
+  document.getElementById('organizeEmptyState')?.classList.remove('hidden');
   document.getElementById('resultsCard').classList.add('hidden');
 }
 
@@ -502,11 +505,15 @@ async function loadStats() {
   chart.innerHTML = '';
   const sorted = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]);
   const max = sorted[0]?.[1] || 1;
-  for (const [cat, count] of sorted) {
+  const total = sorted.reduce((s, [, c]) => s + c, 0);
+  const catColors = ['#3ddb3d','#378add','#ef9f27','#d4537e','#7f77dd','#1dacd6','#f97316','#28c840'];
+  for (const [idx, [cat, count]] of sorted.entries()) {
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    const color = catColors[idx % catColors.length];
     chart.innerHTML += `<div class="chart-row">
       <div class="chart-label">${cat}</div>
-      <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%"></div></div>
-      <div class="chart-count">${count}</div>
+      <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%;background:${color}"></div></div>
+      <div class="chart-count">${count} <span class="chart-pct">${pct}%</span></div>
     </div>`;
   }
   if (!sorted.length) chart.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center">No data yet</div>`;
@@ -623,6 +630,9 @@ document.addEventListener('keydown', (e) => {
   const tag = document.activeElement.tagName;
   const typing = ['INPUT','TEXTAREA','SELECT'].includes(tag);
 
+  // Confirm modal keyboard handling
+  if (e.key === 'Escape' && _confirmResolve) { resolveConfirm(false); return; }
+  if (e.key === 'Enter'  && _confirmResolve) { resolveConfirm(true);  return; }
   // Esc — close any open modal
   if (e.key === 'Escape') {
     document.querySelectorAll('.confirm-overlay:not(.hidden), .ob-overlay:not(.hidden)').forEach(m => {
@@ -1929,7 +1939,7 @@ async function checkForUpdates(fromBadge = false) {
     if (fromBadge) showToast(tr('updateAvailableMsg').replace('{version}', result.latestVersion));
   } else {
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('upToDate'); }
-    if (fromBadge) showToast('✓ ' + tr('upToDate'));
+    if (fromBadge) showToast(tr('upToDate'));
   }
 }
 
@@ -2268,11 +2278,6 @@ function resolveConfirm(result) {
   document.getElementById('confirmOverlay').classList.add('hidden');
   if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
 }
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && _confirmResolve) resolveConfirm(false);
-  if (e.key === 'Enter' && _confirmResolve) resolveConfirm(true);
-});
 
 function showToast(msg) {
   const t = document.getElementById('toast');

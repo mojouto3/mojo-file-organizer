@@ -417,7 +417,10 @@ function writeBookmarks(b) { fs.writeFileSync(BOOKMARKS_FILE, JSON.stringify(b, 
 ipcMain.handle('get-app-version', async () => APP_VERSION);
 ipcMain.handle('check-for-updates', async () => checkForUpdates());
 ipcMain.handle('open-release-page', async (_, url) => {
-  shell.openExternal(url || `https://github.com/${UPDATE_REPO}/releases/latest`);
+  const safeUrl = (url && typeof url === 'string' && /^https:\/\/github\.com\//.test(url))
+    ? url
+    : `https://github.com/${UPDATE_REPO}/releases/latest`;
+  shell.openExternal(safeUrl);
   return true;
 });
 
@@ -464,8 +467,15 @@ ipcMain.handle('add-recent-folder', async (_, folderPath) => {
 // ── IPC: Settings ─────────────────────────────────────────────────
 ipcMain.handle('get-settings', async () => readSettings());
 ipcMain.handle('save-settings', async (_, s) => {
-  writeSettings(s);
-  applyStartWithWindows(s.startWithWindows);
+  if (!s || typeof s !== 'object' || Array.isArray(s)) return false;
+  // Whitelist allowed keys
+  const allowed = ['language','minimizeToTray','startWithWindows','defaultFolder',
+    'onboardingComplete','theme','schedule','cleanupSchedule','sizeFilter',
+    'renameRules','contextMenuEnabled'];
+  const clean = {};
+  for (const key of allowed) { if (key in s) clean[key] = s[key]; }
+  writeSettings(clean);
+  applyStartWithWindows(clean.startWithWindows);
   updateTrayTooltip();
   return true;
 });
@@ -615,16 +625,40 @@ ipcMain.handle('get-stats', async () => {
   return { totalFiles: sessions.reduce((sum, s) => sum + s.total, 0), totalSessions: sessions.length, byCategory };
 });
 
+// ── Sanitization helpers ─────────────────────────────────────────
+function sanitizePath(p) {
+  if (typeof p !== 'string') return '';
+  // Remove characters dangerous in shell contexts
+  return p.replace(/[&|;`$<>'"]/g, '');
+}
+
+function sanitizeTime(t) {
+  if (typeof t !== 'string') return '09:00';
+  return /^\d{2}:\d{2}$/.test(t) ? t : '09:00';
+}
+
+function sanitizeSections(sections) {
+  const allowed = ['installers','junk','oldFiles','emptyFolders','duplicates'];
+  if (!Array.isArray(sections)) return [];
+  return sections.filter(s => allowed.includes(s));
+}
+
+function sanitizeDay(day) {
+  const allowed = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  return allowed.includes(day) ? day : null;
+}
+
 // ── IPC: Schedule ─────────────────────────────────────────────────
 ipcMain.handle('schedule', async (_, { days, time, folder }) => {
   const { exec } = require('child_process');
-  const exePath = app.getPath('exe');
+  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const safeFolder = sanitizePath(folder);
+  const safeTime = sanitizeTime(time);
+  const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
   const results = [];
-  // Delete old tasks first
   await new Promise(r => exec('schtasks /delete /tn "MojoFileOrganizer" /f', r));
-
-  for (const day of days) {
-    const cmd = `schtasks /create /tn "MojoFileOrganizer_${day}" /tr "\\"${exePath}\\" --hidden --organize \\"${folder}\\"" /sc weekly /d ${day} /st ${time} /f`;
+  for (const day of safeDays) {
+    const cmd = `schtasks /create /tn "MojoFileOrganizer_${day}" /tr "\\"${exePath}\\" --hidden --organize \\"${safeFolder}\\"" /sc weekly /d ${day} /st ${safeTime} /f`;
     await new Promise((resolve) => {
       exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
     });
@@ -645,12 +679,16 @@ ipcMain.handle('unschedule', async () => {
 
 ipcMain.handle('schedule-cleanup', async (_, { days, time, folder, sections }) => {
   const { exec } = require('child_process');
-  const exePath = app.getPath('exe');
-  const sectionsArg = sections.join(',');
+  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const safeFolder = sanitizePath(folder);
+  const safeTime = sanitizeTime(time);
+  const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
+  const safeSections = sanitizeSections(sections);
+  const sectionsArg = safeSections.join(',');
   const results = [];
   await new Promise(r => exec('schtasks /delete /tn "MojoCleanup" /f', r));
-  for (const day of days) {
-    const cmd = `schtasks /create /tn "MojoCleanup_${day}" /tr "\"${exePath}\" --hidden --cleanup \"${folder}\" --sections ${sectionsArg}" /sc weekly /d ${day} /st ${time} /f`;
+  for (const day of safeDays) {
+    const cmd = `schtasks /create /tn "MojoCleanup_${day}" /tr "\"${exePath}\" --hidden --cleanup \"${safeFolder}\" --sections ${sectionsArg}" /sc weekly /d ${day} /st ${safeTime} /f`;
     await new Promise((resolve) => {
       exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
     });
@@ -1094,8 +1132,16 @@ const crypto = require('crypto');
 
 function hashFile(filePath) {
   try {
-    const buffer = fs.readFileSync(filePath);
-    return crypto.createHash('sha256').update(buffer).digest('hex');
+    // Use streaming to avoid loading large files into memory
+    const hash = crypto.createHash('sha256');
+    const fd = fs.openSync(filePath, 'r');
+    const buf = Buffer.alloc(65536); // 64KB chunks
+    let bytesRead;
+    while ((bytesRead = fs.readSync(fd, buf, 0, buf.length)) > 0) {
+      hash.update(buf.slice(0, bytesRead));
+    }
+    fs.closeSync(fd);
+    return hash.digest('hex');
   } catch (e) { return null; }
 }
 

@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('api', {
   startWatcher:     (folder) => ipcRenderer.invoke('start-watcher', folder),
   stopWatcher:      ()       => ipcRenderer.invoke('stop-watcher'),
   getWatcherStatus: ()       => ipcRenderer.invoke('get-watcher-status'),
-  onWatcherEvent:   (cb)     => ipcRenderer.on('watcher-event', (_, data) => cb(data)),
+  onWatcherEvent:   (cb)     => { ipcRenderer.removeAllListeners('watcher-event'); ipcRenderer.on('watcher-event', (_, data) => cb(data)); },
   getBookmarks:   ()       => ipcRenderer.invoke('get-bookmarks'),
   addBookmark:    (folder) => ipcRenderer.invoke('add-bookmark', folder),
   removeBookmark: (id)     => ipcRenderer.invoke('remove-bookmark', id),
@@ -51,7 +51,7 @@ contextBridge.exposeInMainWorld('api', {
   getAppVersion:    ()       => ipcRenderer.invoke('get-app-version'),
   checkForUpdates:  ()       => ipcRenderer.invoke('check-for-updates'),
   openReleasePage:  (url)    => ipcRenderer.invoke('open-release-page', url),
-  onUpdateAvailable: (cb)    => ipcRenderer.on('update-available', (_, data) => cb(data)),
+  onUpdateAvailable: (cb)    => { ipcRenderer.removeAllListeners('update-available'); ipcRenderer.on('update-available', (_, data) => cb(data)); },
   filePreview:      (p)      => ipcRenderer.invoke('file-preview', p),
   getIgnoreList:    ()       => ipcRenderer.invoke('get-ignore-list'),
   saveIgnoreList:   (l)      => ipcRenderer.invoke('save-ignore-list', l),
@@ -64,6 +64,6 @@ contextBridge.exposeInMainWorld('api', {
   emptyRecycleBin:   ()      => ipcRenderer.invoke('empty-recycle-bin'),
   registerContextMenu:   ()  => ipcRenderer.invoke('register-context-menu'),
   unregisterContextMenu: ()  => ipcRenderer.invoke('unregister-context-menu'),
-  onContextMenuOrganize: (cb) => ipcRenderer.on('context-menu-organize', (_, folder) => cb(folder)),
+  onContextMenuOrganize: (cb) => { ipcRenderer.removeAllListeners('context-menu-organize'); ipcRenderer.on('context-menu-organize', (_, folder) => cb(folder)); },
   
 });

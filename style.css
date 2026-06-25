@@ -411,17 +411,17 @@ input[type="text"]:focus { border-color: #444; }
 .setting-folder-row input { width: 200px; padding: 6px 10px; font-size: 11px; }
 
 .setting-toggle {
-  width: 36px; height: 20px; background: #333; border-radius: 10px;
-  position: relative; cursor: pointer; border: none; flex-shrink: 0;
+  width: 36px; height: 20px; background: var(--surface2); border-radius: 10px;
+  position: relative; cursor: pointer; border: 1px solid var(--border); flex-shrink: 0;
   transition: background 0.2s;
 }
-.setting-toggle.on { background: var(--green); }
+.setting-toggle.on { background: var(--green); border-color: var(--green); }
 .setting-toggle::after {
   content: ''; position: absolute; top: 2px; left: 2px;
-  width: 16px; height: 16px; background: #fff;
+  width: 14px; height: 14px; background: var(--text-dim);
   border-radius: 50%; transition: transform 0.2s;
 }
-.setting-toggle.on::after { transform: translateX(16px); }
+.setting-toggle.on::after { transform: translateX(16px); background: #111; }
 
 /* ── Schedule ── */
 .schedule-folder-row { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -1298,7 +1298,13 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   font-size: 12px; color: var(--text-dim); cursor: pointer;
   transition: all 0.15s;
 }
-.section-check:has(input:checked) { border-color: var(--accent, var(--green)); color: var(--accent, var(--green)); background: var(--green-dim); }
+.section-check:has(input:checked) {
+  border-color: var(--accent, var(--green));
+  color: var(--accent, var(--green));
+  background: var(--green-dim);
+  box-shadow: 0 0 0 1px rgba(61,219,61,0.1);
+}
+.section-check:not(:has(input:checked)):hover { border-color: #333; color: var(--text); }
 .section-check input { display: none; }
 
 /* ── Cleanup preview modal ── */
@@ -1383,6 +1389,11 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   padding: 7px 9px; cursor: pointer; position: relative;
   transition: filter 0.18s, transform 0.18s; border-radius: 6px;
   min-width: 32px; overflow: hidden;
+}
+.treemap-block::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%);
+  pointer-events: none;
 }
 .treemap-block:hover { filter: brightness(1.2); transform: scale(1.01); z-index: 2; }
 .treemap-block-name { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1536,3 +1547,38 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   color: var(--accent, var(--green));
   background: var(--green-dim);
 }
+
+/* ── Organize empty state ── */
+.organize-empty-state {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  animation: emptyStateIn 0.3s ease;
+}
+.oes-inner { text-align: center; max-width: 320px; }
+.oes-icon {
+  width: 64px; height: 64px; border-radius: 18px;
+  background: var(--gdim, rgba(61,219,61,0.08));
+  border: 1px solid rgba(61,219,61,0.15);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; transition: all 0.2s ease;
+  cursor: pointer;
+}
+.oes-icon:hover {
+  transform: scale(1.08);
+  background: rgba(61,219,61,0.12);
+  border-color: rgba(61,219,61,0.3);
+  box-shadow: 0 0 20px rgba(61,219,61,0.1);
+}
+.oes-icon i { width: 28px; height: 28px; color: var(--accent, var(--green)); }
+.oes-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.oes-hint { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 20px; }
+.oes-shortcuts { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+.oes-shortcut { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); }
+.oes-shortcut kbd {
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 5px; padding: 2px 7px; font-size: 10px;
+  color: var(--text); font-family: monospace;
+}
+
+/* ── Stats improvements ── */
+.chart-pct { font-size: 10px; color: var(--text-dim); margin-left: 4px; }
+.chart-count { min-width: 60px; text-align: right; display: flex; align-items: center; justify-content: flex-end; }
