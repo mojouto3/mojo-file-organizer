@@ -41,7 +41,7 @@ body {
 .titlebar-left { display: flex; align-items: center; gap: 8px; }
 .titlebar-icon { width: 20px; height: 20px; }
 .titlebar-title { font-size: 13px; font-weight: 600; letter-spacing: 0.2px; }
-.titlebar-version { font-size: 10px; color: var(--green); background: var(--green-dim); padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; }
+.titlebar-version { font-size: 10px; color: var(--green); background: var(--green-dim); padding: 2px 7px; border-radius: 20px; letter-spacing: 0.3px; -webkit-app-region: no-drag; cursor: pointer; }
 .titlebar-right { display: flex; align-items: center; gap: 2px; -webkit-app-region: no-drag; }
 
 .lang-btn {
@@ -127,7 +127,7 @@ body {
 .badge-green { background: var(--green-dim); color: var(--green); }
 
 /* ── Inputs ── */
-.folder-row { display: flex; gap: 8px; align-items: center; }
+.folder-row { display: flex; gap: 8px; align-items: center; position: relative; }
 .folder-row input, .input-row input, input[type="text"] {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -159,8 +159,8 @@ input[type="text"]:focus { border-color: #444; }
 .btn-green:hover { background: var(--green-hover); }
 .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
 .btn-danger-outline:hover { background: var(--danger); color: #fff; }
-.btn-accent-outline { background: transparent; color: var(--accent, var(--green)); border: 1px solid var(--accent, var(--green)); }
-.btn-accent-outline:hover { background: var(--accent, var(--green)); color: #111; }
+.btn-accent-outline { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+.btn-accent-outline:hover { border-color: var(--accent, var(--green)); color: var(--accent, var(--green)); background: var(--green-dim); }
 .btn-lg { padding: 10px 22px; font-size: 13px; }
 .btn-sm { padding: 4px 10px; font-size: 11px; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -181,8 +181,8 @@ input[type="text"]:focus { border-color: #444; }
 .cat-card:hover { border-color: #3a3a3a; }
 .cat-card-name { font-size: 11px; font-weight: 600; color: var(--green); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
 .cat-card-name i { width: 12px; height: 12px; }
-.cat-card-count { font-size: 20px; font-weight: 700; color: var(--text); }
-.cat-card-label { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+.cat-card-count { font-size: 20px; font-weight: 700; color: var(--text); display: flex; align-items: baseline; gap: 4px; }
+.cat-card-label { font-size: 10px; color: var(--text-dim); font-weight: 400; }
 .cat-card-files { margin-top: 5px; }
 .cat-card-file { font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 0; }
 
@@ -1451,3 +1451,88 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .suggestion-btn:hover { border-color: var(--accent, var(--green)); color: var(--accent, var(--green)); }
 .suggestion-dismiss { font-size: 10px; color: #444; background: none; border: none; cursor: pointer; padding: 2px 6px; }
 .suggestion-dismiss:hover { color: var(--text-dim); }
+
+/* ── Drag & drop feedback ── */
+.drag-over {
+  border: 2px dashed var(--accent, var(--green)) !important;
+  background: rgba(61,219,61,0.05) !important;
+  box-shadow: 0 0 0 4px rgba(61,219,61,0.08) !important;
+}
+.drag-over::after {
+  content: 'Drop folder here';
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500; color: var(--accent, var(--green));
+  pointer-events: none;
+}
+
+/* ── Tab transition ── */
+.page { animation: none; }
+.page.tab-enter { animation: tabFadeIn 0.18s ease; }
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Version badge tooltip ── */
+.titlebar-version {
+  position: relative; cursor: pointer;
+}
+.titlebar-version::after {
+  content: 'Click to check for updates';
+  position: absolute; top: calc(100% + 6px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 6px; padding: 4px 8px;
+  font-size: 10px; color: var(--text-dim); white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s;
+  z-index: 100;
+}
+.titlebar-version:hover::after { opacity: 1; }
+
+/* ── History search ── */
+.history-search-wrap {
+  padding: 8px 16px 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.history-search-input {
+  flex: 1; background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 8px; padding: 7px 12px; font-size: 12px; color: var(--text);
+  transition: border-color 0.15s;
+}
+.history-search-input:focus { outline: none; border-color: rgba(61,219,61,0.4); }
+.history-search-input::placeholder { color: var(--text-dim); }
+
+/* ── Keyboard shortcuts modal ── */
+.shortcuts-list { padding: 8px 20px 16px; }
+.shortcut-group-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+  color: var(--text-dim); margin: 12px 0 6px;
+}
+.shortcut-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0; font-size: 12px; color: var(--text-dim);
+  border-bottom: 0.5px solid var(--border);
+}
+.shortcut-row:last-child { border-bottom: none; }
+.shortcut-row span:first-child {
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 5px; padding: 2px 8px; font-size: 11px;
+  color: var(--text); font-family: monospace; flex-shrink: 0;
+}
+
+/* ── Titlebar help button ── */
+.titlebar-help-btn {
+  background: none; border: 0.5px solid var(--border);
+  color: var(--text-dim); font-size: 11px; font-weight: 700;
+  width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.15s; line-height: 1;
+  margin-left: 4px; flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+.titlebar-help-btn:hover {
+  border-color: var(--accent, var(--green));
+  color: var(--accent, var(--green));
+  background: var(--green-dim);
+}

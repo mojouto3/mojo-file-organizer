@@ -15,7 +15,8 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version">v3.10.0</span>
+    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.10.0</span>
+    <button class="titlebar-help-btn" onclick="document.getElementById('shortcutsModal').classList.toggle('hidden')" title="Keyboard shortcuts (?)">?</button>
   </div>
   <div class="titlebar-right">
     <button class="win-btn" onclick="window.api.minimize()"><i data-lucide="minus"></i></button>
@@ -176,6 +177,9 @@
       <span class="card-title" data-i18n="sessionHistory">Session History</span>
       <span class="badge" id="historyCount"></span>
       <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-i18n="clearAll">Clear All</button>
+    </div>
+    <div class="history-search-wrap">
+      <input type="text" id="historySearch" class="history-search-input" placeholder="Search sessions..." data-i18n-placeholder="searchSessions" oninput="filterHistory(this.value)"/>
     </div>
     <div class="empty-state hidden" id="historyEmpty">
       <i data-lucide="inbox"></i>
@@ -798,6 +802,31 @@
     <div class="preview-modal-body" id="previewCleanupBody"></div>
     <div class="confirm-actions" style="margin-top:12px">
       <button class="btn btn-outline" onclick="closePreviewCleanup()" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard Shortcuts Modal -->
+<div class="confirm-overlay hidden" id="shortcutsModal" onclick="if(event.target===this)closeShortcuts()">
+  <div class="confirm-modal" style="width:420px;gap:0;padding:0">
+    <div class="preview-modal-header">
+      <div>
+        <p class="preview-modal-title" data-i18n="keyboardShortcuts">Keyboard Shortcuts</p>
+        <p class="preview-modal-subtitle" data-i18n="shortcutsHint">Press ? to show this dialog</p>
+      </div>
+      <button class="win-btn" onclick="closeShortcuts()"><i data-lucide="x"></i></button>
+    </div>
+    <div class="shortcuts-list">
+      <div class="shortcut-group-label" data-i18n="navigation">Navigation</div>
+      <div class="shortcut-row"><span>Ctrl + 1–8</span><span data-i18n="switchTabs">Switch tabs</span></div>
+      <div class="shortcut-group-label" data-i18n="actions">Actions</div>
+      <div class="shortcut-row"><span>Ctrl + O</span><span data-i18n="organizeNow">Organize Now</span></div>
+      <div class="shortcut-row"><span>Ctrl + P</span><span data-i18n="preview">Preview</span></div>
+      <div class="shortcut-row"><span>Ctrl + Z</span><span data-i18n="undo">Undo</span></div>
+      <div class="shortcut-row"><span>Ctrl + F</span><span data-i18n="searchFocus">Focus search / folder</span></div>
+      <div class="shortcut-group-label" data-i18n="general">General</div>
+      <div class="shortcut-row"><span>Esc</span><span data-i18n="closeModal">Close dialog</span></div>
+      <div class="shortcut-row"><span>?</span><span data-i18n="showShortcuts">Show shortcuts</span></div>
     </div>
   </div>
 </div>

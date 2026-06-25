@@ -1045,11 +1045,13 @@ ipcMain.handle('unregister-context-menu', async () => {
 ipcMain.handle('get-recycle-bin-size', async () => {
   return new Promise((resolve) => {
     const { exec } = require('child_process');
-    const cmd = `powershell -NoProfile -Command "(New-Object -ComObject Shell.Application).NameSpace(10).Items() | Measure-Object -Property Size -Sum | Select-Object -ExpandProperty Sum"`;
+    const cmd = `powershell -NoProfile -Command "$shell = New-Object -ComObject Shell.Application; $items = $shell.NameSpace(10).Items(); $size = ($items | Measure-Object -Property Size -Sum).Sum; $count = $items.Count; Write-Output ($size.ToString() + ' ' + $count.ToString())"`;
     exec(cmd, (err, stdout) => {
-      if (err) { resolve({ ok: false, size: 0 }); return; }
-      const size = parseInt(stdout.trim()) || 0;
-      resolve({ ok: true, size });
+      if (err) { resolve({ ok: false, size: 0, count: 0 }); return; }
+      const parts = stdout.trim().split(' ');
+      const size = parseInt(parts[0]) || 0;
+      const count = parseInt(parts[1]) || 0;
+      resolve({ ok: true, size, count });
     });
   });
 });
