@@ -4,6 +4,33 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.12.1] - 2026-06-25
+
+### Fixed
+- Keyboard shortcuts: Ctrl+2 now correctly opens Smart Group tab
+- Keyboard shortcuts: Ctrl+O and Ctrl+P fixed (JavaScript syntax error with const in switch/case)
+- Keyboard shortcuts: Ctrl+O and Ctrl+P now switch to Organize tab first and show toast if no folder selected
+- Security: URL validation in open-release-page (only github.com URLs accepted)
+- Security: Command injection protection in schtasks handlers via sanitization helpers
+- Security: save-settings now validates and whitelists allowed keys
+- Performance: hashFile now streams in 64KB chunks instead of loading entire file into RAM
+- Performance: ipcRenderer.on listeners use removeAllListeners to prevent accumulation
+- Dependencies: updated undici to patch 2 high severity vulnerabilities
+
+### Added
+- Auto-updater: banner with Download Update button when new version available
+- Auto-updater: real-time download progress with percentage
+- Auto-updater: Restart & Update button after download completes
+
+### Changed
+- Organize tab: interactive empty state with folder icon, hint and shortcut chips
+- Toggle switches: off state visually distinct from radio buttons
+- Stats tab: per-category colors and percentages on bars
+- Cleanup treemap: dark gradient overlay on blocks
+- Cleanup scheduled pills: proper selected/unselected visual states
+
+---
+
 ## [3.12.0] - 2026-06-25
 
 ### Added
