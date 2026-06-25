@@ -199,23 +199,91 @@ function fetchLatestRelease() {
   });
 }
 
+// ── Auto Updater ─────────────────────────────────────────────────
+const { autoUpdater } = require('electron-updater');
+
+autoUpdater.autoDownload = false; // user decides when to download
+autoUpdater.autoInstallOnAppQuit = true;
+
+function initAutoUpdater() {
+  autoUpdater.on('checking-for-update', () => {
+    if (mainWindow) mainWindow.webContents.send('updater-status', { status: 'checking' });
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow) mainWindow.webContents.send('updater-status', {
+      status: 'available',
+      version: info.version,
+      releaseNotes: (info.releaseNotes || '').toString().slice(0, 500)
+    });
+  });
+
+  autoUpdater.on('update-not-available', () => {
+    if (mainWindow) mainWindow.webContents.send('updater-status', { status: 'up-to-date' });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) mainWindow.webContents.send('updater-status', {
+      status: 'downloading',
+      percent: Math.round(progress.percent),
+      bytesPerSecond: progress.bytesPerSecond,
+      transferred: progress.transferred,
+      total: progress.total
+    });
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) mainWindow.webContents.send('updater-status', {
+      status: 'downloaded',
+      version: info.version
+    });
+  });
+
+  autoUpdater.on('error', (err) => {
+    // Only show error to user during download, not during check
+    // Missing latest.yml is expected when not released via electron-builder publish
+    const isCheckError = err.message?.includes('latest.yml') ||
+                         err.message?.includes('404') ||
+                         err.message?.includes('Cannot find latest');
+    if (!isCheckError && mainWindow) {
+      mainWindow.webContents.send('updater-status', {
+        status: 'error',
+        message: err.message
+      });
+    }
+  });
+}
+
 async function checkForUpdates() {
   try {
-    const release = await fetchLatestRelease();
-    const latestVersion = (release.tag_name || '').replace(/^v/i, '');
-    if (!latestVersion) return { ok: false, error: 'No release tag found' };
+    const result = await autoUpdater.checkForUpdates();
+    if (!result) return { ok: false, error: 'No result' };
+    const latestVersion = result.updateInfo?.version || '';
     const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
     return {
       ok: true,
       updateAvailable,
       currentVersion: APP_VERSION,
       latestVersion,
-      releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
-      releaseNotes: (release.body || '').slice(0, 500),
-      publishedAt: release.published_at || null
+      releaseUrl: `https://github.com/${UPDATE_REPO}/releases/tag/v${latestVersion}`,
+      releaseNotes: (result.updateInfo?.releaseNotes || '').toString().slice(0, 500),
     };
   } catch (e) {
-    return { ok: false, error: e.message };
+    // Fallback to manual GitHub API check
+    try {
+      const release = await fetchLatestRelease();
+      const latestVersion = (release.tag_name || '').replace(/^v/i, '');
+      if (!latestVersion) return { ok: false, error: 'No release tag found' };
+      const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
+      return {
+        ok: true, updateAvailable,
+        currentVersion: APP_VERSION, latestVersion,
+        releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
+        releaseNotes: (release.body || '').slice(0, 500),
+      };
+    } catch (e2) {
+      return { ok: false, error: e2.message };
+    }
   }
 }
 
@@ -264,6 +332,7 @@ function createWindow() {
 app.whenReady().then(async () => {
   createTray();
   createWindow();
+  initAutoUpdater();
   const s = readSettings();
   applyStartWithWindows(s.startWithWindows);
 
@@ -416,6 +485,13 @@ function writeBookmarks(b) { fs.writeFileSync(BOOKMARKS_FILE, JSON.stringify(b, 
 // ── IPC: Updates ──────────────────────────────────────────────────
 ipcMain.handle('get-app-version', async () => APP_VERSION);
 ipcMain.handle('check-for-updates', async () => checkForUpdates());
+ipcMain.handle('download-update', async () => {
+  try { await autoUpdater.downloadUpdate(); return { ok: true }; }
+  catch (e) { return { ok: false, error: e.message }; }
+});
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall(false, true);
+});
 ipcMain.handle('open-release-page', async (_, url) => {
   const safeUrl = (url && typeof url === 'string' && /^https:\/\/github\.com\//.test(url))
     ? url

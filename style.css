@@ -1582,3 +1582,9 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 /* ── Stats improvements ── */
 .chart-pct { font-size: 10px; color: var(--text-dim); margin-left: 4px; }
 .chart-count { min-width: 60px; text-align: right; display: flex; align-items: center; justify-content: flex-end; }
+
+/* ── Update progress ── */
+.update-progress { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+.update-progress-track { flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; max-width: 200px; }
+.update-progress-fill { height: 100%; background: var(--accent, var(--green)); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
+.update-progress-label { font-size: 10px; color: rgba(255,255,255,0.6); }

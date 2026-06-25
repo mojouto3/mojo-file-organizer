@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.11.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.12.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -258,7 +258,7 @@ Coming soon.
 - Rename Rules: configure automatic file renaming with live preview
 - Categories: customize extensions, add icons, enable/disable or create new ones
 - Ignore List: add folders and extensions to skip during all operations
-- About and Updates: click the version badge or use Check for Updates button
+- About and Updates: click the version badge or use Check for Updates button, auto-downloads and installs new versions
 
 ### Keyboard Shortcuts
 Press `?` or click the `?` button in the titlebar to see all shortcuts.
@@ -318,7 +318,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Roadmap
 
-### v3.12
+### v3.13
 - [ ] Portable version (no installer needed)
 
 ---

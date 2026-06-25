@@ -1935,7 +1935,7 @@ async function checkForUpdates(fromBadge = false) {
   if (result.updateAvailable) {
     latestReleaseUrl = result.releaseUrl;
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion); }
-    showUpdateBanner(result);
+    showUpdateBanner({ status: 'available', version: result.latestVersion });
     if (fromBadge) showToast(tr('updateAvailableMsg').replace('{version}', result.latestVersion));
   } else {
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('upToDate'); }
@@ -1943,25 +1943,52 @@ async function checkForUpdates(fromBadge = false) {
   }
 }
 
-function showUpdateBanner(result) {
-  latestReleaseUrl = result.releaseUrl;
+let updateReady = false;
+
+function showUpdateBanner(data) {
   const banner = document.getElementById('updateBanner');
   const text = document.getElementById('updateBannerText');
-  if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion);
-  if (banner) banner.classList.remove('hidden');
+  const btn = document.getElementById('updateActionBtn');
+  if (!banner) return;
+
+  if (data.status === 'available') {
+    text.textContent = tr('updateAvailableMsg').replace('{version}', data.version);
+    if (btn) { btn.textContent = tr('downloadUpdate'); btn.disabled = false; }
+    banner.classList.remove('hidden');
+    updateReady = false;
+  } else if (data.status === 'downloading') {
+    const wrap = document.getElementById('updateProgressWrap');
+    const fill = document.getElementById('updateProgressFill');
+    const label = document.getElementById('updateProgressLabel');
+    if (wrap) wrap.classList.remove('hidden');
+    if (fill) fill.style.width = data.percent + '%';
+    if (label) label.textContent = data.percent + '%';
+    if (btn) { btn.textContent = tr('downloading'); btn.disabled = true; }
+    banner.classList.remove('hidden');
+  } else if (data.status === 'downloaded') {
+    const wrap = document.getElementById('updateProgressWrap');
+    if (wrap) wrap.classList.add('hidden');
+    text.textContent = tr('updateReadyMsg').replace('{version}', data.version);
+    if (btn) { btn.textContent = tr('restartToUpdate'); btn.disabled = false; }
+    banner.classList.remove('hidden');
+    updateReady = true;
+  } else if (data.status === 'up-to-date') {
+    // Silent — don't show banner
+  }
 }
 
-function dismissUpdateBanner() {
-  const banner = document.getElementById('updateBanner');
-  if (banner) banner.classList.add('hidden');
+async function handleUpdateAction() {
+  if (updateReady) {
+    await window.api.installUpdate();
+  } else {
+    const result = await window.api.downloadUpdate();
+    if (!result.ok) showToast(tr('updateCheckFailed'));
+  }
 }
 
-function openReleasePage() {
-  window.api.openReleasePage(latestReleaseUrl);
-}
-
-if (window.api.onUpdateAvailable) {
-  window.api.onUpdateAvailable((result) => showUpdateBanner(result));
+// Listen for auto-updater events
+if (window.api.onUpdaterStatus) {
+  window.api.onUpdaterStatus((data) => showUpdateBanner(data));
 }
 
 // ── Helpers ───────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 {
   "name": "mojo-file-organizer",
-  "version": "3.11.1",
+  "version": "3.12.0",
   "description": "A modern, elegant file organizer desktop app for Windows",
   "main": "main.js",
   "author": "mojomultimedia",
@@ -8,7 +8,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --win --x64"
+    "build": "electron-builder --win --x64",
+    "release": "electron-builder --win --x64 --publish always"
+  },
+  "dependencies": {
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "electron": "^42.3.2",
@@ -17,6 +21,11 @@
   "build": {
     "appId": "com.mojomultimedia.mojo-file-organizer",
     "productName": "Mojo File Organizer",
+    "publish": {
+      "provider": "github",
+      "owner": "mojouto3",
+      "repo": "mojo-file-organizer"
+    },
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"

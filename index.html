@@ -15,7 +15,7 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.11.1</span>
+    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.12.0</span>
     <button class="titlebar-help-btn" onclick="document.getElementById('shortcutsModal').classList.toggle('hidden')" title="Keyboard shortcuts (?)">?</button>
   </div>
   <div class="titlebar-right">
@@ -28,8 +28,14 @@
 <!-- Update banner -->
 <div class="update-banner hidden" id="updateBanner">
   <i data-lucide="sparkles"></i>
-  <span id="updateBannerText" data-i18n="updateBannerText">A new version is available!</span>
-  <button class="btn btn-green btn-sm" onclick="openReleasePage()" data-i18n="viewRelease">View Release</button>
+  <div style="flex:1">
+    <span id="updateBannerText" data-i18n="updateBannerText">A new version is available!</span>
+    <div class="update-progress hidden" id="updateProgressWrap">
+      <div class="update-progress-track"><div class="update-progress-fill" id="updateProgressFill"></div></div>
+      <span class="update-progress-label" id="updateProgressLabel">0%</span>
+    </div>
+  </div>
+  <button class="btn btn-green btn-sm" id="updateActionBtn" onclick="handleUpdateAction()" data-i18n="downloadUpdate">Download Update</button>
   <button class="win-btn" onclick="dismissUpdateBanner()"><i data-lucide="x"></i></button>
 </div>
 
