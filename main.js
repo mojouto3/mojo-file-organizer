@@ -267,7 +267,16 @@ app.whenReady().then(async () => {
   const s = readSettings();
   applyStartWithWindows(s.startWithWindows);
 
-  // Handle scheduled cleanup run
+  // Handle context menu launch: --organize "folder"
+  const organizeIdx = process.argv.indexOf('--organize');
+  if (organizeIdx !== -1 && !process.argv.includes('--hidden')) {
+    const folder = process.argv[organizeIdx + 1];
+    if (folder) {
+      mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow.webContents.send('context-menu-organize', folder);
+      });
+    }
+  }
   const cleanupIdx = process.argv.indexOf('--cleanup');
   if (cleanupIdx !== -1) {
     const folder = process.argv[cleanupIdx + 1];
@@ -987,6 +996,49 @@ ipcMain.handle('undo-single-file', async (_, { sessionId, fileName, from, to }) 
   } catch (e) {
     return { ok: false, error: e.message };
   }
+});
+
+// ── IPC: Context Menu ────────────────────────────────────────────
+ipcMain.handle('register-context-menu', async () => {
+  return new Promise((resolve) => {
+    const { exec } = require('child_process');
+    const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+    const label = 'Organize with Mojo';
+
+    const cmds = [
+      // Folder right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /ve /d "${label}" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /v "Icon" /d "${exePath},0" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize\\command" /ve /d "\\"${exePath}\\" --organize \\"%1\\"" /f`,
+      // Folder background right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /ve /d "${label}" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /v "Icon" /d "${exePath},0" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize\\command" /ve /d "\\"${exePath}\\" --organize \\"%V\\"" /f`,
+    ];
+
+    let i = 0;
+    const runNext = () => {
+      if (i >= cmds.length) { resolve({ ok: true }); return; }
+      exec(cmds[i++], (err) => { if (err) { resolve({ ok: false }); return; } runNext(); });
+    };
+    runNext();
+  });
+});
+
+ipcMain.handle('unregister-context-menu', async () => {
+  return new Promise((resolve) => {
+    const { exec } = require('child_process');
+    const cmds = [
+      `reg delete "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /f`,
+      `reg delete "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /f`,
+    ];
+    let i = 0;
+    const runNext = () => {
+      if (i >= cmds.length) { resolve({ ok: true }); return; }
+      exec(cmds[i++], () => runNext());
+    };
+    runNext();
+  });
 });
 
 // ── IPC: Recycle Bin ─────────────────────────────────────────────

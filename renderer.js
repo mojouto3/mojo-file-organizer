@@ -45,6 +45,7 @@ async function init() {
   loadRenameRules();
   initOnboarding();
   initCleanupScheduleUI();
+  initContextMenuToggle();
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -569,6 +570,40 @@ async function disableSchedule() {
   el.className = 'status-msg ok';
   el.textContent = tr('autoRunDisabled');
 }
+
+// ── Context Menu ──────────────────────────────────────────────────
+async function initContextMenuToggle() {
+  const s = await window.api.getSettings();
+  const btn = document.getElementById('toggleContextMenu');
+  if (btn) btn.classList.toggle('on', !!s.contextMenuEnabled);
+}
+
+async function toggleContextMenu() {
+  const s = await window.api.getSettings();
+  const btn = document.getElementById('toggleContextMenu');
+  const enabled = !s.contextMenuEnabled;
+  const result = enabled
+    ? await window.api.registerContextMenu()
+    : await window.api.unregisterContextMenu();
+  if (result.ok) {
+    s.contextMenuEnabled = enabled;
+    await window.api.saveSettings(s);
+    if (btn) btn.classList.toggle('on', enabled);
+    showToast(enabled ? tr('contextMenuEnabled') : tr('contextMenuDisabled'));
+  } else {
+    showToast(tr('contextMenuFailed'));
+  }
+}
+
+// Handle launch from Explorer context menu
+window.api.onContextMenuOrganize(async (folder) => {
+  switchTab('organize');
+  const input = document.getElementById('folderInput');
+  if (input) input.value = folder;
+  appSettings.defaultFolder = folder;
+  await window.api.saveSettings(appSettings);
+  await organizeFolder(folder);
+});
 
 // ── Cleanup Suggestions ───────────────────────────────────────────
 const SUGGESTIONS_DISMISSED_KEY = 'mojo-dismissed-suggestions';

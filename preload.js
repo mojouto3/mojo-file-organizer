@@ -62,5 +62,8 @@ contextBridge.exposeInMainWorld('api', {
   saveRenameRules:  (rules)  => ipcRenderer.invoke('get-settings').then(async s => { s.renameRules = rules; return ipcRenderer.invoke('save-settings', s); }),
   getRecycleBinSize: ()      => ipcRenderer.invoke('get-recycle-bin-size'),
   emptyRecycleBin:   ()      => ipcRenderer.invoke('empty-recycle-bin'),
+  registerContextMenu:   ()  => ipcRenderer.invoke('register-context-menu'),
+  unregisterContextMenu: ()  => ipcRenderer.invoke('unregister-context-menu'),
+  onContextMenuOrganize: (cb) => ipcRenderer.on('context-menu-organize', (_, folder) => cb(folder)),
   
 });
