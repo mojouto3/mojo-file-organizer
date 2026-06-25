@@ -652,10 +652,10 @@ document.addEventListener('keydown', (e) => {
   // Ctrl shortcuts
   if (e.ctrlKey) {
     switch (e.key) {
-      case 'o': e.preventDefault(); document.querySelector('.btn-green[onclick*="organize"], .btn-main[onclick*="organize"]')?.click(); break;
-      case 'z': e.preventDefault(); document.querySelector('[onclick*="undoOrganize"], [onclick*="undo"]')?.click(); break;
-      case 'p': e.preventDefault(); document.querySelector('[onclick*="previewOrganize"], [onclick*="preview"]')?.click(); break;
-      case 'f': e.preventDefault();
+      case 'o': e.preventDefault(); { const f = document.getElementById('folderInput')?.value; if (f) { showTab('organize'); organize(); } else { showTab('organize'); showToast(tr('selectFolderFirst')); } } break;
+      case 'z': e.preventDefault(); document.getElementById('undoBtn')?.click(); break;
+      case 'p': e.preventDefault(); { const f = document.getElementById('folderInput')?.value; if (f) { showTab('organize'); showPreview(f); } else { showTab('organize'); showToast(tr('selectFolderFirst')); } } break;
+      case 'f': e.preventDefault(); {
         const activeTab = document.querySelector('.page:not(.hidden)');
         if (activeTab?.id === 'page-history') {
           document.getElementById('historySearch')?.focus();
@@ -663,14 +663,15 @@ document.addEventListener('keydown', (e) => {
           document.querySelector('.page:not(.hidden) input[type="text"]')?.focus();
         }
         break;
-      case '1': e.preventDefault(); switchTab('organize'); break;
-      case '2': e.preventDefault(); switchTab('smart-group'); break;
-      case '3': e.preventDefault(); switchTab('history'); break;
-      case '4': e.preventDefault(); switchTab('stats'); break;
-      case '5': e.preventDefault(); switchTab('duplicates'); break;
-      case '6': e.preventDefault(); switchTab('cleanup'); break;
-      case '7': e.preventDefault(); switchTab('watcher'); break;
-      case '8': e.preventDefault(); switchTab('settings'); break;
+      }
+      case '1': e.preventDefault(); showTab('organize'); break;
+      case '2': e.preventDefault(); showTab('group'); break;
+      case '3': e.preventDefault(); showTab('history'); break;
+      case '4': e.preventDefault(); showTab('stats'); break;
+      case '5': e.preventDefault(); showTab('duplicates'); break;
+      case '6': e.preventDefault(); showTab('cleanup'); break;
+      case '7': e.preventDefault(); showTab('watcher'); break;
+      case '8': e.preventDefault(); showTab('settings'); break;
     }
   }
 });
@@ -705,7 +706,7 @@ async function toggleContextMenu() {
 
 // Handle launch from Explorer context menu
 window.api.onContextMenuOrganize(async (folder) => {
-  switchTab('organize');
+  showTab('organize');
   const input = document.getElementById('folderInput');
   if (input) input.value = folder;
   appSettings.defaultFolder = folder;
@@ -776,7 +777,7 @@ async function loadCleanupSuggestions() {
       suggestions.push({ id, type: 'del', icon: 'package',
         title: tr('suggInstallersTitle').replace('{count}', oldInstallers.length),
         desc: tr('suggInstallersDesc'),
-        action: () => switchTab('cleanup'),
+        action: () => showTab('cleanup'),
         actionLabel: tr('suggRunCleanup')
       });
     }
@@ -795,7 +796,7 @@ async function loadCleanupSuggestions() {
       suggestions.push({ id, type: 'clean', icon: 'bar-chart-2',
         title: tr('suggCatTitle').replace('{cat}', cat).replace('{count}', count),
         desc: tr('suggCatDesc'),
-        action: () => switchTab('stats'),
+        action: () => showTab('stats'),
         actionLabel: tr('suggViewStats')
       });
     }
