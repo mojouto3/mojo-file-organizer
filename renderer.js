@@ -750,6 +750,92 @@ if (window.api.onTrayAction) {
   });
 }
 
+// ── Batch Organize ────────────────────────────────────────────────
+let batchFolders = [];
+let batchModeActive = false;
+
+function toggleBatchMode() {
+  batchModeActive = !batchModeActive;
+  document.getElementById('singleFolderMode').classList.toggle('hidden', batchModeActive);
+  document.getElementById('batchFolderMode').classList.toggle('hidden', !batchModeActive);
+  document.getElementById('batchModeBtn').classList.toggle('active', batchModeActive);
+  document.getElementById('organizeEmptyState').classList.toggle('hidden', batchModeActive);
+  document.getElementById('previewCard').classList.add('hidden');
+  document.getElementById('resultsCard')?.classList.add('hidden');
+  if (batchModeActive) renderBatchList();
+}
+
+async function pickBatchFolder() {
+  const folder = await window.api.pickFolder();
+  if (!folder) return;
+  if (batchFolders.includes(folder)) { showToast(tr('folderAlreadyAdded') || 'Already added'); return; }
+  batchFolders.push(folder);
+  renderBatchList();
+}
+
+function addBatchDownloads() {
+  window.api.getDownloads().then(folder => {
+    if (!folder) return;
+    if (batchFolders.includes(folder)) { showToast(tr('folderAlreadyAdded') || 'Already added'); return; }
+    batchFolders.push(folder);
+    renderBatchList();
+  });
+}
+
+function removeBatchFolder(idx) {
+  batchFolders.splice(idx, 1);
+  renderBatchList();
+}
+
+function renderBatchList() {
+  const list = document.getElementById('batchFolderList');
+  if (!list) return;
+  if (!batchFolders.length) {
+    list.innerHTML = `<div style="font-size:11px;color:var(--text-dim);padding:6px 0">${tr('noBatchFolders') || 'No folders added yet'}</div>`;
+    return;
+  }
+  list.innerHTML = batchFolders.map((f, i) => `
+    <div class="batch-folder-row" id="batch-row-${i}">
+      <span class="batch-folder-path" title="${sanitize(f)}">${sanitize(f)}</span>
+      <span class="batch-folder-status" id="batch-status-${i}"></span>
+      <button class="batch-folder-remove" onclick="removeBatchFolder(${i})"><i data-lucide="x"></i></button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+async function organizeBatch() {
+  if (!batchFolders.length) { showToast(tr('noBatchFolders') || 'No folders added'); return; }
+  const statusEl = document.getElementById('batchStatus');
+  let total = 0;
+
+  for (let i = 0; i < batchFolders.length; i++) {
+    const folder = batchFolders[i];
+    const statusCell = document.getElementById(`batch-status-${i}`);
+    if (statusEl) statusEl.textContent = `${tr('organizing') || 'Organizing'} ${i + 1}/${batchFolders.length}...`;
+    if (statusCell) statusCell.textContent = '...';
+
+    try {
+      const result = await window.api.organize(folder);
+      const moved = result.moved?.length || 0;
+      total += moved;
+      if (statusCell) {
+        statusCell.textContent = `✓ ${moved} ${tr('moved') || 'moved'}`;
+        statusCell.className = 'batch-folder-status done';
+      }
+    } catch (e) {
+      if (statusCell) {
+        statusCell.textContent = '✗ error';
+        statusCell.className = 'batch-folder-status error';
+      }
+    }
+  }
+
+  if (statusEl) statusEl.textContent = `✓ ${tr('batchDone') || 'Done!'} ${total} ${tr('filesOrganized') || 'files organized'}`;
+  showToast(`✓ ${total} ${tr('filesOrganized') || 'files organized'}`);
+  batchFolders = [];
+  renderBatchList();
+}
+
 // ── Cleanup Suggestions ───────────────────────────────────────────
 const SUGGESTIONS_DISMISSED_KEY = 'mojo-dismissed-suggestions';
 

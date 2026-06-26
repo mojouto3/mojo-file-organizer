@@ -15,7 +15,7 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.14.0</span>
+    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.14.1</span>
     <button class="titlebar-help-btn" onclick="document.getElementById('shortcutsModal').classList.toggle('hidden')" title="Keyboard shortcuts (?)">?</button>
   </div>
   <div class="titlebar-right">
@@ -74,15 +74,38 @@
     <div class="card-header">
       <i data-lucide="folder" class="card-icon"></i>
       <span class="card-title" data-i18n="selectFolder">Select Folder</span>
+      <button class="btn btn-outline btn-sm" id="batchModeBtn" onclick="toggleBatchMode()" style="margin-left:auto" title="Batch mode">
+        <i data-lucide="layers"></i><span data-i18n="batchMode">Batch</span>
+      </button>
     </div>
-    <div class="folder-row">
-      <input type="text" id="folderInput" readonly placeholder="Choose a folder..."/>
-      <button class="btn btn-outline" onclick="pickFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
-      <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
-      <button class="btn btn-outline" onclick="toggleBookmarkPanel('organize')" id="bookmarkBtn-organize"><i data-lucide="star"></i></button>
+
+    <!-- Single folder mode -->
+    <div id="singleFolderMode">
+      <div class="folder-row">
+        <input type="text" id="folderInput" readonly placeholder="Choose a folder..."/>
+        <button class="btn btn-outline" onclick="pickFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+        <button class="btn btn-outline" onclick="useDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
+        <button class="btn btn-outline" onclick="toggleBookmarkPanel('organize')" id="bookmarkBtn-organize"><i data-lucide="star"></i></button>
+      </div>
+      <div id="recentFolders-organize"></div>
+      <div class="bookmark-panel hidden" id="bookmarkPanel-organize"></div>
     </div>
-    <div id="recentFolders-organize"></div>
-    <div class="bookmark-panel hidden" id="bookmarkPanel-organize"></div>
+
+    <!-- Batch mode -->
+    <div id="batchFolderMode" class="hidden">
+      <div class="batch-folder-list" id="batchFolderList"></div>
+      <div class="folder-row" style="margin-top:8px">
+        <input type="text" id="batchFolderInput" readonly placeholder="Add a folder..."/>
+        <button class="btn btn-outline" onclick="pickBatchFolder()"><i data-lucide="folder-plus"></i><span data-i18n="addFolder">Add Folder</span></button>
+        <button class="btn btn-outline" onclick="addBatchDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
+      </div>
+      <div class="action-row" style="margin-top:10px">
+        <button class="btn btn-green btn-lg" onclick="organizeBatch()">
+          <i data-lucide="zap"></i><span data-i18n="organizeAll">Organize All</span>
+        </button>
+        <span class="status-text" id="batchStatus"></span>
+      </div>
+    </div>
   </div>
 
   <div class="card hidden" id="previewCard">
