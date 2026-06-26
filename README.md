@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.13.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.15.1-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -76,6 +76,21 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Rules: add date prefix, add date suffix, replace spaces with underscores, lowercase all, remove special characters
 - Rules are composable and applied in order
 - Live preview in Settings shows result before organizing
+
+### File Rules Engine
+- New Rules tab (Ctrl+8) with preset and custom rules for automating file actions
+- 6 preset rules ready to enable with one click
+- Custom rule builder: conditions (name, extension, age, size), logic (ALL/ANY), actions (move, delete, rename)
+- Run rules on any folder with live results per file
+
+### Batch Organize
+- Organize multiple folders at once from the Organize tab
+- Add folders one by one, click Organize All to process sequentially
+- Live status per folder showing files moved or errors
+
+### Undo Any Session
+- Undo button on every session in History tab, not just the most recent
+- Partial undo support: shows restored and not-found counts separately
 
 ### Windows Explorer Context Menu
 - Right-click any folder in Windows Explorer to see "Organize with Mojo"
@@ -318,8 +333,9 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Roadmap
 
-### v3.13
+### v3.16
 - [ ] Portable version (no installer needed)
+- [ ] Windows Widget for quick stats
 
 ---
 

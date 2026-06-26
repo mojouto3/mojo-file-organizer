@@ -2072,10 +2072,12 @@ async function checkForUpdates(fromBadge = false) {
 }
 
 function showUpdateBanner(result) {
-  latestReleaseUrl = result.releaseUrl;
+  if (!result?.updateAvailable && result?.status !== 'available') return;
+  latestReleaseUrl = result.releaseUrl || result.version;
   const banner = document.getElementById('updateBanner');
   const text = document.getElementById('updateBannerText');
-  if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion);
+  const version = result.latestVersion || result.version || '';
+  if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', version);
   if (banner) banner.classList.remove('hidden');
 }
 

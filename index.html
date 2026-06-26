@@ -15,7 +15,7 @@
   <div class="titlebar-left">
     <img src="assets/icon.ico" class="titlebar-icon" onerror="this.style.display='none'"/>
     <span class="titlebar-title">Mojo File Organizer</span>
-    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.14.1</span>
+    <span class="titlebar-version" onclick="checkForUpdates(true)">v3.15.1</span>
     <button class="titlebar-help-btn" onclick="document.getElementById('shortcutsModal').classList.toggle('hidden')" title="Keyboard shortcuts (?)">?</button>
   </div>
   <div class="titlebar-right">
@@ -63,7 +63,7 @@
     <i data-lucide="eye"></i><span data-i18n="watcher">Watcher</span>
   </button>
   <button class="tab" id="tab-rules" onclick="showTab('rules')">
-    <i data-lucide="git-branch"></i><span data-i18n="rules">Rules</span>
+    <i data-lucide="sliders-horizontal"></i><span data-i18n="rules">Rules</span>
   </button>
   <div class="tab-spacer"></div>
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
@@ -540,7 +540,7 @@
   <!-- Custom Rules -->
   <div class="card">
     <div class="card-header">
-      <i data-lucide="git-branch" class="card-icon"></i>
+      <i data-lucide="sliders-horizontal" class="card-icon"></i>
       <span class="card-title" data-i18n="rules">Rules</span>
       <span class="badge" id="rulesCount"></span>
       <button class="btn btn-green btn-sm" onclick="openRuleEditor()" style="margin-left:auto">

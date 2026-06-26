@@ -4,6 +4,74 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.15.1] - 2026-06-26
+
+### Fixed
+- Update checker: dev mode now uses GitHub API directly instead of autoUpdater (which only works in production)
+- Update checker: fallback to GitHub API when autoUpdater fails in production
+- Update banner: no longer shows when user is already on the latest version
+- Rules engine: destination path validation prevents path traversal attacks
+- File preview: XSS protection on image src attribute
+
+---
+
+## [3.15.0] - 2026-06-26
+
+### Added
+- File Rules Engine: new Rules tab with preset and custom rules for automating file actions.
+- Preset rules: 6 ready-to-use rules (delete old installers, clean temp files, archive large videos, organize old downloads, remove old backups, archive old documents).
+- Custom rule builder: define conditions (name, extension, age, size), logic (ALL/ANY), and actions (move, delete, rename).
+- Run Rules: select any folder and run all active rules with live results per file.
+- Undo any session from History tab: each session now has an undo button, not just the most recent.
+- Batch organize: organize multiple folders at once from the Organize tab.
+- Improved tray menu: quick organize Downloads/Last Folder, direct links to History, Cleanup and Stats tabs.
+
+### Changed
+- Keyboard shortcuts: Ctrl+8 now opens Rules tab, Ctrl+9 opens Settings.
+
+---
+
+## [3.14.1] - 2026-06-26
+
+### Changed
+- Tray menu: header now shows total files organized count
+- Tray menu: quick Organize Downloads action
+- Tray menu: quick Organize Last Used Folder action
+- Tray menu: direct links to History, Cleanup and Stats tabs
+
+---
+
+## [3.14.0] - 2026-06-26
+
+### Changed
+- Onboarding tour expanded from 5 to 7 steps
+- Step 3: Rename rules replaces Auto-schedule
+- New Step 4: Smart features (cleanup suggestions, duplicate app versions, auto-updater)
+- New Step 5: Built for power users (keyboard shortcuts, Explorer context menu, ? button)
+- Step 6: Track everything (previously Step 4)
+- Step 7: Make it yours (previously Step 5)
+
+---
+
+## [3.13.1] - 2026-06-26
+
+### Fixed
+- Keyboard shortcuts: Ctrl+1-8 now call correct showTab() function
+- Keyboard shortcuts: Ctrl+2 now correctly opens Smart Group tab
+- Keyboard shortcuts: Ctrl+O calls organize() directly instead of querySelector
+- Keyboard shortcuts: Ctrl+P calls showPreview() directly instead of querySelector
+- Keyboard shortcuts: Ctrl+F block scope issue fixed
+- Keyboard shortcuts: Ctrl+O and Ctrl+P show toast if no folder selected
+
+### Changed
+- Notifications: Organize now shows file count with category breakdown
+- Notifications: Smart Group shows grouped file breakdown
+- Notifications: Cleanup shows items removed, silent if 0 items
+- Notifications: Scheduled cleanup shows friendlier message
+- Notifications: Watcher shows filename and destination category
+
+---
+
 ## [3.13.0] - 2026-06-26
 
 ### Fixed

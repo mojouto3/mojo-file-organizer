@@ -319,35 +319,39 @@ function initAutoUpdater() {
 }
 
 async function checkForUpdates() {
+  // autoUpdater doesn't work in dev mode, go straight to GitHub API
+  const isDev = !app.isPackaged;
+
+  if (!isDev) {
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      if (result) {
+        const latestVersion = result.updateInfo?.version || '';
+        const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
+        return {
+          ok: true, updateAvailable,
+          currentVersion: APP_VERSION, latestVersion,
+          releaseUrl: `https://github.com/${UPDATE_REPO}/releases/tag/v${latestVersion}`,
+          releaseNotes: (result.updateInfo?.releaseNotes || '').toString().slice(0, 500),
+        };
+      }
+    } catch (e) { /* fall through to GitHub API */ }
+  }
+
+  // Fallback: manual GitHub API check
   try {
-    const result = await autoUpdater.checkForUpdates();
-    if (!result) return { ok: false, error: 'No result' };
-    const latestVersion = result.updateInfo?.version || '';
+    const release = await fetchLatestRelease();
+    const latestVersion = (release.tag_name || '').replace(/^v/i, '');
+    if (!latestVersion) return { ok: false, error: 'No release tag found' };
     const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
     return {
-      ok: true,
-      updateAvailable,
-      currentVersion: APP_VERSION,
-      latestVersion,
-      releaseUrl: `https://github.com/${UPDATE_REPO}/releases/tag/v${latestVersion}`,
-      releaseNotes: (result.updateInfo?.releaseNotes || '').toString().slice(0, 500),
+      ok: true, updateAvailable,
+      currentVersion: APP_VERSION, latestVersion,
+      releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
+      releaseNotes: (release.body || '').slice(0, 500),
     };
   } catch (e) {
-    // Fallback to manual GitHub API check
-    try {
-      const release = await fetchLatestRelease();
-      const latestVersion = (release.tag_name || '').replace(/^v/i, '');
-      if (!latestVersion) return { ok: false, error: 'No release tag found' };
-      const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
-      return {
-        ok: true, updateAvailable,
-        currentVersion: APP_VERSION, latestVersion,
-        releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
-        releaseNotes: (release.body || '').slice(0, 500),
-      };
-    } catch (e2) {
-      return { ok: false, error: e2.message };
-    }
+    return { ok: false, error: e.message };
   }
 }
 
