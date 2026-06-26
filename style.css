@@ -841,6 +841,109 @@ input[type="text"]:focus { border-color: #444; }
 [data-theme="light"] .dup-row.keep-row { background: var(--green-dim); }
 [data-theme="light"] .dup-row.selected { background: rgba(224,85,85,0.06); }
 
+/* ── Light theme: Toggle fixes ── */
+[data-theme="light"] .setting-toggle,
+[data-theme="light"] .cat-toggle {
+  background: #d8d8d5;
+  border-color: #c5c5c0;
+}
+[data-theme="light"] .setting-toggle::after,
+[data-theme="light"] .cat-toggle::after {
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+[data-theme="light"] .setting-toggle.on,
+[data-theme="light"] .cat-toggle.on {
+  background: var(--green);
+  border-color: var(--green);
+}
+[data-theme="light"] .setting-toggle.on::after,
+[data-theme="light"] .cat-toggle.on::after {
+  background: #fff;
+}
+
+/* ── Light theme: Danger/Disable button ── */
+[data-theme="light"] .btn-danger-outline {
+  color: #c0392b;
+  border-color: #e0b0aa;
+  background: #fff5f5;
+}
+[data-theme="light"] .btn-danger-outline:hover {
+  background: #c0392b;
+  color: #fff;
+  border-color: #c0392b;
+}
+
+/* ── Light theme: Clear All button ── */
+[data-theme="light"] #clearLogBtn,
+[data-theme="light"] [onclick="clearLog()"] {
+  border-color: #e0b0aa;
+  color: #c0392b;
+}
+
+/* ── Light theme: Shortcut chips ── */
+[data-theme="light"] .oes-shortcut kbd {
+  background: #ffffff;
+  border-color: #d0d0cc;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+[data-theme="light"] .shortcut-row span:first-child {
+  background: #ffffff;
+  border-color: #d0d0cc;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* ── Light theme: Day pills ── */
+[data-theme="light"] .day-btn {
+  background: #ffffff;
+  border-color: #d0d0cc;
+  color: var(--text-mid);
+}
+[data-theme="light"] .day-btn.active {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ── Light theme: Section check pills (Cleanup scheduled) ── */
+[data-theme="light"] .section-check {
+  background: #ffffff;
+  border-color: #d0d0cc;
+  color: var(--text-mid);
+}
+[data-theme="light"] .section-check:has(input:checked) {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ── Light theme: suggestion action buttons ── */
+[data-theme="light"] .suggestion-btn {
+  background: #ffffff;
+  border-color: #d0d0cc;
+  color: var(--text-mid);
+}
+[data-theme="light"] .suggestion-btn:hover {
+  border-color: var(--green);
+  color: var(--green);
+}
+
+/* ── Light theme: card hover shadow fix ── */
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .session:hover,
+[data-theme="light"] .cat-setting-row:hover,
+[data-theme="light"] .dup-group:hover,
+[data-theme="light"] .cleanup-section:hover {
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+[data-theme="light"] .cat-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
 /* ══════════════════════════════════════════════════════════
    2026 REFRESH — Page transitions, toast, card lift, checkboxes
    ══════════════════════════════════════════════════════════ */
