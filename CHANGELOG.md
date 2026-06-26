@@ -4,6 +4,17 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.13.0] - 2026-06-26
+
+### Fixed
+- Light theme: toggle off state now has distinct grey background with white knob
+- Light theme: Disable/danger buttons use subtle red styling instead of aggressive outline
+- Light theme: keyboard shortcut chips look like actual keys (white background, shadow)
+- Light theme: day pills and section check pills consistent styling
+- Light theme: card and session hover shadows more subtle
+
+---
+
 ## [3.12.1] - 2026-06-25
 
 ### Fixed
