@@ -1776,3 +1776,14 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .preset-rule-body { flex: 1; }
 .preset-rule-name { font-size: 11px; font-weight: 600; color: var(--text); }
 .preset-rule-desc { font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+
+/* ── Duplicates suggestion ── */
+.keep-reason {
+  font-size: 9px; font-weight: 400; opacity: 0.8;
+  background: rgba(0,0,0,0.2); border-radius: 3px;
+  padding: 1px 4px; margin-left: 4px; text-transform: none;
+}
+.dup-date {
+  font-size: 10px; color: var(--text-dim); flex-shrink: 0;
+  margin-left: auto;
+}
