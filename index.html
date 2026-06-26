@@ -62,6 +62,9 @@
   <button class="tab" id="tab-watcher" onclick="showTab('watcher')">
     <i data-lucide="eye"></i><span data-i18n="watcher">Watcher</span>
   </button>
+  <button class="tab" id="tab-rules" onclick="showTab('rules')">
+    <i data-lucide="git-branch"></i><span data-i18n="rules">Rules</span>
+  </button>
   <div class="tab-spacer"></div>
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
     <i data-lucide="settings"></i><span data-i18n="settings">Settings</span>
@@ -518,6 +521,118 @@
     <i data-lucide="eye-off"></i>
     <p data-i18n="noWatcherEvents">No activity yet.</p>
     <span class="empty-state-hint" data-i18n="noWatcherEventsHint">Files organized by the watcher will appear here.</span>
+  </div>
+</div>
+
+<!-- ══ RULES ══ -->
+<div class="page hidden" id="page-rules">
+
+  <!-- Preset Rules -->
+  <div class="card" id="presetRulesCard">
+    <div class="card-header">
+      <i data-lucide="sparkles" class="card-icon"></i>
+      <span class="card-title" data-i18n="presetRules">Preset Rules</span>
+      <span class="accordion-hint" data-i18n="presetRulesHint">Ready to use</span>
+    </div>
+    <div id="presetRulesList"></div>
+  </div>
+
+  <!-- Custom Rules -->
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="git-branch" class="card-icon"></i>
+      <span class="card-title" data-i18n="rules">Rules</span>
+      <span class="badge" id="rulesCount"></span>
+      <button class="btn btn-green btn-sm" onclick="openRuleEditor()" style="margin-left:auto">
+        <i data-lucide="plus"></i><span data-i18n="addRule">Add Rule</span>
+      </button>
+    </div>
+    <div class="empty-state hidden" id="rulesEmpty">
+      <i data-lucide="git-branch"></i>
+      <p data-i18n="noRules">No rules yet.</p>
+      <span class="empty-state-hint" data-i18n="noRulesHint">Create rules to automate file actions based on conditions.</span>
+    </div>
+    <div id="rulesList"></div>
+  </div>
+
+  <!-- Run rules on folder -->
+  <div class="card" id="runRulesCard">
+    <div class="card-header">
+      <i data-lucide="play" class="card-icon"></i>
+      <span class="card-title" data-i18n="runRules">Run Rules</span>
+    </div>
+    <div class="folder-row">
+      <input type="text" id="rulesFolder" readonly placeholder="Choose a folder..."/>
+      <button class="btn btn-outline" onclick="pickRulesFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+    </div>
+    <div class="action-row" style="margin-top:10px">
+      <button class="btn btn-green" onclick="runRules()">
+        <i data-lucide="play"></i><span data-i18n="runRules">Run Rules</span>
+      </button>
+      <span class="status-text" id="rulesRunStatus"></span>
+    </div>
+    <div id="rulesRunResults"></div>
+  </div>
+</div>
+
+<!-- Rule Editor Modal -->
+<div class="confirm-overlay hidden" id="ruleEditorModal" onclick="if(event.target===this)closeRuleEditor()">
+  <div class="confirm-modal" style="width:500px;max-height:80vh;overflow-y:auto;gap:0;padding:0">
+    <div class="preview-modal-header">
+      <div>
+        <p class="preview-modal-title" id="ruleEditorTitle" data-i18n="addRule">Add Rule</p>
+      </div>
+      <button class="win-btn" onclick="closeRuleEditor()"><i data-lucide="x"></i></button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px">
+
+      <!-- Rule name -->
+      <div>
+        <label class="rule-label" data-i18n="ruleName">Rule name</label>
+        <input type="text" id="ruleNameInput" class="rule-input" placeholder="e.g. Delete old installers"/>
+      </div>
+
+      <!-- Conditions -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label class="rule-label" data-i18n="conditions">Conditions</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="rule-label" data-i18n="logic">Match</span>
+            <select id="ruleLogic" class="rule-select" style="width:70px">
+              <option value="AND">ALL</option>
+              <option value="OR">ANY</option>
+            </select>
+          </div>
+        </div>
+        <div id="ruleConditions"></div>
+        <button class="btn btn-outline btn-sm" onclick="addRuleCondition()" style="margin-top:6px">
+          <i data-lucide="plus"></i><span data-i18n="addCondition">Add condition</span>
+        </button>
+      </div>
+
+      <!-- Action -->
+      <div>
+        <label class="rule-label" data-i18n="action">Action</label>
+        <div class="rule-action-row">
+          <select id="ruleActionType" class="rule-select" onchange="updateActionUI()">
+            <option value="move" data-i18n="moveToFolder">Move to folder</option>
+            <option value="delete" data-i18n="delete">Delete</option>
+            <option value="rename" data-i18n="renameFile">Rename</option>
+          </select>
+          <div id="ruleActionExtra" style="flex:1"></div>
+        </div>
+      </div>
+
+      <!-- Folder for run -->
+      <div class="action-row" style="margin-top:4px">
+        <button class="btn btn-green" onclick="saveRule()">
+          <i data-lucide="check"></i><span data-i18n="saveRule">Save Rule</span>
+        </button>
+        <button class="btn btn-outline" onclick="closeRuleEditor()">
+          <span data-i18n="cancel">Cancel</span>
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 

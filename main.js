@@ -16,6 +16,7 @@ const LOG_FILE        = path.join(os.homedir(), 'mojo-organizer.log.json');
 const GROUPS_FILE     = path.join(os.homedir(), 'mojo-organizer.groups.json');
 const CATEGORIES_FILE = path.join(os.homedir(), 'mojo-organizer.categories.json');
 const SETTINGS_FILE   = path.join(os.homedir(), 'mojo-organizer.settings.json');
+const RULES_FILE      = path.join(os.homedir(), 'mojo-organizer.rules.json');
 
 // ── Default settings ──────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
@@ -1176,6 +1177,95 @@ ipcMain.handle('undo-single-file', async (_, { sessionId, fileName, from, to }) 
     return { ok: false, error: e.message };
   }
 });
+
+// ── IPC: Rules Engine ─────────────────────────────────────────────
+function readRules() {
+  try { if (fs.existsSync(RULES_FILE)) return JSON.parse(fs.readFileSync(RULES_FILE, 'utf8')); } catch (e) {}
+  return [];
+}
+function writeRules(r) { fs.writeFileSync(RULES_FILE, JSON.stringify(r, null, 2)); }
+
+ipcMain.handle('get-rules', async () => readRules());
+ipcMain.handle('save-rules', async (_, rules) => { writeRules(rules); return true; });
+
+ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
+  const results = [];
+  try {
+    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    for (const f of files) {
+      const fullPath = path.join(folderPath, f.name);
+      let stat;
+      try { stat = fs.statSync(fullPath); } catch (e) { continue; }
+      const ext = path.extname(f.name).toLowerCase().replace('.', '');
+      const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
+      const sizeBytes = stat.size;
+
+      for (const rule of rules) {
+        if (!rule.enabled) continue;
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
+        if (!matched) continue;
+
+        const actionResult = { file: f.name, rule: rule.name, action: rule.action.type, ok: false };
+        try {
+          if (rule.action.type === 'delete') {
+            await shell.trashItem(fullPath);
+            actionResult.ok = true;
+          } else if (rule.action.type === 'move' && rule.action.dest) {
+            if (!fs.existsSync(rule.action.dest)) fs.mkdirSync(rule.action.dest, { recursive: true });
+            fs.renameSync(fullPath, path.join(rule.action.dest, f.name));
+            actionResult.ok = true; actionResult.dest = rule.action.dest;
+          } else if (rule.action.type === 'rename') {
+            const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
+            if (newName !== f.name) { fs.renameSync(fullPath, path.join(folderPath, newName)); actionResult.ok = true; actionResult.newName = newName; }
+          }
+        } catch (e) { actionResult.error = e.message; }
+        results.push(actionResult);
+        break;
+      }
+    }
+  } catch (e) { return { ok: false, error: e.message, results: [] }; }
+  return { ok: true, results };
+});
+
+function evaluateRuleConditions(rule, file) {
+  const logic = rule.logic || 'AND';
+  const results = (rule.conditions || []).map(c => evaluateCondition(c, file));
+  return logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
+}
+
+function evaluateCondition(c, file) {
+  const { field, op, value, unit } = c;
+  switch (field) {
+    case 'name':
+      if (op === 'contains')     return file.name.toLowerCase().includes(String(value).toLowerCase());
+      if (op === 'starts')       return file.name.toLowerCase().startsWith(String(value).toLowerCase());
+      if (op === 'ends')         return file.name.toLowerCase().endsWith(String(value).toLowerCase());
+      if (op === 'not_contains') return !file.name.toLowerCase().includes(String(value).toLowerCase());
+      break;
+    case 'extension':
+      return file.ext.toLowerCase() === String(value).toLowerCase().replace('.', '');
+    case 'age': {
+      const days = unit === 'months' ? Number(value) * 30 : Number(value);
+      return op === 'gt' ? file.ageDays > days : file.ageDays < days;
+    }
+    case 'size': {
+      const bytes = unit === 'GB' ? Number(value) * 1073741824 : unit === 'MB' ? Number(value) * 1048576 : Number(value) * 1024;
+      return op === 'gt' ? file.sizeBytes > bytes : file.sizeBytes < bytes;
+    }
+  }
+  return false;
+}
+
+function applyRenameRulesToFile(filename, rules) {
+  const ext = path.extname(filename);
+  let name = path.basename(filename, ext);
+  if (rules.datePrefix) name = `${new Date().toISOString().slice(0,10)}_${name}`;
+  if (rules.dateSuffix) name = `${name}_${new Date().toISOString().slice(0,10)}`;
+  if (rules.underscores) name = name.replace(/\s+/g, '_');
+  if (rules.lowercase) name = name.toLowerCase();
+  if (rules.removeSpecial) name = name.replace(/[^a-zA-Z0-9_\-\.]/g, '');
+  return name + ext;
+}
 
 // ── IPC: Context Menu ────────────────────────────────────────────
 ipcMain.handle('register-context-menu', async () => {

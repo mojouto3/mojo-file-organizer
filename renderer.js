@@ -80,20 +80,24 @@ function showTab(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   const page = document.getElementById(`page-${name}`);
+  if (!page) return;
   page.classList.remove('hidden');
   page.classList.remove('tab-enter');
-  void page.offsetWidth; // force reflow
+  void page.offsetWidth;
   page.classList.add('tab-enter');
-  document.getElementById(`tab-${name}`).classList.add('active');
+  const tabEl = document.getElementById(`tab-${name}`);
+  if (tabEl) tabEl.classList.add('active');
   if (name === 'history')  loadHistory();
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
+  if (name === 'rules')    loadRules();
   if (name === 'cleanup') { initRecycleBin(); loadCleanupSuggestions(); }
   if (['organize','group','duplicates','cleanup','watcher'].includes(name)) {
     const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher' };
     renderRecentFolders(ctxMap[name]);
   }
+  lucide.createIcons();
 }
 
 // ── Organize ──────────────────────────────────────────────────────
@@ -693,7 +697,8 @@ document.addEventListener('keydown', (e) => {
       case '5': e.preventDefault(); showTab('duplicates'); break;
       case '6': e.preventDefault(); showTab('cleanup'); break;
       case '7': e.preventDefault(); showTab('watcher'); break;
-      case '8': e.preventDefault(); showTab('settings'); break;
+      case '8': e.preventDefault(); showTab('rules'); break;
+      case '9': e.preventDefault(); showTab('settings'); break;
     }
   }
 });
@@ -2410,4 +2415,352 @@ function showToast(msg) {
 }
 
 // ── Start ─────────────────────────────────────────────────────────
+// ── Rules Engine ──────────────────────────────────────────────────
+const PRESET_RULES = [
+  {
+    id: 'preset-1', name: 'Delete old installers',
+    desc: 'Installers older than 6 months → Recycle Bin',
+    icon: 'package', color: 'rgba(224,85,85,0.1)', iconColor: '#e05555',
+    conditions: [{ field: 'age', op: 'gt', value: 180, unit: 'days' }, { field: 'extension', op: 'eq', value: 'exe' }],
+    logic: 'AND', action: { type: 'delete' }
+  },
+  {
+    id: 'preset-2', name: 'Clean temp files',
+    desc: '.tmp .log .cache .bak files → Recycle Bin',
+    icon: 'trash-2', color: 'rgba(224,85,85,0.1)', iconColor: '#e05555',
+    conditions: [{ field: 'extension', op: 'eq', value: 'tmp' }],
+    logic: 'OR', action: { type: 'delete' }
+  },
+  {
+    id: 'preset-3', name: 'Archive large videos',
+    desc: 'Videos larger than 500MB → Videos folder',
+    icon: 'video', color: 'rgba(55,138,221,0.1)', iconColor: '#378add',
+    conditions: [{ field: 'size', op: 'gt', value: 500, unit: 'MB' }, { field: 'extension', op: 'eq', value: 'mp4' }],
+    logic: 'AND', action: { type: 'move', dest: '' }
+  },
+  {
+    id: 'preset-4', name: 'Organize old downloads',
+    desc: 'Files older than 3 months → Archive folder',
+    icon: 'archive', color: 'rgba(239,159,39,0.1)', iconColor: '#ef9f27',
+    conditions: [{ field: 'age', op: 'gt', value: 90, unit: 'days' }],
+    logic: 'AND', action: { type: 'move', dest: '' }
+  },
+  {
+    id: 'preset-5', name: 'Remove old backup files',
+    desc: 'Files with "backup" in name older than 30 days → Recycle Bin',
+    icon: 'shield-off', color: 'rgba(127,119,221,0.1)', iconColor: '#7f77dd',
+    conditions: [{ field: 'name', op: 'contains', value: 'backup' }, { field: 'age', op: 'gt', value: 30, unit: 'days' }],
+    logic: 'AND', action: { type: 'delete' }
+  },
+  {
+    id: 'preset-6', name: 'Archive old documents',
+    desc: 'PDFs and Word files older than 1 year → Archive folder',
+    icon: 'file-text', color: 'rgba(61,219,61,0.1)', iconColor: '#3ddb3d',
+    conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }, { field: 'extension', op: 'eq', value: 'pdf' }],
+    logic: 'AND', action: { type: 'move', dest: '' }
+  },
+];
+
+let rulesData = [];
+let editingRuleId = null;
+
+async function loadRules() {
+  rulesData = await window.api.getRules() || [];
+  renderRulesList();
+  renderPresetRules();
+}
+
+function renderPresetRules() {
+  const list = document.getElementById('presetRulesList');
+  if (!list) return;
+  const activePresetIds = rulesData.filter(r => r.presetId).map(r => r.presetId);
+
+  list.innerHTML = PRESET_RULES.map(p => {
+    const isAdded = activePresetIds.includes(p.id);
+    return `<div class="preset-rule-row">
+      <div class="preset-rule-icon" style="background:${p.color}">
+        <i data-lucide="${p.icon}" style="color:${p.iconColor}"></i>
+      </div>
+      <div class="preset-rule-body">
+        <div class="preset-rule-name">${p.name}</div>
+        <div class="preset-rule-desc">${p.desc}</div>
+      </div>
+      ${isAdded
+        ? `<button class="btn btn-outline btn-sm" style="color:var(--text-dim)" onclick="removePresetRule('${p.id}')">Remove</button>`
+        : `<button class="btn btn-outline btn-sm" onclick="addPresetRule('${p.id}')"><i data-lucide="plus"></i> Add</button>`
+      }
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function addPresetRule(presetId) {
+  const preset = PRESET_RULES.find(p => p.id === presetId);
+  if (!preset) return;
+
+  // If preset needs a folder (move action), ask for it
+  if (preset.action.type === 'move') {
+    const folder = await window.api.pickFolder();
+    if (!folder) return;
+    preset.action.dest = folder;
+  }
+
+  rulesData.push({
+    id: Date.now(), presetId, name: preset.name,
+    conditions: preset.conditions, logic: preset.logic,
+    action: { ...preset.action }, enabled: true
+  });
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+  renderPresetRules();
+  showToast(`✓ Rule "${preset.name}" added`);
+}
+
+async function removePresetRule(presetId) {
+  rulesData = rulesData.filter(r => r.presetId !== presetId);
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+  renderPresetRules();
+}
+
+function renderRulesList() {
+  const list = document.getElementById('rulesList');
+  const empty = document.getElementById('rulesEmpty');
+  const count = document.getElementById('rulesCount');
+  if (!list) return;
+  if (count) count.textContent = rulesData.length || '';
+  if (!rulesData.length) {
+    list.innerHTML = '';
+    empty?.classList.remove('hidden');
+    return;
+  }
+  empty?.classList.add('hidden');
+  list.innerHTML = rulesData.map((r, i) => `
+    <div class="rule-card ${r.enabled ? '' : 'disabled'}">
+      <div class="rule-card-body">
+        <div class="rule-card-name">${sanitize(r.name)}</div>
+        <div class="rule-card-summary">${summarizeRule(r)}</div>
+      </div>
+      <div class="rule-card-actions">
+        <button class="setting-toggle ${r.enabled ? 'on' : ''}" onclick="toggleRule(${i})" style="width:32px;height:18px"></button>
+        <button class="btn btn-outline btn-sm" onclick="openRuleEditor(${i})"><i data-lucide="pencil"></i></button>
+        <button class="btn btn-outline btn-sm" onclick="deleteRule(${i})" style="color:var(--danger)"><i data-lucide="trash-2"></i></button>
+      </div>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function summarizeRule(r) {
+  const conds = (r.conditions || []).map(c => summarizeCondition(c)).join(` <b>${r.logic || 'AND'}</b> `);
+  const action = r.action?.type === 'move' ? `→ Move to ${sanitize(r.action.dest || '?')}`
+               : r.action?.type === 'delete' ? '→ Delete'
+               : '→ Rename';
+  return `IF ${conds} ${action}`;
+}
+
+function summarizeCondition(c) {
+  const opMap = { gt: '>', lt: '<', contains: 'contains', starts: 'starts with', ends: 'ends with', not_contains: 'does not contain', eq: 'is' };
+  const unit = c.unit || '';
+  return `${c.field} ${opMap[c.op] || c.op} ${c.value} ${unit}`.trim();
+}
+
+async function toggleRule(idx) {
+  rulesData[idx].enabled = !rulesData[idx].enabled;
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+}
+
+async function deleteRule(idx) {
+  if (!await showConfirm(`Delete rule "${rulesData[idx].name}"?`)) return;
+  rulesData.splice(idx, 1);
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+}
+
+function openRuleEditor(idx = null) {
+  editingRuleId = idx;
+  const title = document.getElementById('ruleEditorTitle');
+  if (title) title.textContent = idx !== null ? 'Edit Rule' : 'Add Rule';
+
+  const rule = idx !== null ? rulesData[idx] : { name: '', conditions: [], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true };
+
+  document.getElementById('ruleNameInput').value = rule.name || '';
+  document.getElementById('ruleLogic').value = rule.logic || 'AND';
+  document.getElementById('ruleActionType').value = rule.action?.type || 'move';
+
+  renderRuleConditions(rule.conditions || []);
+  updateActionUI(rule.action);
+  document.getElementById('ruleEditorModal').classList.remove('hidden');
+  lucide.createIcons();
+}
+
+function closeRuleEditor() {
+  document.getElementById('ruleEditorModal').classList.add('hidden');
+  editingRuleId = null;
+}
+
+function renderRuleConditions(conditions) {
+  const wrap = document.getElementById('ruleConditions');
+  if (!wrap) return;
+  wrap.innerHTML = conditions.map((c, i) => `
+    <div class="rule-condition-row" id="cond-${i}">
+      <select class="rule-select" id="cond-field-${i}" onchange="updateConditionUI(${i})">
+        <option value="name" ${c.field==='name'?'selected':''}>Name</option>
+        <option value="extension" ${c.field==='extension'?'selected':''}>Extension</option>
+        <option value="age" ${c.field==='age'?'selected':''}>Age</option>
+        <option value="size" ${c.field==='size'?'selected':''}>Size</option>
+      </select>
+      ${getConditionOpUI(c)}
+      <button class="batch-folder-remove" onclick="removeCondition(${i})"><i data-lucide="x"></i></button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+function getConditionOpUI(c) {
+  if (c.field === 'name') return `
+    <select class="rule-select" id="cond-op-${c._i??0}" style="width:120px">
+      <option value="contains" ${c.op==='contains'?'selected':''}>contains</option>
+      <option value="not_contains" ${c.op==='not_contains'?'selected':''}>does not contain</option>
+      <option value="starts" ${c.op==='starts'?'selected':''}>starts with</option>
+      <option value="ends" ${c.op==='ends'?'selected':''}>ends with</option>
+    </select>
+    <input class="rule-input" id="cond-val-${c._i??0}" value="${sanitize(c.value||'')}" placeholder="text" style="flex:1"/>`;
+  if (c.field === 'extension') return `
+    <input class="rule-input" id="cond-val-${c._i??0}" value="${sanitize(c.value||'')}" placeholder=".exe" style="flex:1"/>`;
+  if (c.field === 'age') return `
+    <select class="rule-select" id="cond-op-${c._i??0}">
+      <option value="gt" ${c.op==='gt'?'selected':''}>older than</option>
+      <option value="lt" ${c.op==='lt'?'selected':''}>newer than</option>
+    </select>
+    <input class="rule-input" id="cond-val-${c._i??0}" value="${c.value||30}" type="number" min="1" style="width:60px"/>
+    <select class="rule-select" id="cond-unit-${c._i??0}">
+      <option value="days" ${c.unit==='days'?'selected':''}>days</option>
+      <option value="months" ${c.unit==='months'?'selected':''}>months</option>
+    </select>`;
+  if (c.field === 'size') return `
+    <select class="rule-select" id="cond-op-${c._i??0}">
+      <option value="gt" ${c.op==='gt'?'selected':''}>larger than</option>
+      <option value="lt" ${c.op==='lt'?'selected':''}>smaller than</option>
+    </select>
+    <input class="rule-input" id="cond-val-${c._i??0}" value="${c.value||100}" type="number" min="1" style="width:60px"/>
+    <select class="rule-select" id="cond-unit-${c._i??0}">
+      <option value="KB" ${c.unit==='KB'?'selected':''}>KB</option>
+      <option value="MB" ${c.unit==='MB'?'selected':''}>MB</option>
+      <option value="GB" ${c.unit==='GB'?'selected':''}>GB</option>
+    </select>`;
+  return '';
+}
+
+function addRuleCondition() {
+  const conds = getConditionsFromUI();
+  conds.push({ field: 'name', op: 'contains', value: '' });
+  renderRuleConditions(conds.map((c, i) => ({ ...c, _i: i })));
+}
+
+function removeCondition(idx) {
+  const conds = getConditionsFromUI();
+  conds.splice(idx, 1);
+  renderRuleConditions(conds.map((c, i) => ({ ...c, _i: i })));
+}
+
+function updateConditionUI(idx) {
+  const conds = getConditionsFromUI();
+  conds[idx].field = document.getElementById(`cond-field-${idx}`)?.value || 'name';
+  conds[idx].op = 'contains'; conds[idx].value = ''; conds[idx].unit = '';
+  renderRuleConditions(conds.map((c, i) => ({ ...c, _i: i })));
+}
+
+function getConditionsFromUI() {
+  const rows = document.querySelectorAll('#ruleConditions .rule-condition-row');
+  return Array.from(rows).map((_, i) => ({
+    field: document.getElementById(`cond-field-${i}`)?.value || 'name',
+    op: document.getElementById(`cond-op-${i}`)?.value || 'contains',
+    value: document.getElementById(`cond-val-${i}`)?.value || '',
+    unit: document.getElementById(`cond-unit-${i}`)?.value || ''
+  }));
+}
+
+function updateActionUI(action = null) {
+  const type = action?.type || document.getElementById('ruleActionType')?.value || 'move';
+  const extra = document.getElementById('ruleActionExtra');
+  if (!extra) return;
+  if (type === 'move') {
+    extra.innerHTML = `<input class="rule-input" id="ruleActionDest" placeholder="Destination folder..." value="${sanitize(action?.dest||'')}" style="flex:1"/>
+      <button class="btn btn-outline btn-sm" onclick="pickRuleActionDest()"><i data-lucide="folder-open"></i></button>`;
+  } else if (type === 'rename') {
+    extra.innerHTML = `<div style="font-size:11px;color:var(--text-dim)">Uses current Rename Rules from Settings</div>`;
+  } else {
+    extra.innerHTML = `<div style="font-size:11px;color:var(--danger)">Files will be moved to Recycle Bin</div>`;
+  }
+  lucide.createIcons();
+}
+
+async function pickRuleActionDest() {
+  const folder = await window.api.pickFolder();
+  if (folder) { const el = document.getElementById('ruleActionDest'); if (el) el.value = folder; }
+}
+
+async function saveRule() {
+  const name = document.getElementById('ruleNameInput')?.value?.trim();
+  if (!name) { showToast('Enter a rule name'); return; }
+  const conditions = getConditionsFromUI();
+  if (!conditions.length) { showToast('Add at least one condition'); return; }
+  const actionType = document.getElementById('ruleActionType')?.value || 'move';
+  const action = { type: actionType };
+  if (actionType === 'move') action.dest = document.getElementById('ruleActionDest')?.value?.trim();
+  const logic = document.getElementById('ruleLogic')?.value || 'AND';
+  const rule = { id: Date.now(), name, conditions, logic, action, enabled: true };
+
+  if (editingRuleId !== null) {
+    rule.id = rulesData[editingRuleId].id;
+    rulesData[editingRuleId] = rule;
+  } else {
+    rulesData.push(rule);
+  }
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+  closeRuleEditor();
+  showToast(`✓ Rule "${name}" saved`);
+}
+
+async function pickRulesFolder() {
+  const folder = await window.api.pickFolder();
+  if (folder) { const el = document.getElementById('rulesFolder'); if (el) el.value = folder; }
+}
+
+async function runRules() {
+  const folder = document.getElementById('rulesFolder')?.value;
+  if (!folder) { showToast(tr('selectFolderFirst') || 'Select a folder first'); return; }
+  const activeRules = rulesData.filter(r => r.enabled);
+  if (!activeRules.length) { showToast('No active rules'); return; }
+
+  const statusEl = document.getElementById('rulesRunStatus');
+  if (statusEl) statusEl.textContent = 'Running...';
+
+  const result = await window.api.runRules({ folderPath: folder, rules: activeRules });
+  const resultsEl = document.getElementById('rulesRunResults');
+
+  if (!result.ok) {
+    if (statusEl) statusEl.textContent = '✗ Error';
+    if (resultsEl) resultsEl.innerHTML = `<div style="color:var(--danger);font-size:11px;padding:8px 0">${result.error}</div>`;
+    return;
+  }
+
+  const matched = result.results.filter(r => r.ok);
+  if (statusEl) statusEl.textContent = `✓ ${matched.length} files processed`;
+
+  if (resultsEl) {
+    if (!result.results.length) {
+      resultsEl.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">No files matched any rules</div>`;
+    } else {
+      resultsEl.innerHTML = `<div style="margin-top:10px">${result.results.map(r => `
+        <div class="rule-result-row ${r.ok ? 'matched' : ''}">
+          <span style="flex:1">${sanitize(r.file)}</span>
+          <span class="rule-result-action ${r.action==='delete'?'del':''}">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 deleted' : `renamed to ${sanitize(r.newName||'')}`}</span>
+          <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
+        </div>`).join('')}</div>`;
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', init);
