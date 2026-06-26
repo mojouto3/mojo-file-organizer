@@ -702,6 +702,39 @@ ipcMain.handle('undo', async (_, moves) => {
 ipcMain.handle('get-groups',  async ()     => readGroups());
 ipcMain.handle('save-groups', async (_, g) => { writeGroups(g); return true; });
 
+ipcMain.handle('export-groups', async () => {
+  const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Groups',
+    defaultPath: `mojo-groups-${new Date().toISOString().slice(0,10)}.json`,
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (!filePath) return { ok: false, cancelled: true };
+  try {
+    fs.writeFileSync(filePath, JSON.stringify({ groups: readGroups(), exportedAt: new Date().toISOString() }, null, 2));
+    return { ok: true, path: filePath };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('import-groups', async () => {
+  const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Import Groups',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  if (!filePaths?.length) return { ok: false, cancelled: true };
+  try {
+    const data = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    const incoming = data.groups || (Array.isArray(data) ? data : null);
+    if (!incoming) return { ok: false, error: 'Invalid groups file' };
+    const existing = readGroups();
+    // Merge: add groups that don't already exist by name
+    const existingNames = new Set(existing.map(g => g.name.toLowerCase()));
+    const merged = [...existing, ...incoming.filter(g => !existingNames.has(g.name.toLowerCase()))];
+    writeGroups(merged);
+    return { ok: true, added: merged.length - existing.length };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
 ipcMain.handle('preview-groups', async (_, folderPath) => {
   const groups = readGroups();
   const ignore = readIgnoreList();
@@ -1274,6 +1307,48 @@ function applyRenameRulesToFile(filename, rules) {
   return name + ext;
 }
 
+// ── IPC: Data Backup & Restore ────────────────────────────────────
+ipcMain.handle('export-app-data', async () => {
+  const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Mojo Settings',
+    defaultPath: `mojo-backup-${new Date().toISOString().slice(0,10)}.json`,
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (!filePath) return { ok: false, cancelled: true };
+  try {
+    const data = {
+      version: APP_VERSION,
+      exportedAt: new Date().toISOString(),
+      settings: readSettings(),
+      categories: (() => { try { return JSON.parse(fs.readFileSync(CATEGORIES_FILE, 'utf8')); } catch { return null; } })(),
+      groups: (() => { try { return JSON.parse(fs.readFileSync(GROUPS_FILE, 'utf8')); } catch { return null; } })(),
+      ignoreList: (() => { try { return JSON.parse(fs.readFileSync(IGNORE_FILE, 'utf8')); } catch { return null; } })(),
+      rules: (() => { try { return JSON.parse(fs.readFileSync(RULES_FILE, 'utf8')); } catch { return null; } })(),
+    };
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    return { ok: true, path: filePath };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('import-app-data', async () => {
+  const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Import Mojo Settings',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  if (!filePaths?.length) return { ok: false, cancelled: true };
+  try {
+    const data = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    if (!data.settings) return { ok: false, error: 'Invalid backup file' };
+    writeSettings(data.settings);
+    if (data.categories) fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(data.categories, null, 2));
+    if (data.groups) fs.writeFileSync(GROUPS_FILE, JSON.stringify(data.groups, null, 2));
+    if (data.ignoreList) fs.writeFileSync(IGNORE_FILE, JSON.stringify(data.ignoreList, null, 2));
+    if (data.rules) fs.writeFileSync(RULES_FILE, JSON.stringify(data.rules, null, 2));
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
 // ── IPC: Context Menu ────────────────────────────────────────────
 ipcMain.handle('register-context-menu', async () => {
   return new Promise((resolve) => {
@@ -1389,7 +1464,11 @@ ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true })
       .filter(f => f.isFile() && !shouldIgnore(f.name, ignore))
-      .map(f => ({ name: f.name, path: path.join(folderPath, f.name), size: fs.statSync(path.join(folderPath, f.name)).size }));
+      .map(f => {
+        const fullPath = path.join(folderPath, f.name);
+        const stat = fs.statSync(fullPath);
+        return { name: f.name, path: fullPath, size: stat.size, mtime: stat.mtimeMs };
+      });
 
     for (const file of files) {
       let key;
@@ -1401,7 +1480,7 @@ ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
         key = hash;
       }
       if (!results[key]) results[key] = [];
-      results[key].push({ name: file.name, path: file.path, size: file.size });
+      results[key].push({ name: file.name, path: file.path, size: file.size, mtime: file.mtime });
     }
 
     const duplicates = Object.values(results).filter(g => g.length > 1);

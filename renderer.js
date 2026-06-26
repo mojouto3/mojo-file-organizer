@@ -216,6 +216,24 @@ function renderGroupChips() {
   lucide.createIcons();
 }
 
+async function exportGroups() {
+  const result = await window.api.exportGroups();
+  if (result.cancelled) return;
+  if (result.ok) showToast(`✓ ${tr('groupsExported')}`);
+  else showToast(`✗ ${result.error}`);
+}
+
+async function importGroups() {
+  const result = await window.api.importGroups();
+  if (result.cancelled) return;
+  if (result.ok) {
+    showToast(`✓ ${result.added} ${tr('groupsImported')}`);
+    await loadGroups();
+  } else {
+    showToast(`✗ ${result.error}`);
+  }
+}
+
 async function addGroup() {
   const input = document.getElementById('groupNameInput');
   const name = input.value.trim();
@@ -308,8 +326,14 @@ function resetGroup() {
 }
 
 // ── History ───────────────────────────────────────────────────────
+let cachedSessions = [];
+
 async function loadHistory() {
-  const sessions = await window.api.getLog();
+  cachedSessions = await window.api.getLog();
+  renderHistory(cachedSessions);
+}
+
+function renderHistory(sessions) {
   const list = document.getElementById('historyList');
   const empty = document.getElementById('historyEmpty');
   document.getElementById('historyCount').textContent = sessions.length;
@@ -350,6 +374,7 @@ async function loadHistory() {
 
     const el = document.createElement('div');
     el.className = 'session';
+    el.dataset.timestamp = s.timestamp;
     el.innerHTML = `
       <div class="session-header" onclick="toggleSession(this)">
         <div class="session-date">${dateStr} ${timeStr}</div>
@@ -375,12 +400,33 @@ async function loadHistory() {
   attachPreviewsToHistory();
 }
 
-function filterHistory(query) {
-  const q = query.toLowerCase().trim();
-  document.querySelectorAll('#historyList .session').forEach(el => {
-    const text = el.textContent.toLowerCase();
-    el.style.display = (!q || text.includes(q)) ? '' : 'none';
+function filterHistory() {
+  const q = (document.getElementById('historySearch')?.value || '').toLowerCase().trim();
+  const from = document.getElementById('historyDateFrom')?.value;
+  const to = document.getElementById('historyDateTo')?.value;
+  // Use T00:00:00 for local time parsing (without it, JS parses as UTC)
+  const fromTs = from ? new Date(from + 'T00:00:00').getTime() : null;
+  const toTs = to ? new Date(to + 'T23:59:59').getTime() : null;
+
+  const filtered = cachedSessions.filter(s => {
+    const ts = new Date(s.timestamp).getTime();
+    const text = (s.folder + ' ' + (s.moved || []).map(f => f.name).join(' ')).toLowerCase();
+    const matchText = !q || text.includes(q);
+    const matchFrom = !fromTs || ts >= fromTs;
+    const matchTo = !toTs || ts <= toTs;
+    return matchText && matchFrom && matchTo;
   });
+  renderHistory(filtered);
+}
+
+function clearHistoryFilter() {
+  const s = document.getElementById('historySearch');
+  const f = document.getElementById('historyDateFrom');
+  const t = document.getElementById('historyDateTo');
+  if (s) s.value = '';
+  if (f) f.value = '';
+  if (t) t.value = '';
+  renderHistory(cachedSessions);
 }
 
 async function exportSession(sessionId) {
@@ -1336,14 +1382,22 @@ async function scanDuplicates(mode) {
     div.className = 'dup-group';
     const size = formatSize(group[0].size);
 
+    // Smart suggestion: keep newest file (highest mtime)
+    const keepIdx = group.reduce((best, f, i) => (f.mtime > group[best].mtime ? i : best), 0);
+    const keepReason = 'newest';
+
     const rows = group.map((f, fi) => {
-      const isKeep = fi === 0;
+      const isKeep = fi === keepIdx;
+      const dateStr = f.mtime ? new Date(f.mtime).toLocaleDateString() : '';
       return `<div class="dup-row ${isKeep ? 'keep-row' : ''}" onclick="toggleDupRow(this, '${f.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.name.replace(/'/g,"\\'")}', ${f.size})">
         <div class="dup-check ${isKeep ? '' : ''}"><i data-lucide="check"></i></div>
-        ${isKeep ? '<span class="keep-badge">KEEP</span>' : '<span class="del-badge">DELETE</span><span class="badge-placeholder" style="display:none"></span>'}
+        ${isKeep
+          ? `<span class="keep-badge">KEEP <span class="keep-reason">${keepReason}</span></span>`
+          : '<span class="del-badge">DELETE</span>'}
         <span class="dup-filename" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
         <span class="dup-filepath" title="${f.path}">${f.path}</span>
         <span class="dup-size">${size}</span>
+        ${dateStr ? `<span class="dup-date">${dateStr}</span>` : ''}
       </div>`;
     }).join('');
 
@@ -2072,12 +2126,15 @@ async function checkForUpdates(fromBadge = false) {
 }
 
 function showUpdateBanner(result) {
-  if (!result?.updateAvailable && result?.status !== 'available') return;
-  latestReleaseUrl = result.releaseUrl || result.version;
+  if (!result?.updateAvailable) return;
+  latestReleaseUrl = result.releaseUrl || '';
+  updateFoundByAutoUpdater = false;
   const banner = document.getElementById('updateBanner');
   const text = document.getElementById('updateBannerText');
-  const version = result.latestVersion || result.version || '';
+  const btn = document.getElementById('updateActionBtn');
+  const version = result.latestVersion || '';
   if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', version);
+  if (btn) { btn.textContent = tr('viewRelease'); btn.disabled = false; }
   if (banner) banner.classList.remove('hidden');
 }
 
@@ -2096,14 +2153,17 @@ if (window.api.onUpdateAvailable) {
 
 // ── Auto Updater UI ───────────────────────────────────────────────
 let updateReady = false;
+let updateFoundByAutoUpdater = false;
 
 function handleUpdateAction() {
   if (updateReady) {
     window.api.installUpdate();
-  } else {
+  } else if (updateFoundByAutoUpdater) {
     window.api.downloadUpdate().then(result => {
       if (!result?.ok) showToast(tr('updateCheckFailed'));
     });
+  } else {
+    window.api.openReleasePage(latestReleaseUrl);
   }
 }
 
@@ -2117,6 +2177,7 @@ if (window.api.onUpdaterStatus) {
     const label = document.getElementById('updateProgressLabel');
 
     if (data.status === 'available') {
+      updateFoundByAutoUpdater = true;
       if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', data.version);
       if (btn) { btn.textContent = tr('downloadUpdate'); btn.disabled = false; }
       if (banner) banner.classList.remove('hidden');
@@ -2461,6 +2522,32 @@ function showToast(msg) {
 }
 
 // ── Start ─────────────────────────────────────────────────────────
+// ── Data Backup & Restore ─────────────────────────────────────────
+async function exportAppData() {
+  const result = await window.api.exportAppData();
+  const msg = document.getElementById('dataBackupMsg');
+  if (result.cancelled) return;
+  if (result.ok) {
+    if (msg) { msg.className = 'status-msg ok'; msg.textContent = `✓ ${tr('exportedTo')} ${result.path}`; }
+    showToast('✓ ' + tr('settingsExported'));
+  } else {
+    if (msg) { msg.className = 'status-msg err'; msg.textContent = `✗ ${result.error}`; }
+  }
+}
+
+async function importAppData() {
+  const result = await window.api.importAppData();
+  const msg = document.getElementById('dataBackupMsg');
+  if (result.cancelled) return;
+  if (result.ok) {
+    if (msg) { msg.className = 'status-msg ok'; msg.textContent = `✓ ${tr('settingsImported')}`; }
+    showToast('✓ ' + tr('settingsImported'));
+    setTimeout(() => location.reload(), 1500);
+  } else {
+    if (msg) { msg.className = 'status-msg err'; msg.textContent = `✗ ${result.error}`; }
+  }
+}
+
 // ── Rules Engine ──────────────────────────────────────────────────
 const PRESET_RULES = [
   {

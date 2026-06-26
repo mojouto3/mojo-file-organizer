@@ -182,6 +182,14 @@
       <i data-lucide="store" class="card-icon"></i>
       <span class="card-title" data-i18n="storesClients">Stores / Clients</span>
       <span class="badge" id="groupCount">0</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="exportGroups()" title="Export groups">
+          <i data-lucide="download"></i><span data-i18n="export">Export</span>
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="importGroups()" title="Import groups">
+          <i data-lucide="upload"></i><span data-i18n="import">Import</span>
+        </button>
+      </div>
     </div>
     <div class="input-row">
       <input type="text" id="groupNameInput" placeholder="e.g. Nike, store1, ClientABC..."/>
@@ -227,7 +235,10 @@
       <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-i18n="clearAll">Clear All</button>
     </div>
     <div class="history-search-wrap">
-      <input type="text" id="historySearch" class="history-search-input" placeholder="Search sessions..." data-i18n-placeholder="searchSessions" oninput="filterHistory(this.value)"/>
+      <input type="text" id="historySearch" class="history-search-input" placeholder="Search sessions..." data-i18n-placeholder="searchSessions" oninput="filterHistory()"/>
+      <input type="date" id="historyDateFrom" class="history-search-input" style="width:140px" onchange="filterHistory()" title="From date"/>
+      <input type="date" id="historyDateTo" class="history-search-input" style="width:140px" onchange="filterHistory()" title="To date"/>
+      <button class="btn btn-outline btn-sm" onclick="clearHistoryFilter()" title="Clear filters"><i data-lucide="x"></i></button>
     </div>
     <div class="empty-state hidden" id="historyEmpty">
       <i data-lucide="inbox"></i>
@@ -913,6 +924,36 @@
           <i data-lucide="refresh-cw"></i><span data-i18n="resetToDefaults">Reset to defaults</span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Data Backup & Restore -->
+  <div class="card accordion-card collapsed" id="settingsCard-data">
+    <div class="card-header" onclick="toggleSettingsCard('data')">
+      <i data-lucide="database" class="card-icon"></i>
+      <span class="card-title" data-i18n="dataBackup">Data & Backup</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
+    </div>
+    <div class="card-body">
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title" data-i18n="exportSettings">Export settings</div>
+          <div class="setting-desc" data-i18n="exportSettingsDesc">Save all settings, categories and groups to a file</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="exportAppData()">
+          <i data-lucide="download"></i><span data-i18n="export">Export</span>
+        </button>
+      </div>
+      <div class="setting-row">
+        <div class="setting-info">
+          <div class="setting-title" data-i18n="importSettings">Import settings</div>
+          <div class="setting-desc" data-i18n="importSettingsDesc">Restore settings from a previously exported file</div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="importAppData()">
+          <i data-lucide="upload"></i><span data-i18n="import">Import</span>
+        </button>
+      </div>
+      <div id="dataBackupMsg" class="status-msg"></div>
     </div>
   </div>
 
