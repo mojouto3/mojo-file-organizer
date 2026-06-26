@@ -2328,7 +2328,8 @@ function showFilePreview(filePath, mouseX, mouseY) {
     const inner    = document.getElementById('filePreviewInner');
 
     if (result.type === 'image') {
-      inner.innerHTML = `<img src="${result.src}" alt="preview"/>`;
+      const safeSrc = result.src.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      inner.innerHTML = `<img src="${safeSrc}" alt="preview"/>`;
     } else if (result.type === 'text') {
       const escaped = result.lines.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       inner.innerHTML = `<div class="fpt-text">${escaped}</div>`;

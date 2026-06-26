@@ -1211,9 +1211,12 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
             await shell.trashItem(fullPath);
             actionResult.ok = true;
           } else if (rule.action.type === 'move' && rule.action.dest) {
-            if (!fs.existsSync(rule.action.dest)) fs.mkdirSync(rule.action.dest, { recursive: true });
-            fs.renameSync(fullPath, path.join(rule.action.dest, f.name));
-            actionResult.ok = true; actionResult.dest = rule.action.dest;
+            // Validate destination path - must be absolute and not contain traversal
+            const dest = path.resolve(rule.action.dest);
+            if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
+            if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+            fs.renameSync(fullPath, path.join(dest, f.name));
+            actionResult.ok = true; actionResult.dest = dest;
           } else if (rule.action.type === 'rename') {
             const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
             if (newName !== f.name) { fs.renameSync(fullPath, path.join(folderPath, newName)); actionResult.ok = true; actionResult.newName = newName; }
