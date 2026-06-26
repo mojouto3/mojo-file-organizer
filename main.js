@@ -155,10 +155,27 @@ function showWindow() {
 }
 
 // ── Notification ──────────────────────────────────────────────────
-function sendNotification(title, body) {
-  if (Notification.isSupported()) {
-    new Notification({ title, body, icon: path.join(__dirname, 'assets', 'icon.ico') }).show();
-  }
+function sendNotification(title, body, { silent = false, urgency = 'normal' } = {}) {
+  if (!Notification.isSupported() || silent) return;
+  new Notification({
+    title,
+    body,
+    icon: path.join(__dirname, 'assets', 'icon.ico'),
+    urgency,
+    timeoutType: 'default'
+  }).show();
+}
+
+function formatOrganizeNotification(moved) {
+  if (!moved || moved.length === 0) return null;
+  const byCategory = {};
+  moved.forEach(m => { byCategory[m.category] = (byCategory[m.category] || 0) + 1; });
+  const top = Object.entries(byCategory).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const breakdown = top.map(([cat, count]) => `${count} ${cat}`).join(', ');
+  return {
+    title: `✓ ${moved.length} file${moved.length !== 1 ? 's' : ''} organized`,
+    body: breakdown + (Object.keys(byCategory).length > 3 ? ' and more' : '')
+  };
 }
 
 // ── Check for Updates ────────────────────────────────────────────
@@ -355,7 +372,7 @@ app.whenReady().then(async () => {
       mainWindow.webContents.once('did-finish-load', async () => {
         const months = s.cleanupSchedule?.oldFilesMonths || 6;
         const results = await ipcMain.emit('run-cleanup-silent', null, { folderPath: folder, sections, oldFilesMonths: months });
-        sendNotification('Mojo File Organizer', 'Scheduled cleanup completed');
+        sendNotification('✓ Scheduled cleanup complete', 'Your folder has been cleaned automatically');
       });
     }
   }
@@ -606,7 +623,8 @@ ipcMain.handle('organize', async (_, folderPath) => {
     }
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'organize', moved: moved.map(m => ({ name: m.name, category: m.category, from: m.from, to: m.to })), errors, total: moved.length });
-      sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} organized successfully`);
+      const notif = formatOrganizeNotification(moved);
+        if (notif) sendNotification(notif.title, notif.body);
       updateTrayTooltip();
     }
   } catch (e) { errors.push({ name: 'General', error: e.message }); }
@@ -679,7 +697,8 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
     }
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'smart-group', moved: moved.map(m => ({ name: m.name, category: m.group, from: m.from, to: m.to })), errors, total: moved.length });
-      sendNotification('Mojo File Organizer', `${moved.length} file${moved.length !== 1 ? 's' : ''} grouped successfully`);
+      const gNotif = formatOrganizeNotification(moved);
+      if (gNotif) sendNotification(gNotif.title, `Grouped: ${gNotif.body}`);
       updateTrayTooltip();
     }
   } catch (e) { errors.push({ name: 'General', error: e.message }); }
@@ -1051,7 +1070,7 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
   if (emptyFolders) emptyFolders.forEach(deleteFolder);
   if (oldFiles) oldFiles.forEach(deleteFile);
 
-  sendNotification('Mojo File Organizer', `Cleanup complete - ${deleted.length} items removed`);
+  if (deleted.length > 0) sendNotification(`✓ Cleanup complete`, `${deleted.length} item${deleted.length !== 1 ? 's' : ''} removed`);
   updateTrayTooltip();
   return { deleted, errors };
 });
@@ -1330,7 +1349,7 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
           errors: [],
           total: 1
         });
-          sendNotification('Mojo File Organizer', `Auto-organized: ${filename} -> ${cat}/`);
+          sendNotification(`→ ${filename}`, `Moved to ${cat}`);
           if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: cat });
           updateTrayTooltip();
         } catch (e) {}
