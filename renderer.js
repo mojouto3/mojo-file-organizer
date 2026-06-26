@@ -1964,7 +1964,7 @@ function getCatIcon(cat) {
 }
 
 // ── Onboarding ────────────────────────────────────────────────────
-const OB_TOTAL = 5;
+const OB_TOTAL = 7;
 let obCurrent = 0;
 let obTheme = 'dark';
 let obLang = 'en';
