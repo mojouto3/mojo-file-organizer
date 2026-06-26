@@ -358,6 +358,9 @@ async function loadHistory() {
         <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
           <i data-lucide="folder-open"></i>
         </button>
+        <button class="session-open-folder session-undo-btn" title="${tr('undoSession')}" onclick="event.stopPropagation();undoSession(${s.id})">
+          <i data-lucide="rotate-ccw"></i>
+        </button>
         <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
         <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
       </div>
@@ -398,6 +401,33 @@ async function exportSession(sessionId) {
   a.download = `mojo-session-${s.id}.txt`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+async function undoSession(sessionId) {
+  const sessions = await window.api.getLog();
+  const s = sessions.find(x => x.id === sessionId);
+  if (!s || !s.moved?.length) { showToast(tr('nothingToUndo')); return; }
+
+  const confirmed = await showConfirm(
+    tr('confirmUndoSession').replace('{count}', s.moved.length).replace('{date}', new Date(s.timestamp).toLocaleString())
+  );
+  if (!confirmed) return;
+
+  const r = await window.api.undo(s.moved);
+  const restored = r.restored?.length || 0;
+  const failed = r.errors?.length || 0;
+
+  if (restored > 0 && failed === 0) {
+    showToast(`↩ ${restored} ${tr('filesRestored')}`);
+    await window.api.deleteSession(sessionId);
+    loadHistory();
+  } else if (restored > 0 && failed > 0) {
+    showToast(`↩ ${restored} ${tr('filesRestored')} · ${failed} ${tr('filesNotFound')}`);
+    await window.api.deleteSession(sessionId);
+    loadHistory();
+  } else {
+    showToast(tr('undoFailed'));
+  }
 }
 
 async function openSessionFolder(folder) {

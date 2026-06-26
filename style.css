@@ -1691,3 +1691,7 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .update-progress-track { flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; max-width: 200px; }
 .update-progress-fill { height: 100%; background: var(--accent, var(--green)); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
 .update-progress-label { font-size: 10px; color: rgba(255,255,255,0.6); }
+
+/* ── Session undo button ── */
+.session-undo-btn:hover { color: var(--accent, var(--green)) !important; }
+[data-theme="light"] .session-undo-btn:hover { color: var(--green) !important; }
