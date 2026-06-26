@@ -4,6 +4,23 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.16.1] - 2026-06-26
+
+### Fixed
+- Auto-updater: Download Update button now works correctly when update is found on startup
+
+---
+
+## [3.16.0] - 2026-06-26
+
+### Added
+- Settings backup and restore: export all settings, categories, groups, ignore list and rules to JSON, and import from backup file
+- History date range filter: From/To date inputs next to search box with clear button
+- Duplicates smart suggestion: suggests which file to keep based on modification date, shows date next to each file
+- Smart Group import/export: export groups to JSON, import and merge from file
+
+---
+
 ## [3.15.2] - 2026-06-26
 
 ### Fixed

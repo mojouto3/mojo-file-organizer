@@ -319,7 +319,6 @@ function initAutoUpdater() {
 }
 
 async function checkForUpdates() {
-  // autoUpdater doesn't work in dev mode, go straight to GitHub API
   const isDev = !app.isPackaged;
 
   if (!isDev) {
@@ -329,7 +328,7 @@ async function checkForUpdates() {
         const latestVersion = result.updateInfo?.version || '';
         const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
         return {
-          ok: true, updateAvailable,
+          ok: true, updateAvailable, source: 'autoUpdater',
           currentVersion: APP_VERSION, latestVersion,
           releaseUrl: `https://github.com/${UPDATE_REPO}/releases/tag/v${latestVersion}`,
           releaseNotes: (result.updateInfo?.releaseNotes || '').toString().slice(0, 500),
@@ -345,7 +344,7 @@ async function checkForUpdates() {
     if (!latestVersion) return { ok: false, error: 'No release tag found' };
     const updateAvailable = compareVersions(latestVersion, APP_VERSION) > 0;
     return {
-      ok: true, updateAvailable,
+      ok: true, updateAvailable, source: 'github',
       currentVersion: APP_VERSION, latestVersion,
       releaseUrl: release.html_url || `https://github.com/${UPDATE_REPO}/releases/latest`,
       releaseNotes: (release.body || '').slice(0, 500),
@@ -431,7 +430,9 @@ app.whenReady().then(async () => {
   // Silent startup check (only notifies renderer if a newer version exists)
   setTimeout(async () => {
     const result = await checkForUpdates();
-    if (result.ok && result.updateAvailable && mainWindow && !mainWindow.isDestroyed()) {
+    // Only send update-available if autoUpdater didn't already handle it
+    // (autoUpdater sends updater-status:available via its own event listener)
+    if (result.ok && result.updateAvailable && result.source === 'github' && mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('update-available', result);
     }
   }, 4000);
