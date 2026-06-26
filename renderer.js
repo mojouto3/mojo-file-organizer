@@ -2094,6 +2094,49 @@ if (window.api.onUpdateAvailable) {
   window.api.onUpdateAvailable((result) => showUpdateBanner(result));
 }
 
+// ── Auto Updater UI ───────────────────────────────────────────────
+let updateReady = false;
+
+function handleUpdateAction() {
+  if (updateReady) {
+    window.api.installUpdate();
+  } else {
+    window.api.downloadUpdate().then(result => {
+      if (!result?.ok) showToast(tr('updateCheckFailed'));
+    });
+  }
+}
+
+if (window.api.onUpdaterStatus) {
+  window.api.onUpdaterStatus((data) => {
+    const banner = document.getElementById('updateBanner');
+    const text = document.getElementById('updateBannerText');
+    const btn = document.getElementById('updateActionBtn');
+    const wrap = document.getElementById('updateProgressWrap');
+    const fill = document.getElementById('updateProgressFill');
+    const label = document.getElementById('updateProgressLabel');
+
+    if (data.status === 'available') {
+      if (text) text.textContent = tr('updateAvailableMsg').replace('{version}', data.version);
+      if (btn) { btn.textContent = tr('downloadUpdate'); btn.disabled = false; }
+      if (banner) banner.classList.remove('hidden');
+      updateReady = false;
+    } else if (data.status === 'downloading') {
+      if (wrap) wrap.classList.remove('hidden');
+      if (fill) fill.style.width = data.percent + '%';
+      if (label) label.textContent = data.percent + '%';
+      if (btn) { btn.textContent = tr('downloading'); btn.disabled = true; }
+      if (banner) banner.classList.remove('hidden');
+    } else if (data.status === 'downloaded') {
+      if (wrap) wrap.classList.add('hidden');
+      if (text) text.textContent = tr('updateReadyMsg').replace('{version}', data.version);
+      if (btn) { btn.textContent = tr('restartToUpdate'); btn.disabled = false; }
+      if (banner) banner.classList.remove('hidden');
+      updateReady = true;
+    }
+  });
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
 function getCatIcon(cat) {
   const map = { Images:'image', Videos:'video', Audio:'music', Documents:'file-text', Archives:'archive', Code:'code', Installers:'package', Fonts:'type', Torrents:'download' };
