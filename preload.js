@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('api', {
   registerContextMenu:   ()  => ipcRenderer.invoke('register-context-menu'),
   unregisterContextMenu: ()  => ipcRenderer.invoke('unregister-context-menu'),
   onContextMenuOrganize: (cb) => { ipcRenderer.removeAllListeners('context-menu-organize'); ipcRenderer.on('context-menu-organize', (_, folder) => cb(folder)); },
+  onTrayAction: (cb) => { ipcRenderer.removeAllListeners('tray-action'); ipcRenderer.on('tray-action', (_, data) => cb(data)); },
   downloadUpdate: () => ipcRenderer.invoke('download-update'),
   installUpdate:  () => ipcRenderer.invoke('install-update'),
   onUpdaterStatus: (cb) => { ipcRenderer.removeAllListeners('updater-status'); ipcRenderer.on('updater-status', (_, data) => cb(data)); },

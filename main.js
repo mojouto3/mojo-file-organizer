@@ -137,13 +137,59 @@ function createTray() {
 
 function updateTrayMenu() {
   if (!tray) return;
-  const menu = Menu.buildFromTemplate([
-    { label: 'Mojo File Organizer', enabled: false },
+  const s = readSettings();
+  const downloadsFolder = path.join(os.homedir(), 'Downloads');
+  const lastFolder = s.defaultFolder || '';
+
+  // Get quick stats for tooltip label
+  let statsLabel = 'Mojo File Organizer';
+  try {
+    const logData = readLog();
+    const total = logData.reduce((acc, session) => acc + (session.total || 0), 0);
+    if (total > 0) statsLabel = `Mojo File Organizer — ${total} files organized`;
+  } catch (e) {}
+
+  const menuTemplate = [
+    { label: statsLabel, enabled: false },
+    { type: 'separator' },
+    {
+      label: '⚡ Organize Downloads',
+      click: async () => {
+        showWindow();
+        setTimeout(() => {
+          if (mainWindow) mainWindow.webContents.send('tray-action', { action: 'organize', folder: downloadsFolder });
+        }, 500);
+      }
+    },
+    ...(lastFolder ? [{
+      label: `⚡ Organize Last Folder`,
+      sublabel: path.basename(lastFolder),
+      click: async () => {
+        showWindow();
+        setTimeout(() => {
+          if (mainWindow) mainWindow.webContents.send('tray-action', { action: 'organize', folder: lastFolder });
+        }, 500);
+      }
+    }] : []),
+    { type: 'separator' },
+    {
+      label: '🕐 Open History',
+      click: () => { showWindow(); setTimeout(() => mainWindow?.webContents.send('tray-action', { action: 'tab', tab: 'history' }), 500); }
+    },
+    {
+      label: '🗑 Open Cleanup',
+      click: () => { showWindow(); setTimeout(() => mainWindow?.webContents.send('tray-action', { action: 'tab', tab: 'cleanup' }), 500); }
+    },
+    {
+      label: '📊 Open Stats',
+      click: () => { showWindow(); setTimeout(() => mainWindow?.webContents.send('tray-action', { action: 'tab', tab: 'stats' }), 500); }
+    },
     { type: 'separator' },
     { label: 'Open', click: () => showWindow() },
-    { type: 'separator' },
     { label: 'Quit', click: () => { app.isQuitting = true; app.quit(); } }
-  ]);
+  ];
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
   tray.setContextMenu(menu);
 }
 
