@@ -698,13 +698,27 @@ async function toggleContextMenu() {
 
 // Handle launch from Explorer context menu
 window.api.onContextMenuOrganize(async (folder) => {
-  switchTab('organize');
+  showTab('organize');
   const input = document.getElementById('folderInput');
   if (input) input.value = folder;
   appSettings.defaultFolder = folder;
   await window.api.saveSettings(appSettings);
   await organizeFolder(folder);
 });
+
+// Handle tray actions
+if (window.api.onTrayAction) {
+  window.api.onTrayAction(async (data) => {
+    if (data.action === 'tab') {
+      showTab(data.tab);
+    } else if (data.action === 'organize') {
+      showTab('organize');
+      const input = document.getElementById('folderInput');
+      if (input) input.value = data.folder;
+      await showPreview(data.folder);
+    }
+  });
+}
 
 // ── Cleanup Suggestions ───────────────────────────────────────────
 const SUGGESTIONS_DISMISSED_KEY = 'mojo-dismissed-suggestions';
