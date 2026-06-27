@@ -221,7 +221,12 @@ All categories can be customized, enabled/disabled, or deleted from the Settings
 
 ### Option 2: Portable
 
-Coming soon.
+1. Go to the [Releases](../../releases) page
+2. Download the latest **`Mojo-File-Organizer-Portable-X.X.X.exe`**
+3. Place it in any folder (USB drive, network share, etc.)
+4. Run it directly — no installation needed
+
+All your settings, history and rules are stored in a **`MojoData/`** folder next to the exe, so everything travels with you.
 
 ---
 
@@ -333,8 +338,7 @@ See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
 ## Roadmap
 
-### v3.16
-- [ ] Portable version (no installer needed)
+### v3.18+
 - [ ] Windows Widget for quick stats
 
 ---
