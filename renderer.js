@@ -2117,7 +2117,6 @@ async function checkForUpdates(fromBadge = false) {
   if (result.updateAvailable) {
     latestReleaseUrl = result.releaseUrl;
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion); }
-    showUpdateBanner(result);
     if (fromBadge) showToast(tr('updateAvailableMsg').replace('{version}', result.latestVersion));
   } else {
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('upToDate'); }
@@ -2148,7 +2147,10 @@ function openReleasePage() {
 }
 
 if (window.api.onUpdateAvailable) {
-  window.api.onUpdateAvailable((result) => showUpdateBanner(result));
+  window.api.onUpdateAvailable((result) => {
+    // GitHub API fallback - just update the status text, banner shows via onUpdaterStatus
+    latestReleaseUrl = result?.releaseUrl || '';
+  });
 }
 
 // ── Auto Updater UI ───────────────────────────────────────────────
