@@ -4,6 +4,13 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.16.3] - 2026-06-27
+
+### Fixed
+- Suggestions: View Stats button now correctly opens the Stats tab
+
+---
+
 ## [3.16.2] - 2026-06-26
 
 ### Fixed

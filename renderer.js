@@ -969,7 +969,7 @@ async function loadCleanupSuggestions() {
       suggestions.push({ id, type: 'clean', icon: 'bar-chart-2',
         title: tr('suggCatTitle').replace('{cat}', cat).replace('{count}', count),
         desc: tr('suggCatDesc'),
-        action: () => switchTab('stats'),
+        action: () => showTab('stats'),
         actionLabel: tr('suggViewStats')
       });
     }
@@ -2117,6 +2117,7 @@ async function checkForUpdates(fromBadge = false) {
   if (result.updateAvailable) {
     latestReleaseUrl = result.releaseUrl;
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('updateAvailableMsg').replace('{version}', result.latestVersion); }
+    showUpdateBanner(result);
     if (fromBadge) showToast(tr('updateAvailableMsg').replace('{version}', result.latestVersion));
   } else {
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('upToDate'); }
@@ -2147,10 +2148,7 @@ function openReleasePage() {
 }
 
 if (window.api.onUpdateAvailable) {
-  window.api.onUpdateAvailable((result) => {
-    // GitHub API fallback - just update the status text, banner shows via onUpdaterStatus
-    latestReleaseUrl = result?.releaseUrl || '';
-  });
+  window.api.onUpdateAvailable((result) => showUpdateBanner(result));
 }
 
 // ── Auto Updater UI ───────────────────────────────────────────────
