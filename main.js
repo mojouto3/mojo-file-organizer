@@ -12,11 +12,23 @@ let tray = null;
 let trayStatsInterval = null;
 
 // ── Data files ────────────────────────────────────────────────────
-const LOG_FILE        = path.join(os.homedir(), 'mojo-organizer.log.json');
-const GROUPS_FILE     = path.join(os.homedir(), 'mojo-organizer.groups.json');
-const CATEGORIES_FILE = path.join(os.homedir(), 'mojo-organizer.categories.json');
-const SETTINGS_FILE   = path.join(os.homedir(), 'mojo-organizer.settings.json');
-const RULES_FILE      = path.join(os.homedir(), 'mojo-organizer.rules.json');
+// ── Portable mode detection ───────────────────────────────────────
+// electron-builder sets PORTABLE_EXECUTABLE_DIR for portable builds
+const IS_PORTABLE = !!process.env.PORTABLE_EXECUTABLE_DIR;
+const DATA_DIR = IS_PORTABLE
+  ? path.join(process.env.PORTABLE_EXECUTABLE_DIR, 'MojoData')
+  : os.homedir();
+
+// Ensure data directory exists (needed for portable mode)
+if (IS_PORTABLE && !fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const LOG_FILE        = path.join(DATA_DIR, 'mojo-organizer.log.json');
+const GROUPS_FILE     = path.join(DATA_DIR, 'mojo-organizer.groups.json');
+const CATEGORIES_FILE = path.join(DATA_DIR, 'mojo-organizer.categories.json');
+const SETTINGS_FILE   = path.join(DATA_DIR, 'mojo-organizer.settings.json');
+const RULES_FILE      = path.join(DATA_DIR, 'mojo-organizer.rules.json');
 
 // ── Default settings ──────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
@@ -464,7 +476,7 @@ function readCategories() {
 function writeCategories(c) { fs.writeFileSync(CATEGORIES_FILE, JSON.stringify(c, null, 2)); }
 
 // ── Ignore list helpers ───────────────────────────────────────────
-const IGNORE_FILE = path.join(os.homedir(), 'mojo-organizer.ignore.json');
+const IGNORE_FILE = path.join(DATA_DIR, 'mojo-organizer.ignore.json');
 const DEFAULT_IGNORE = { folders: ['node_modules', '.git', '.svn', '.venv', '__pycache__', '.DS_Store'], extensions: ['.sys', '.dll', '.lnk', '.ini', '.db', '.log'] };
 
 function readIgnoreList() {
@@ -543,7 +555,7 @@ function getUniqueDest(destFolder, filename) {
   return dest;
 }
 // ── Bookmarks helpers ─────────────────────────────────────────────
-const BOOKMARKS_FILE = path.join(os.homedir(), 'mojo-organizer.bookmarks.json');
+const BOOKMARKS_FILE = path.join(DATA_DIR, 'mojo-organizer.bookmarks.json');
 
 function readBookmarks() {
   try { if (fs.existsSync(BOOKMARKS_FILE)) return JSON.parse(fs.readFileSync(BOOKMARKS_FILE, 'utf8')); } catch (e) {}
@@ -588,7 +600,7 @@ ipcMain.handle('remove-bookmark', async (_, id) => {
 });
 
 // ── Recent Folders helpers ───────────────────────────────────────
-const RECENT_FILE = path.join(os.homedir(), 'mojo-organizer.recent.json');
+const RECENT_FILE = path.join(DATA_DIR, 'mojo-organizer.recent.json');
 
 function readRecent() {
   try { if (fs.existsSync(RECENT_FILE)) return JSON.parse(fs.readFileSync(RECENT_FILE, 'utf8')); } catch (e) {}
