@@ -1,2 +1,8 @@
 node_modules/
 dist/
+out/
+.env
+*.log
+.DS_Store
+Thumbs.db
+mojo-organizer.*.json
