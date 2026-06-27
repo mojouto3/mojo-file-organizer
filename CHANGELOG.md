@@ -4,6 +4,13 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.16.2] - 2026-06-26
+
+### Fixed
+- Auto-updater: restored v3.12.0 working implementation - download progress bar and Restart & Update button work correctly again
+
+---
+
 ## [3.16.1] - 2026-06-26
 
 ### Fixed
