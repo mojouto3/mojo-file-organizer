@@ -4,6 +4,13 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.17.0] - 2026-06-27
+
+### Added
+- Portable version: run Mojo File Organizer from any folder without installation. All data stored in MojoData/ folder next to the exe.
+
+---
+
 ## [3.16.3] - 2026-06-27
 
 ### Fixed
