@@ -1265,11 +1265,16 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
             const dest = path.resolve(rule.action.dest);
             if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
             if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-            fs.renameSync(fullPath, path.join(dest, f.name));
-            actionResult.ok = true; actionResult.dest = dest;
+            const moveTo = path.join(dest, f.name);
+            fs.renameSync(fullPath, moveTo);
+            actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
           } else if (rule.action.type === 'rename') {
             const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
-            if (newName !== f.name) { fs.renameSync(fullPath, path.join(folderPath, newName)); actionResult.ok = true; actionResult.newName = newName; }
+            if (newName !== f.name) {
+              const renameTo = path.join(folderPath, newName);
+              fs.renameSync(fullPath, renameTo);
+              actionResult.ok = true; actionResult.newName = newName; actionResult.from = fullPath; actionResult.to = renameTo;
+            }
           }
         } catch (e) { actionResult.error = e.message; }
         results.push(actionResult);

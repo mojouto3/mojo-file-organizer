@@ -15,6 +15,7 @@ let categories = [];
 let groups = [];
 let lastMoves = [];
 let lastGroupMoves = [];
+let lastRulesMoves = [];
 let currentFolder = null;
 let currentGroupFolder = null;
 let scheduleFolder = null;
@@ -2885,6 +2886,8 @@ async function runRules() {
     if (resultsEl) resultsEl.innerHTML = `<div style="color:var(--danger);font-size:11px;padding:8px 0">${result.error}</div>`;
     document.getElementById('rulesRecycleBinCard')?.classList.add('hidden');
     document.getElementById('rulesRunSummary')?.classList.add('hidden');
+    document.getElementById('rulesUndoRow')?.classList.add('hidden');
+    lastRulesMoves = [];
     return;
   }
 
@@ -2932,6 +2935,20 @@ async function runRules() {
       rulesBinCard.classList.add('hidden');
     }
   }
+
+  lastRulesMoves = result.results
+    .filter(r => r.ok && (r.action === 'move' || r.action === 'rename') && r.from && r.to)
+    .map(r => ({ name: r.file, from: r.from, to: r.to }));
+  const undoRow = document.getElementById('rulesUndoRow');
+  if (undoRow) undoRow.classList.toggle('hidden', lastRulesMoves.length === 0);
+}
+
+async function undoRulesRun() {
+  if (!lastRulesMoves.length) { showToast(tr('nothingToUndo')); return; }
+  const r = await window.api.undo(lastRulesMoves);
+  lastRulesMoves = [];
+  document.getElementById('rulesUndoRow')?.classList.add('hidden');
+  showToast(tr('restoredFiles').replace('{count}', r.restored.length));
 }
 
 document.addEventListener('DOMContentLoaded', init);
