@@ -582,7 +582,27 @@
       </button>
       <span class="status-text" id="rulesRunStatus"></span>
     </div>
+    <div id="rulesRunSummary" class="rules-run-summary hidden"></div>
     <div id="rulesRunResults"></div>
+  </div>
+
+  <!-- Recycle Bin (shown after Run Rules deletes files) -->
+  <div class="card hidden" id="rulesRecycleBinCard">
+    <div class="card-header">
+      <i data-lucide="trash" class="card-icon"></i>
+      <span class="card-title" data-i18n="recycleBin">Recycle Bin</span>
+      <span class="accordion-hint" id="rulesRecycleBinSize"></span>
+    </div>
+    <div class="setting-row">
+      <div class="setting-info">
+        <div class="setting-title" data-i18n="recycleBinDesc">Empty the Windows Recycle Bin</div>
+        <div class="setting-desc" id="rulesRecycleBinSizeDesc" data-i18n="recycleBinChecking">Checking size...</div>
+      </div>
+      <button class="btn btn-danger-outline btn-sm" id="rulesEmptyRecycleBinBtn" onclick="emptyRecycleBin('rules')">
+        <i data-lucide="trash-2"></i><span data-i18n="emptyRecycleBin">Empty Recycle Bin</span>
+      </button>
+    </div>
+    <div id="rulesRecycleBinMsg" class="status-msg"></div>
   </div>
 </div>
 

@@ -1013,11 +1013,17 @@ function suggestionAction(id) {
 }
 
 // ── Recycle Bin ───────────────────────────────────────────────────
-async function initRecycleBin() {
+const RECYCLE_BIN_SCOPES = {
+  cleanup: { size: 'recycleBinSize', desc: 'recycleBinSizeDesc', btn: 'emptyRecycleBinBtn', msg: 'recycleBinMsg' },
+  rules:   { size: 'rulesRecycleBinSize', desc: 'rulesRecycleBinSizeDesc', btn: 'rulesEmptyRecycleBinBtn', msg: 'rulesRecycleBinMsg' }
+};
+
+async function initRecycleBin(scope = 'cleanup') {
+  const ids = RECYCLE_BIN_SCOPES[scope] || RECYCLE_BIN_SCOPES.cleanup;
   const result = await window.api.getRecycleBinSize();
-  const sizeDesc = document.getElementById('recycleBinSizeDesc');
-  const sizeHint = document.getElementById('recycleBinSize');
-  const btn = document.getElementById('emptyRecycleBinBtn');
+  const sizeDesc = document.getElementById(ids.desc);
+  const sizeHint = document.getElementById(ids.size);
+  const btn = document.getElementById(ids.btn);
   if (!result.ok || result.size === 0) {
     if (sizeDesc) sizeDesc.textContent = tr('recycleBinEmpty');
     if (sizeHint) sizeHint.textContent = tr('recycleBinEmpty');
@@ -1030,20 +1036,21 @@ async function initRecycleBin() {
   }
 }
 
-async function emptyRecycleBin() {
-  const sizeHint = document.getElementById('recycleBinSize');
+async function emptyRecycleBin(scope = 'cleanup') {
+  const ids = RECYCLE_BIN_SCOPES[scope] || RECYCLE_BIN_SCOPES.cleanup;
+  const sizeHint = document.getElementById(ids.size);
   const size = sizeHint?.textContent;
   if (!await showConfirm(tr('confirmEmptyRecycleBin').replace('{size}', size || ''))) return;
 
-  const btn = document.getElementById('emptyRecycleBinBtn');
+  const btn = document.getElementById(ids.btn);
   if (btn) btn.disabled = true;
 
   const result = await window.api.emptyRecycleBin();
-  const msg = document.getElementById('recycleBinMsg');
+  const msg = document.getElementById(ids.msg);
   if (result.ok) {
     if (msg) { msg.className = 'status-msg ok'; msg.textContent = tr('recycleBinEmptied'); }
-    const sizeDesc = document.getElementById('recycleBinSizeDesc');
-    const sizeHint2 = document.getElementById('recycleBinSize');
+    const sizeDesc = document.getElementById(ids.desc);
+    const sizeHint2 = document.getElementById(ids.size);
     if (sizeDesc) sizeDesc.textContent = tr('recycleBinEmpty');
     if (sizeHint2) sizeHint2.textContent = tr('recycleBinEmpty');
   } else {
@@ -2876,11 +2883,31 @@ async function runRules() {
   if (!result.ok) {
     if (statusEl) statusEl.textContent = '✗ Error';
     if (resultsEl) resultsEl.innerHTML = `<div style="color:var(--danger);font-size:11px;padding:8px 0">${result.error}</div>`;
+    document.getElementById('rulesRecycleBinCard')?.classList.add('hidden');
+    document.getElementById('rulesRunSummary')?.classList.add('hidden');
     return;
   }
 
   const matched = result.results.filter(r => r.ok);
   if (statusEl) statusEl.textContent = `✓ ${matched.length} files processed`;
+
+  const summaryEl = document.getElementById('rulesRunSummary');
+  if (summaryEl) {
+    const counts = matched.reduce((acc, r) => {
+      acc[r.action] = (acc[r.action] || 0) + 1;
+      return acc;
+    }, {});
+    const parts = [];
+    if (counts.move)   parts.push(`<span class="rules-summary-item move"><span class="rules-summary-count">${counts.move}</span> ${tr('runRulesSummaryMoved')}</span>`);
+    if (counts.delete) parts.push(`<span class="rules-summary-item del"><span class="rules-summary-count">${counts.delete}</span> ${tr('runRulesSummaryDeleted')}</span>`);
+    if (counts.rename) parts.push(`<span class="rules-summary-item rename"><span class="rules-summary-count">${counts.rename}</span> ${tr('runRulesSummaryRenamed')}</span>`);
+    if (parts.length) {
+      summaryEl.innerHTML = parts.join('');
+      summaryEl.classList.remove('hidden');
+    } else {
+      summaryEl.classList.add('hidden');
+    }
+  }
 
   if (resultsEl) {
     if (!result.results.length) {
@@ -2892,6 +2919,17 @@ async function runRules() {
           <span class="rule-result-action ${r.action==='delete'?'del':''}">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 deleted' : `renamed to ${sanitize(r.newName||'')}`}</span>
           <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
         </div>`).join('')}</div>`;
+    }
+  }
+
+  const rulesBinCard = document.getElementById('rulesRecycleBinCard');
+  const hadDeletions = result.results.some(r => r.ok && r.action === 'delete');
+  if (rulesBinCard) {
+    if (hadDeletions) {
+      rulesBinCard.classList.remove('hidden');
+      initRecycleBin('rules');
+    } else {
+      rulesBinCard.classList.add('hidden');
     }
   }
 }
