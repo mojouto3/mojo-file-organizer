@@ -4,6 +4,15 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.18.0] - 2026-06-30
+
+### Added
+- Rules tab: action summary above run results showing counts per type (moved, deleted, renamed)
+- Rules tab: undo support for move and rename actions, directly from the results panel
+- Rules tab: Empty Recycle Bin shortcut appears after a run that deletes files, same as the Cleanup tab
+
+---
+
 ## [3.17.0] - 2026-06-27
 
 ### Added

@@ -82,6 +82,9 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - 6 preset rules ready to enable with one click
 - Custom rule builder: conditions (name, extension, age, size), logic (ALL/ANY), actions (move, delete, rename)
 - Run rules on any folder with live results per file
+- Action summary above the results showing counts per type (moved, deleted, renamed)
+- Undo support for move and rename actions, directly from the results panel
+- Empty Recycle Bin shortcut appears after a run that deletes files, same as the Cleanup tab
 
 ### Batch Organize
 - Organize multiple folders at once from the Organize tab
