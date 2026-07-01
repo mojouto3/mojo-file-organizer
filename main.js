@@ -1411,6 +1411,11 @@ ipcMain.handle('unregister-context-menu', async () => {
 });
 
 // ── IPC: Recycle Bin ─────────────────────────────────────────────
+ipcMain.handle('open-recycle-bin', async () => {
+  await shell.openPath('shell:RecycleBinFolder');
+  return true;
+});
+
 ipcMain.handle('get-recycle-bin-size', async () => {
   return new Promise((resolve) => {
     const { exec } = require('child_process');

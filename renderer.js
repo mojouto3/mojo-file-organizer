@@ -1037,6 +1037,10 @@ async function initRecycleBin(scope = 'cleanup') {
   }
 }
 
+async function openRecycleBin() {
+  await window.api.openRecycleBin();
+}
+
 async function emptyRecycleBin(scope = 'cleanup') {
   const ids = RECYCLE_BIN_SCOPES[scope] || RECYCLE_BIN_SCOPES.cleanup;
   const sizeHint = document.getElementById(ids.size);
