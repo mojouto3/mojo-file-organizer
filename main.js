@@ -1344,6 +1344,17 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
       }
     }
   } catch (e) { return { ok: false, error: e.message, results: [] }; }
+  const matchedResults = results.filter(r => r.ok);
+  if (matchedResults.length) {
+    appendSession({
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      folder: folderPath,
+      type: 'rules',
+      results: matchedResults,
+      total: matchedResults.length
+    });
+  }
   return { ok: true, results };
 });
 

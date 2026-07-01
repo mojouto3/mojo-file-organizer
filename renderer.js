@@ -349,7 +349,7 @@ function renderHistory(sessions) {
     const timeStr = date.toLocaleTimeString('el-GR', { hour:'2-digit', minute:'2-digit' });
 
     const grouped = {};
-    for (const f of s.moved) {
+    for (const f of (s.moved || [])) {
       if (!grouped[f.category]) grouped[f.category] = [];
       grouped[f.category].push(f);
     }
@@ -376,25 +376,63 @@ function renderHistory(sessions) {
     const el = document.createElement('div');
     el.className = 'session';
     el.dataset.timestamp = s.timestamp;
-    el.innerHTML = `
-      <div class="session-header" onclick="toggleSession(this)">
-        <div class="session-date">${dateStr} ${timeStr}</div>
-        <div class="session-folder" title="${s.folder}">${s.folder}</div>
-        <span class="session-type">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
-        <span class="session-badge">${s.total} moved</span>
-        <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
-          <i data-lucide="download"></i>
-        </button>
-        <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-          <i data-lucide="folder-open"></i>
-        </button>
-        <button class="session-open-folder session-undo-btn" title="${tr('undoSession')}" onclick="event.stopPropagation();undoSession(${s.id})">
-          <i data-lucide="rotate-ccw"></i>
-        </button>
-        <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
-        <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
-      </div>
-      <div class="session-body">${groupsHTML}</div>`;
+
+    if (s.type === 'rules') {
+      // Rules run session — group by action type
+      const byAction = { move: [], delete: [], rename: [] };
+      for (const r of (s.results || [])) {
+        if (byAction[r.action]) byAction[r.action].push(r);
+      }
+      const rulesGroupsHTML = Object.entries(byAction).filter(([, files]) => files.length).map(([action, files]) => {
+        const label = action === 'move' ? 'Moved' : action === 'delete' ? 'Deleted' : 'Renamed';
+        const icon = action === 'move' ? 'arrow-right' : action === 'delete' ? 'trash-2' : 'pencil';
+        return `<div class="session-cat">
+          <div class="session-cat-label"><i data-lucide="${icon}"></i>${label} (${files.length})</div>
+          <div class="file-chips">${files.map(f => `
+            <span class="file-chip-wrap">
+              <span class="file-chip" title="${sanitize(f.file)}">${sanitize(f.file)}</span>
+              ${(f.from && f.to) ? `
+              <button class="file-chip-action file-chip-undo" title="${tr('undoFile')}" onclick="undoSingleRulesFile('${f.from.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', '${f.to.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}', ${s.id})">
+                <i data-lucide="undo-2"></i>
+              </button>` : ''}
+            </span>`).join('')}</div>
+        </div>`;
+      }).join('');
+
+      el.innerHTML = `
+        <div class="session-header" onclick="toggleSession(this)">
+          <div class="session-date">${dateStr} ${timeStr}</div>
+          <div class="session-folder" title="${s.folder}">${s.folder}</div>
+          <span class="session-type type-rules">Rules</span>
+          <span class="session-badge">${s.total} files</span>
+          <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+            <i data-lucide="folder-open"></i>
+          </button>
+          <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
+        </div>
+        <div class="session-body">${rulesGroupsHTML}</div>`;
+    } else {
+      el.innerHTML = `
+        <div class="session-header" onclick="toggleSession(this)">
+          <div class="session-date">${dateStr} ${timeStr}</div>
+          <div class="session-folder" title="${s.folder}">${s.folder}</div>
+          <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
+          <span class="session-badge">${s.total} moved</span>
+          <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
+            <i data-lucide="download"></i>
+          </button>
+          <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+            <i data-lucide="folder-open"></i>
+          </button>
+          <button class="session-open-folder session-undo-btn" title="${tr('undoSession')}" onclick="event.stopPropagation();undoSession(${s.id})">
+            <i data-lucide="rotate-ccw"></i>
+          </button>
+          <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
+        </div>
+        <div class="session-body">${groupsHTML}</div>`;
+    }
     list.appendChild(el);
   }
   lucide.createIcons();
@@ -3001,6 +3039,8 @@ async function runRules() {
     .map(r => ({ name: r.file, from: r.from, to: r.to }));
   const undoRow = document.getElementById('rulesUndoRow');
   if (undoRow) undoRow.classList.toggle('hidden', lastRulesMoves.length === 0);
+
+  if (matched.length) await loadHistory();
 }
 
 async function undoRulesRun() {
@@ -3009,6 +3049,16 @@ async function undoRulesRun() {
   lastRulesMoves = [];
   document.getElementById('rulesUndoRow')?.classList.add('hidden');
   showToast(tr('restoredFiles').replace('{count}', r.restored.length));
+}
+
+async function undoSingleRulesFile(from, to, sessionId) {
+  const r = await window.api.undo([{ from: to, to: from, name: from.split('\\').pop() }]);
+  if (r?.restored?.length) {
+    showToast(tr('restoredFiles').replace('{count}', 1));
+    await loadHistory();
+  } else {
+    showToast(`✗ ${tr('filesNotFound')}`);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
