@@ -62,6 +62,8 @@ contextBridge.exposeInMainWorld('api', {
   saveRenameRules:  (rules)  => ipcRenderer.invoke('get-settings').then(async s => { s.renameRules = rules; return ipcRenderer.invoke('save-settings', s); }),
   getRules:         ()       => ipcRenderer.invoke('get-rules'),
   saveRules:        (rules)  => ipcRenderer.invoke('save-rules', rules),
+  exportRules:      ()       => ipcRenderer.invoke('export-rules'),
+  importRules:      ()       => ipcRenderer.invoke('import-rules'),
   runRules:         (opts)   => ipcRenderer.invoke('run-rules', opts),
   exportAppData:    ()       => ipcRenderer.invoke('export-app-data'),
   importAppData:    ()       => ipcRenderer.invoke('import-app-data'),

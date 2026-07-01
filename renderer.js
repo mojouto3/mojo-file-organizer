@@ -2615,6 +2615,24 @@ async function loadRules() {
   renderPresetRules();
 }
 
+async function exportRules() {
+  const result = await window.api.exportRules();
+  if (result.cancelled) return;
+  if (result.ok) showToast(`✓ ${tr('rulesExported')}`);
+  else showToast(`✗ ${result.error}`);
+}
+
+async function importRules() {
+  const result = await window.api.importRules();
+  if (result.cancelled) return;
+  if (result.ok) {
+    showToast(`✓ ${result.added} ${tr('rulesImported')}`);
+    await loadRules();
+  } else {
+    showToast(`✗ ${result.error}`);
+  }
+}
+
 function renderPresetRules() {
   const list = document.getElementById('presetRulesList');
   if (!list) return;
