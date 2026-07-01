@@ -69,6 +69,7 @@ contextBridge.exposeInMainWorld('api', {
   importGroups:     ()       => ipcRenderer.invoke('import-groups'),
   getRecycleBinSize: ()      => ipcRenderer.invoke('get-recycle-bin-size'),
   emptyRecycleBin:   ()      => ipcRenderer.invoke('empty-recycle-bin'),
+  openRecycleBin:    ()      => ipcRenderer.invoke('open-recycle-bin'),
   registerContextMenu:   ()  => ipcRenderer.invoke('register-context-menu'),
   unregisterContextMenu: ()  => ipcRenderer.invoke('unregister-context-menu'),
   onContextMenuOrganize: (cb) => { ipcRenderer.removeAllListeners('context-menu-organize'); ipcRenderer.on('context-menu-organize', (_, folder) => cb(folder)); },
