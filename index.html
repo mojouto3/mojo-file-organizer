@@ -557,9 +557,17 @@
       <i data-lucide="sliders-horizontal" class="card-icon"></i>
       <span class="card-title" data-i18n="rules">Rules</span>
       <span class="badge" id="rulesCount"></span>
-      <button class="btn btn-green btn-sm" onclick="openRuleEditor()" style="margin-left:auto">
-        <i data-lucide="plus"></i><span data-i18n="addRule">Add Rule</span>
-      </button>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="exportRules()" title="Export rules">
+          <i data-lucide="download"></i><span data-i18n="export">Export</span>
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="importRules()" title="Import rules">
+          <i data-lucide="upload"></i><span data-i18n="import">Import</span>
+        </button>
+        <button class="btn btn-green btn-sm" onclick="openRuleEditor()">
+          <i data-lucide="plus"></i><span data-i18n="addRule">Add Rule</span>
+        </button>
+      </div>
     </div>
     <div class="empty-state hidden" id="rulesEmpty">
       <i data-lucide="git-branch"></i>

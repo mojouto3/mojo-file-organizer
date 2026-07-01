@@ -1238,6 +1238,38 @@ function writeRules(r) { fs.writeFileSync(RULES_FILE, JSON.stringify(r, null, 2)
 ipcMain.handle('get-rules', async () => readRules());
 ipcMain.handle('save-rules', async (_, rules) => { writeRules(rules); return true; });
 
+ipcMain.handle('export-rules', async () => {
+  const { filePath } = await dialog.showSaveDialog(mainWindow, {
+    title: 'Export Rules',
+    defaultPath: `mojo-rules-${new Date().toISOString().slice(0,10)}.json`,
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  });
+  if (!filePath) return { ok: false, cancelled: true };
+  try {
+    fs.writeFileSync(filePath, JSON.stringify({ rules: readRules(), exportedAt: new Date().toISOString() }, null, 2));
+    return { ok: true, path: filePath };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle('import-rules', async () => {
+  const { filePaths } = await dialog.showOpenDialog(mainWindow, {
+    title: 'Import Rules',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile']
+  });
+  if (!filePaths?.length) return { ok: false, cancelled: true };
+  try {
+    const data = JSON.parse(fs.readFileSync(filePaths[0], 'utf8'));
+    const incoming = data.rules || (Array.isArray(data) ? data : null);
+    if (!incoming) return { ok: false, error: 'Invalid rules file' };
+    const existing = readRules();
+    const existingNames = new Set(existing.map(r => r.name?.toLowerCase()));
+    const merged = [...existing, ...incoming.filter(r => !existingNames.has(r.name?.toLowerCase()))];
+    writeRules(merged);
+    return { ok: true, added: merged.length - existing.length };
+  } catch (e) { return { ok: false, error: e.message }; }
+});
+
 ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
   const results = [];
   try {
