@@ -2891,7 +2891,45 @@ async function pickRulesFolder() {
   if (folder) { const el = document.getElementById('rulesFolder'); if (el) el.value = folder; }
 }
 
+async function previewRules() {
+  const folder = document.getElementById('rulesFolder')?.value;
+  if (!folder) { showToast(tr('selectFolderFirst') || 'Select a folder first'); return; }
+  const activeRules = rulesData.filter(r => r.enabled);
+  if (!activeRules.length) { showToast('No active rules'); return; }
+
+  const statusEl = document.getElementById('rulesRunStatus');
+  const previewEl = document.getElementById('rulesPreviewResults');
+  if (statusEl) statusEl.textContent = 'Previewing...';
+
+  const result = await window.api.previewRules({ folderPath: folder, rules: activeRules });
+
+  if (!result.ok) {
+    if (statusEl) statusEl.textContent = '✗ Error';
+    if (previewEl) { previewEl.classList.remove('hidden'); previewEl.innerHTML = `<div style="color:var(--danger);font-size:11px;padding:8px 0">${result.error}</div>`; }
+    return;
+  }
+
+  if (statusEl) statusEl.textContent = `${tr('rulesPreviewTitle')}: ${result.results.length} files`;
+
+  if (previewEl) {
+    if (!result.results.length) {
+      previewEl.classList.remove('hidden');
+      previewEl.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">${tr('noRulesMatched')}</div>`;
+    } else {
+      previewEl.classList.remove('hidden');
+      previewEl.innerHTML = `<div style="margin-top:2px">${result.results.map(r => `
+        <div class="rule-result-row matched">
+          <span style="flex:1">${sanitize(r.file)}</span>
+          <span class="rule-result-action">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 delete' : `rename to ${sanitize(r.newName||r.file)}`}</span>
+          <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
+          <span style="font-size:10px;font-weight:600;color:var(--accent);margin-left:4px">PREVIEW</span>
+        </div>`).join('')}</div>`;
+    }
+  }
+}
+
 async function runRules() {
+  document.getElementById('rulesPreviewResults')?.classList.add('hidden');
   const folder = document.getElementById('rulesFolder')?.value;
   if (!folder) { showToast(tr('selectFolderFirst') || 'Select a folder first'); return; }
   const activeRules = rulesData.filter(r => r.enabled);

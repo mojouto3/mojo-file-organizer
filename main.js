@@ -1270,6 +1270,36 @@ ipcMain.handle('import-rules', async () => {
   } catch (e) { return { ok: false, error: e.message }; }
 });
 
+ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
+  const results = [];
+  try {
+    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    for (const f of files) {
+      const fullPath = path.join(folderPath, f.name);
+      let stat;
+      try { stat = fs.statSync(fullPath); } catch (e) { continue; }
+      const ext = path.extname(f.name).toLowerCase().replace('.', '');
+      const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
+      const sizeBytes = stat.size;
+
+      for (const rule of rules) {
+        if (!rule.enabled) continue;
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
+        if (!matched) continue;
+
+        const preview = { file: f.name, rule: rule.name, action: rule.action.type };
+        if (rule.action.type === 'move') preview.dest = rule.action.dest || '';
+        if (rule.action.type === 'rename') {
+          preview.newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
+        }
+        results.push(preview);
+        break;
+      }
+    }
+  } catch (e) { return { ok: false, error: e.message, results: [] }; }
+  return { ok: true, results };
+});
+
 ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
   const results = [];
   try {
