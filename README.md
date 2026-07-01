@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.18.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.19.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -81,10 +81,14 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - New Rules tab (Ctrl+8) with preset and custom rules for automating file actions
 - 6 preset rules ready to enable with one click
 - Custom rule builder: conditions (name, extension, age, size), logic (ALL/ANY), actions (move, delete, rename)
+- Preview button shows which files would be affected before running, without executing any action
 - Run rules on any folder with live results per file
 - Action summary above the results showing counts per type (moved, deleted, renamed)
 - Undo support for move and rename actions, directly from the results panel
 - Empty Recycle Bin shortcut appears after a run that deletes files, same as the Cleanup tab
+- Open Recycle Bin shortcut next to Empty Recycle Bin in both Cleanup and Rules tabs
+- Export and Import custom rules to JSON, same pattern as Smart Group
+- Rules runs saved to History tab with files grouped by action type and per-file undo support
 
 ### Batch Organize
 - Organize multiple folders at once from the Organize tab
@@ -133,7 +137,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Windows notifications: get notified when files are auto-organized
 
 ### History and Stats
-- Session history: every organize session saved with date, time, folder and file details
+- Session history: every organize and rules session saved with date, time, folder and file details
+- Session type badges are color coded: Organize (grey), Smart Group (blue), Watcher (yellow), Rules (purple)
 - Search: filter sessions in real time by folder name or filename
 - Export: download any session as a .txt file with one click
 - Open location and Undo this file actions for individual files within a session

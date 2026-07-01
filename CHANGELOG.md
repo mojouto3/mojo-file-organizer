@@ -4,6 +4,18 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.19.0] - 2026-07-01
+
+### Added
+- Rules tab: Preview button shows which files would be affected before running, without executing any action
+- Rules tab: Export and Import for custom rules, same pattern as Smart Group
+- Rules tab: Open Recycle Bin shortcut next to Empty Recycle Bin in both Cleanup and Rules tabs
+- History tab: Rules runs now appear as sessions with files grouped by action type (moved, deleted, renamed), color coded with purple badge
+- History tab: per-file undo for move and rename actions directly from Rules sessions
+- History tab: session type badges are now color coded (Rules: purple, Smart Group: blue, Watcher: yellow, Organize: grey)
+
+---
+
 ## [3.18.0] - 2026-06-30
 
 ### Added
