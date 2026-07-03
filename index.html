@@ -595,10 +595,10 @@
       <button class="btn btn-outline" onclick="pickRulesFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
     </div>
     <div class="action-row" style="margin-top:10px">
-      <button class="btn btn-outline" onclick="previewRules()">
+      <button class="btn btn-outline" id="previewRulesBtn" onclick="previewRules()">
         <i data-lucide="eye"></i><span data-i18n="preview">Preview</span>
       </button>
-      <button class="btn btn-green" onclick="runRules()">
+      <button class="btn btn-green" id="runRulesBtn" onclick="runRules()">
         <i data-lucide="play"></i><span data-i18n="runRules">Run Rules</span>
       </button>
       <span class="status-text" id="rulesRunStatus"></span>

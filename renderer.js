@@ -2951,9 +2951,16 @@ async function previewRules() {
 
   const statusEl = document.getElementById('rulesRunStatus');
   const previewEl = document.getElementById('rulesPreviewResults');
-  if (statusEl) statusEl.textContent = 'Previewing...';
+  const runBtn = document.getElementById('runRulesBtn');
+  const previewBtn = document.getElementById('previewRulesBtn');
+  if (runBtn) runBtn.disabled = true;
+  if (previewBtn) previewBtn.disabled = true;
+  if (statusEl) statusEl.innerHTML = '<span class="rules-running-indicator"></span> Previewing...';
 
   const result = await window.api.previewRules({ folderPath: folder, rules: activeRules });
+
+  if (runBtn) runBtn.disabled = false;
+  if (previewBtn) previewBtn.disabled = false;
 
   if (!result.ok) {
     if (statusEl) statusEl.textContent = '✗ Error';
@@ -2988,9 +2995,17 @@ async function runRules() {
   if (!activeRules.length) { showToast('No active rules'); return; }
 
   const statusEl = document.getElementById('rulesRunStatus');
-  if (statusEl) statusEl.textContent = 'Running...';
+  const runBtn = document.getElementById('runRulesBtn');
+  const previewBtn = document.getElementById('previewRulesBtn');
+  if (runBtn) runBtn.disabled = true;
+  if (previewBtn) previewBtn.disabled = true;
+  if (statusEl) statusEl.innerHTML = '<span class="rules-running-indicator"></span> Running...';
 
   const result = await window.api.runRules({ folderPath: folder, rules: activeRules });
+
+  if (runBtn) runBtn.disabled = false;
+  if (previewBtn) previewBtn.disabled = false;
+
   const resultsEl = document.getElementById('rulesRunResults');
 
   if (!result.ok) {
