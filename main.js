@@ -916,14 +916,14 @@ ipcMain.handle('unschedule-cleanup', async () => {
 
 ipcMain.handle('schedule-rules', async (_, { days, time, folder }) => {
   const { exec } = require('child_process');
-  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const exePath = app.getPath('exe');
   const safeFolder = sanitizePath(folder);
   const safeTime = sanitizeTime(time);
   const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
   const results = [];
   await new Promise(r => exec('schtasks /delete /tn "MojoRules" /f', r));
   for (const day of safeDays) {
-    const cmd = `schtasks /create /tn "MojoRules_${day}" /tr "\"${exePath}\" --hidden --run-rules \"${safeFolder}\"" /sc weekly /d ${day} /st ${safeTime} /f`;
+    const cmd = `schtasks /create /tn "MojoRules_${day}" /tr "'${exePath}' --hidden --run-rules '${safeFolder}'" /sc weekly /d ${day} /st ${safeTime} /f`;
     await new Promise((resolve) => {
       exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
     });
