@@ -328,6 +328,7 @@ function resetGroup() {
 
 // ── History ───────────────────────────────────────────────────────
 let cachedSessions = [];
+let historyTypeFilter = 'all';
 
 async function loadHistory() {
   cachedSessions = await window.api.getLog();
@@ -404,7 +405,7 @@ function renderHistory(sessions) {
           <div class="session-date">${dateStr} ${timeStr}</div>
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type type-rules">Rules</span>
-          <span class="session-badge">${s.total} files</span>
+          <span class="session-badge">${s.total} ${s.total === 1 ? 'file' : 'files'}</span>
           <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <i data-lucide="folder-open"></i>
           </button>
@@ -439,11 +440,18 @@ function renderHistory(sessions) {
   attachPreviewsToHistory();
 }
 
+function setHistoryTypeFilter(type) {
+  historyTypeFilter = type;
+  document.querySelectorAll('.history-type-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.type === type);
+  });
+  filterHistory();
+}
+
 function filterHistory() {
   const q = (document.getElementById('historySearch')?.value || '').toLowerCase().trim();
   const from = document.getElementById('historyDateFrom')?.value;
   const to = document.getElementById('historyDateTo')?.value;
-  // Use T00:00:00 for local time parsing (without it, JS parses as UTC)
   const fromTs = from ? new Date(from + 'T00:00:00').getTime() : null;
   const toTs = to ? new Date(to + 'T23:59:59').getTime() : null;
 
@@ -453,7 +461,9 @@ function filterHistory() {
     const matchText = !q || text.includes(q);
     const matchFrom = !fromTs || ts >= fromTs;
     const matchTo = !toTs || ts <= toTs;
-    return matchText && matchFrom && matchTo;
+    const matchType = historyTypeFilter === 'all' || s.type === historyTypeFilter ||
+      (historyTypeFilter === 'organize' && !s.type);
+    return matchText && matchFrom && matchTo && matchType;
   });
   renderHistory(filtered);
 }
@@ -465,6 +475,10 @@ function clearHistoryFilter() {
   if (s) s.value = '';
   if (f) f.value = '';
   if (t) t.value = '';
+  historyTypeFilter = 'all';
+  document.querySelectorAll('.history-type-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.type === 'all');
+  });
   renderHistory(cachedSessions);
 }
 

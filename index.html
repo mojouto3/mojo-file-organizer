@@ -240,6 +240,13 @@
       <input type="date" id="historyDateTo" class="history-search-input" style="width:140px" onchange="filterHistory()" title="To date"/>
       <button class="btn btn-outline btn-sm" onclick="clearHistoryFilter()" title="Clear filters"><i data-lucide="x"></i></button>
     </div>
+    <div class="history-type-filter">
+      <button class="history-type-chip active" data-type="all" onclick="setHistoryTypeFilter('all')">All</button>
+      <button class="history-type-chip type-organize" data-type="organize" onclick="setHistoryTypeFilter('organize')">Organize</button>
+      <button class="history-type-chip type-rules" data-type="rules" onclick="setHistoryTypeFilter('rules')">Rules</button>
+      <button class="history-type-chip type-smart-group" data-type="smart-group" onclick="setHistoryTypeFilter('smart-group')">Smart Group</button>
+      <button class="history-type-chip type-watcher" data-type="watcher" onclick="setHistoryTypeFilter('watcher')">Watcher</button>
+    </div>
     <div class="empty-state hidden" id="historyEmpty">
       <i data-lucide="inbox"></i>
       <p data-i18n="noHistory">No history yet.</p>
