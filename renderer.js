@@ -55,6 +55,7 @@ async function init() {
   loadRenameRules();
   initOnboarding();
   initCleanupScheduleUI();
+  initRulesScheduleUI();
   initContextMenuToggle();
 }
 
@@ -1285,6 +1286,107 @@ async function disableCleanupSchedule() {
   const el = document.getElementById('cleanupScheduleMsg');
   el.className = 'status-msg ok';
   el.textContent = tr('autoRunDisabled');
+}
+
+// ── Rules Schedule ────────────────────────────────────────────────
+async function pickRulesScheduleFolder() {
+  const f = await window.api.pickFolder();
+  if (f) {
+    document.getElementById('rulesScheduleFolder').value = f;
+    const settingsEl = document.getElementById('rulesScheduleFolderSettings');
+    if (settingsEl) settingsEl.value = f;
+    if (!appSettings.rulesSchedule) appSettings.rulesSchedule = {};
+    appSettings.rulesSchedule.folder = f;
+    await window.api.saveSettings(appSettings);
+  }
+}
+
+async function pickRulesScheduleFolderSettings() {
+  const f = await window.api.pickFolder();
+  if (f) {
+    document.getElementById('rulesScheduleFolderSettings').value = f;
+    const rulesEl = document.getElementById('rulesScheduleFolder');
+    if (rulesEl) rulesEl.value = f;
+    if (!appSettings.rulesSchedule) appSettings.rulesSchedule = {};
+    appSettings.rulesSchedule.folder = f;
+    await window.api.saveSettings(appSettings);
+  }
+}
+
+function toggleRulesDay(btn) { btn.classList.toggle('active'); syncRulesDays('rulesDaysRow', 'rulesDaysRowSettings'); }
+function toggleRulesDaySettings(btn) { btn.classList.toggle('active'); syncRulesDays('rulesDaysRowSettings', 'rulesDaysRow'); }
+
+function syncRulesDays(sourceId, targetId) {
+  const active = [...document.querySelectorAll(`#${sourceId} .day-btn.active`)].map(b => b.dataset.day);
+  document.querySelectorAll(`#${targetId} .day-btn`).forEach(b => {
+    b.classList.toggle('active', active.includes(b.dataset.day));
+  });
+}
+
+function getRulesSelectedDays() {
+  return [...document.querySelectorAll('#rulesDaysRow .day-btn.active')].map(b => b.dataset.day);
+}
+
+async function enableRulesSchedule() {
+  const days = getRulesSelectedDays();
+  const time = document.getElementById('rulesScheduleTime').value;
+  const folder = appSettings.rulesSchedule?.folder || '';
+  if (!days.length) { showToast(tr('selectDayFirst')); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
+  appSettings.rulesSchedule = { ...appSettings.rulesSchedule, enabled: true, days, time, folder };
+  await window.api.saveSettings(appSettings);
+  const result = await window.api.scheduleRules({ days, time, folder });
+  const el = document.getElementById('rulesScheduleMsg');
+  if (el) { el.className = result.ok ? 'status-msg ok' : 'status-msg err'; el.textContent = result.ok ? tr('scheduledMsg') : tr('scheduleFailedMsg'); }
+  const elS = document.getElementById('rulesScheduleMsgSettings');
+  if (elS) { elS.className = result.ok ? 'status-msg ok' : 'status-msg err'; elS.textContent = result.ok ? tr('scheduledMsg') : tr('scheduleFailedMsg'); }
+}
+
+async function enableRulesScheduleSettings() {
+  const days = [...document.querySelectorAll('#rulesDaysRowSettings .day-btn.active')].map(b => b.dataset.day);
+  const time = document.getElementById('rulesScheduleTimeSettings').value;
+  const folder = appSettings.rulesSchedule?.folder || '';
+  if (!days.length) { showToast(tr('selectDayFirst')); return; }
+  if (!folder) { showToast(tr('selectFolderFirst')); return; }
+  appSettings.rulesSchedule = { ...appSettings.rulesSchedule, enabled: true, days, time, folder };
+  await window.api.saveSettings(appSettings);
+  const result = await window.api.scheduleRules({ days, time, folder });
+  const el = document.getElementById('rulesScheduleMsg');
+  if (el) { el.className = result.ok ? 'status-msg ok' : 'status-msg err'; el.textContent = result.ok ? tr('scheduledMsg') : tr('scheduleFailedMsg'); }
+  const elS = document.getElementById('rulesScheduleMsgSettings');
+  if (elS) { elS.className = result.ok ? 'status-msg ok' : 'status-msg err'; elS.textContent = result.ok ? tr('scheduledMsg') : tr('scheduleFailedMsg'); }
+}
+
+async function disableRulesSchedule() {
+  await window.api.unscheduleRules();
+  if (appSettings.rulesSchedule) appSettings.rulesSchedule.enabled = false;
+  await window.api.saveSettings(appSettings);
+  const el = document.getElementById('rulesScheduleMsg');
+  if (el) { el.className = 'status-msg ok'; el.textContent = tr('autoRunDisabled'); }
+  const elS = document.getElementById('rulesScheduleMsgSettings');
+  if (elS) { elS.className = 'status-msg ok'; elS.textContent = tr('autoRunDisabled'); }
+}
+
+function initRulesScheduleUI() {
+  const rs = appSettings.rulesSchedule;
+  if (!rs) return;
+  if (rs.folder) {
+    const el = document.getElementById('rulesScheduleFolder');
+    const elS = document.getElementById('rulesScheduleFolderSettings');
+    if (el) el.value = rs.folder;
+    if (elS) elS.value = rs.folder;
+  }
+  if (rs.time) {
+    const el = document.getElementById('rulesScheduleTime');
+    const elS = document.getElementById('rulesScheduleTimeSettings');
+    if (el) el.value = rs.time;
+    if (elS) elS.value = rs.time;
+  }
+  if (rs.days) {
+    document.querySelectorAll('#rulesDaysRow .day-btn, #rulesDaysRowSettings .day-btn').forEach(b => {
+      b.classList.toggle('active', rs.days.includes(b.dataset.day));
+    });
+  }
 }
 
 function initCleanupScheduleUI() {

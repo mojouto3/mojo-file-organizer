@@ -477,6 +477,38 @@
     <div id="cleanupScheduleMsg" class="status-msg"></div>
   </div>
 
+  <!-- Rules Schedule (Settings) -->
+  <div class="card" style="margin-top:0">
+    <div class="card-header">
+      <i data-lucide="calendar" class="card-icon"></i>
+      <span class="card-title">Scheduled Rules Run</span>
+    </div>
+    <p class="card-desc">Run all enabled rules automatically on a schedule.</p>
+    <div class="schedule-folder-row" style="margin-top:8px">
+      <input type="text" id="rulesScheduleFolderSettings" readonly placeholder="Select folder to auto-run rules on..."/>
+      <button class="btn btn-outline btn-sm" onclick="pickRulesScheduleFolderSettings()"><i data-lucide="folder-open"></i></button>
+    </div>
+    <div class="days-row" id="rulesDaysRowSettings">
+      <button class="day-btn" data-day="MON" onclick="toggleRulesDaySettings(this)">Mon</button>
+      <button class="day-btn" data-day="TUE" onclick="toggleRulesDaySettings(this)">Tue</button>
+      <button class="day-btn" data-day="WED" onclick="toggleRulesDaySettings(this)">Wed</button>
+      <button class="day-btn" data-day="THU" onclick="toggleRulesDaySettings(this)">Thu</button>
+      <button class="day-btn" data-day="FRI" onclick="toggleRulesDaySettings(this)">Fri</button>
+      <button class="day-btn" data-day="SAT" onclick="toggleRulesDaySettings(this)">Sat</button>
+      <button class="day-btn" data-day="SUN" onclick="toggleRulesDaySettings(this)">Sun</button>
+    </div>
+    <div class="time-row">
+      <i data-lucide="clock" style="width:14px;height:14px;color:var(--text-dim)"></i>
+      <span class="setting-desc">Time:</span>
+      <input type="time" id="rulesScheduleTimeSettings" value="10:00" class="time-input"/>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-green" onclick="enableRulesScheduleSettings()"><i data-lucide="play"></i><span data-i18n="enableAutoRun">Enable Auto-Run</span></button>
+      <button class="btn btn-danger-outline" onclick="disableRulesSchedule()"><i data-lucide="square"></i><span data-i18n="disable">Disable</span></button>
+    </div>
+    <div id="rulesScheduleMsgSettings" class="status-msg"></div>
+  </div>
+
   <!-- Recycle Bin -->
   <div class="card" id="recycleBinCard">
     <div class="card-header">
@@ -631,6 +663,38 @@
       </button>
     </div>
     <div id="rulesRecycleBinMsg" class="status-msg"></div>
+  </div>
+
+  <!-- Rules Schedule -->
+  <div class="card">
+    <div class="card-header">
+      <i data-lucide="calendar" class="card-icon"></i>
+      <span class="card-title">Scheduled Rules Run</span>
+    </div>
+    <p class="card-desc">Run all enabled rules automatically on a schedule.</p>
+    <div class="schedule-folder-row" style="margin-top:8px">
+      <input type="text" id="rulesScheduleFolder" readonly placeholder="Select folder to auto-run rules on..."/>
+      <button class="btn btn-outline btn-sm" onclick="pickRulesScheduleFolder()"><i data-lucide="folder-open"></i></button>
+    </div>
+    <div class="days-row" id="rulesDaysRow">
+      <button class="day-btn" data-day="MON" onclick="toggleRulesDay(this)">Mon</button>
+      <button class="day-btn" data-day="TUE" onclick="toggleRulesDay(this)">Tue</button>
+      <button class="day-btn" data-day="WED" onclick="toggleRulesDay(this)">Wed</button>
+      <button class="day-btn" data-day="THU" onclick="toggleRulesDay(this)">Thu</button>
+      <button class="day-btn" data-day="FRI" onclick="toggleRulesDay(this)">Fri</button>
+      <button class="day-btn" data-day="SAT" onclick="toggleRulesDay(this)">Sat</button>
+      <button class="day-btn" data-day="SUN" onclick="toggleRulesDay(this)">Sun</button>
+    </div>
+    <div class="time-row">
+      <i data-lucide="clock" style="width:14px;height:14px;color:var(--text-dim)"></i>
+      <span class="setting-desc">Time:</span>
+      <input type="time" id="rulesScheduleTime" value="10:00" class="time-input"/>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-green" onclick="enableRulesSchedule()"><i data-lucide="play"></i><span data-i18n="enableAutoRun">Enable Auto-Run</span></button>
+      <button class="btn btn-danger-outline" onclick="disableRulesSchedule()"><i data-lucide="square"></i><span data-i18n="disable">Disable</span></button>
+    </div>
+    <div id="rulesScheduleMsg" class="status-msg"></div>
   </div>
 </div>
 

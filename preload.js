@@ -58,6 +58,8 @@ contextBridge.exposeInMainWorld('api', {
   resetIgnoreList:  ()       => ipcRenderer.invoke('reset-ignore-list'),
   scheduleCleanup:  (opts)   => ipcRenderer.invoke('schedule-cleanup', opts),
   unscheduleCleanup: ()      => ipcRenderer.invoke('unschedule-cleanup'),
+  scheduleRules:    (opts)   => ipcRenderer.invoke('schedule-rules', opts),
+  unscheduleRules:  ()       => ipcRenderer.invoke('unschedule-rules'),
   getRenameRules:   ()       => ipcRenderer.invoke('get-settings').then(s => s.renameRules || {}),
   saveRenameRules:  (rules)  => ipcRenderer.invoke('get-settings').then(async s => { s.renameRules = rules; return ipcRenderer.invoke('save-settings', s); }),
   getRules:         ()       => ipcRenderer.invoke('get-rules'),

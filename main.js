@@ -439,6 +439,22 @@ app.whenReady().then(async () => {
     }
   }
 
+  const rulesIdx = process.argv.indexOf('--run-rules');
+  if (rulesIdx !== -1) {
+    const folder = process.argv[rulesIdx + 1];
+    if (folder) {
+      mainWindow.webContents.once('did-finish-load', async () => {
+        const rules = readRules().filter(r => r.enabled);
+        if (!rules.length) return;
+        const result = await executeRules(folder, rules);
+        if (result?.ok) {
+          const count = result.results.filter(r => r.ok).length;
+          sendNotification('✓ Scheduled Rules run complete', `${count} file${count === 1 ? '' : 's'} processed`);
+        }
+      });
+    }
+  }
+
   // Silent startup check (only notifies renderer if a newer version exists)
   setTimeout(async () => {
     const result = await checkForUpdates();
@@ -898,6 +914,33 @@ ipcMain.handle('unschedule-cleanup', async () => {
   return { ok: true };
 });
 
+ipcMain.handle('schedule-rules', async (_, { days, time, folder }) => {
+  const { exec } = require('child_process');
+  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const safeFolder = sanitizePath(folder);
+  const safeTime = sanitizeTime(time);
+  const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
+  const results = [];
+  await new Promise(r => exec('schtasks /delete /tn "MojoRules" /f', r));
+  for (const day of safeDays) {
+    const cmd = `schtasks /create /tn "MojoRules_${day}" /tr "\"${exePath}\" --hidden --run-rules \"${safeFolder}\"" /sc weekly /d ${day} /st ${safeTime} /f`;
+    await new Promise((resolve) => {
+      exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
+    });
+  }
+  return results.every(r => r.ok) ? { ok: true } : { ok: false };
+});
+
+ipcMain.handle('unschedule-rules', async () => {
+  const { exec } = require('child_process');
+  const days = ['MON','TUE','WED','THU','FRI','SAT','SUN'];
+  for (const day of days) {
+    await new Promise(r => exec(`schtasks /delete /tn "MojoRules_${day}" /f`, r));
+  }
+  await new Promise(r => exec('schtasks /delete /tn "MojoRules" /f', r));
+  return { ok: true };
+});
+
 // ── IPC: Folder & utils ───────────────────────────────────────────
 ipcMain.handle('pick-folder',   async () => {
   const r = await dialog.showOpenDialog(mainWindow, { properties: ['openDirectory'], defaultPath: path.join(os.homedir(), 'Downloads') });
@@ -1305,7 +1348,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
   return { ok: true, results };
 });
 
-ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
+async function executeRules(folderPath, rules) {
   const results = [];
   try {
     const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
@@ -1322,7 +1365,6 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
         const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
         if (!matched) continue;
 
-        // Check for overlapping rules before executing
         const overlaps = rules.filter(r => r.enabled && r.name !== rule.name &&
           evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes })).map(r => r.name);
 
@@ -1333,7 +1375,6 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
             await shell.trashItem(fullPath);
             actionResult.ok = true;
           } else if (rule.action.type === 'move' && rule.action.dest) {
-            // Validate destination path - must be absolute and not contain traversal
             const dest = path.resolve(rule.action.dest);
             if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
             if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
@@ -1366,6 +1407,10 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
     });
   }
   return { ok: true, results };
+}
+
+ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
+  return executeRules(folderPath, rules);
 });
 
 function evaluateRuleConditions(rule, file) {
