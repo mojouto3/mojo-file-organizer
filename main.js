@@ -1282,19 +1282,24 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
       const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
       const sizeBytes = stat.size;
 
+      const fileMatches = [];
       for (const rule of rules) {
         if (!rule.enabled) continue;
         const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
         if (!matched) continue;
-
-        const preview = { file: f.name, rule: rule.name, action: rule.action.type };
-        if (rule.action.type === 'move') preview.dest = rule.action.dest || '';
-        if (rule.action.type === 'rename') {
-          preview.newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
-        }
-        results.push(preview);
-        break;
+        fileMatches.push(rule.name);
       }
+
+      if (fileMatches.length === 0) continue;
+
+      const preview = { file: f.name, rule: fileMatches[0], action: rules.find(r => r.name === fileMatches[0])?.action?.type };
+      const firstRule = rules.find(r => r.name === fileMatches[0]);
+      if (firstRule?.action?.type === 'move') preview.dest = firstRule.action.dest || '';
+      if (firstRule?.action?.type === 'rename') {
+        preview.newName = applyRenameRulesToFile(f.name, firstRule.action.renameRules || {});
+      }
+      if (fileMatches.length > 1) preview.overlaps = fileMatches.slice(1);
+      results.push(preview);
     }
   } catch (e) { return { ok: false, error: e.message, results: [] }; }
   return { ok: true, results };
@@ -1317,7 +1322,12 @@ ipcMain.handle('run-rules', async (_, { folderPath, rules }) => {
         const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
         if (!matched) continue;
 
+        // Check for overlapping rules before executing
+        const overlaps = rules.filter(r => r.enabled && r.name !== rule.name &&
+          evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes })).map(r => r.name);
+
         const actionResult = { file: f.name, rule: rule.name, action: rule.action.type, ok: false };
+        if (overlaps.length) actionResult.overlaps = overlaps;
         try {
           if (rule.action.type === 'delete') {
             await shell.trashItem(fullPath);

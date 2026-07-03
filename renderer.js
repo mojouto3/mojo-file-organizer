@@ -2970,18 +2970,25 @@ async function previewRules() {
 
   if (statusEl) statusEl.textContent = `${tr('rulesPreviewTitle')}: ${result.results.length} files`;
 
+  const overlapping = result.results.filter(r => r.overlaps?.length);
+
   if (previewEl) {
     if (!result.results.length) {
       previewEl.classList.remove('hidden');
       previewEl.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">${tr('noRulesMatched')}</div>`;
     } else {
+      const overlapWarning = overlapping.length
+        ? `<div style="color:#fbbf24;font-size:11px;padding:6px 8px;background:rgba(251,191,36,0.08);border:0.5px solid rgba(251,191,36,0.2);border-radius:6px;margin-bottom:8px">
+            ⚠ ${overlapping.length} file${overlapping.length === 1 ? '' : 's'} matched multiple rules. Only the first matching rule will be applied.
+           </div>` : '';
       previewEl.classList.remove('hidden');
-      previewEl.innerHTML = `<div style="margin-top:2px">${result.results.map(r => `
+      previewEl.innerHTML = overlapWarning + `<div style="margin-top:2px">${result.results.map(r => `
         <div class="rule-result-row matched">
           <span style="flex:1">${sanitize(r.file)}</span>
           <span class="rule-result-action">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 delete' : `rename to ${sanitize(r.newName||r.file)}`}</span>
           <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
           <span style="font-size:10px;font-weight:600;color:var(--accent);margin-left:4px">PREVIEW</span>
+          ${r.overlaps?.length ? `<span style="font-size:10px;color:#fbbf24;margin-left:4px" title="Also matched: ${r.overlaps.map(o => sanitize(o)).join(', ')}">⚠</span>` : ''}
         </div>`).join('')}</div>`;
     }
   }
@@ -3040,14 +3047,20 @@ async function runRules() {
   }
 
   if (resultsEl) {
+    const overlapping = result.results.filter(r => r.overlaps?.length);
+    const overlapWarning = overlapping.length
+      ? `<div style="color:#fbbf24;font-size:11px;padding:6px 8px;background:rgba(251,191,36,0.08);border:0.5px solid rgba(251,191,36,0.2);border-radius:6px;margin-bottom:8px">
+          ⚠ ${overlapping.length} file${overlapping.length === 1 ? '' : 's'} matched multiple rules. Only the first matching rule was applied.
+         </div>` : '';
     if (!result.results.length) {
       resultsEl.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">No files matched any rules</div>`;
     } else {
-      resultsEl.innerHTML = `<div style="margin-top:10px">${result.results.map(r => `
+      resultsEl.innerHTML = overlapWarning + `<div style="margin-top:10px">${result.results.map(r => `
         <div class="rule-result-row ${r.ok ? 'matched' : ''}">
           <span style="flex:1">${sanitize(r.file)}</span>
           <span class="rule-result-action ${r.action==='delete'?'del':''}">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 deleted' : `renamed to ${sanitize(r.newName||'')}`}</span>
           <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
+          ${r.overlaps?.length ? `<span style="font-size:10px;color:#fbbf24;margin-left:4px" title="Also matched: ${r.overlaps.map(o => sanitize(o)).join(', ')}">⚠</span>` : ''}
         </div>`).join('')}</div>`;
     }
   }
