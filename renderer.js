@@ -894,6 +894,15 @@ window.api.onContextMenuOrganize(async (folder) => {
   await organizeFolder(folder);
 });
 
+if (window.api.onContextMenuRules) {
+  window.api.onContextMenuRules(async (folder) => {
+    showTab('rules');
+    const input = document.getElementById('rulesFolder');
+    if (input) input.value = folder;
+    await window.api.addRecentFolder(folder);
+  });
+}
+
 // Handle tray actions
 if (window.api.onTrayAction) {
   window.api.onTrayAction(async (data) => {
