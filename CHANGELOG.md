@@ -4,6 +4,35 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.21.0] - 2026-07-04
+
+### Added
+- Rules tab: bulk enable/disable all rules at once with All On / All Off buttons
+- Rules tab: keyboard shortcuts Ctrl+R (Run Rules) and Ctrl+Shift+P (Preview Rules)
+- Rules tab: Run Rules with Mojo option in Windows Explorer context menu
+- History tab: session count badge on the tab icon showing new sessions since last visit
+- Stats tab: dedicated Rules section with total files processed, sessions count, and breakdown by action type
+
+### Fixed
+- schtasks path escaping in Organize and Cleanup scheduling, fixes failure when app is installed in a path with spaces
+- Stats tab crash when Rules sessions were present in the log
+
+---
+
+## [3.20.0] - 2026-07-03
+
+### Added
+- Rules tab: progress indicator and disabled buttons during a run to prevent double-clicks
+- Rules tab: warning when multiple enabled rules match the same file, shown in both Preview and Run Rules results
+- Rules tab: scheduling support, run all enabled rules automatically on selected days and time
+- History tab: session type filter chips (All, Organize, Rules, Smart Group, Watcher)
+- Settings tab: Rules Schedule card, same pattern as Cleanup Schedule
+
+### Fixed
+- History tab: session badge now correctly shows "1 file" instead of "1 files" for single-file Rules sessions
+
+---
+
 ## [3.19.0] - 2026-07-01
 
 ### Added

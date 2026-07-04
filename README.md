@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.19.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.21.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -82,6 +82,10 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - 6 preset rules ready to enable with one click
 - Custom rule builder: conditions (name, extension, age, size), logic (ALL/ANY), actions (move, delete, rename)
 - Preview button shows which files would be affected before running, without executing any action
+- Warning shown when multiple rules match the same file, both in Preview and after Run Rules
+- Progress indicator and disabled buttons during a run to prevent double-clicks
+- Bulk enable/disable all rules at once with All On / All Off buttons
+- Keyboard shortcuts: Ctrl+R to run rules, Ctrl+Shift+P to preview (when Rules tab is active)
 - Run rules on any folder with live results per file
 - Action summary above the results showing counts per type (moved, deleted, renamed)
 - Undo support for move and rename actions, directly from the results panel
@@ -89,6 +93,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Open Recycle Bin shortcut next to Empty Recycle Bin in both Cleanup and Rules tabs
 - Export and Import custom rules to JSON, same pattern as Smart Group
 - Rules runs saved to History tab with files grouped by action type and per-file undo support
+- Rules statistics in the Stats tab: total processed, sessions, breakdown by action type
+- Schedule rules to run automatically on selected days and time, same pattern as Cleanup Schedule
 
 ### Batch Organize
 - Organize multiple folders at once from the Organize tab
@@ -100,7 +106,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Partial undo support: shows restored and not-found counts separately
 
 ### Windows Explorer Context Menu
-- Right-click any folder in Windows Explorer to see "Organize with Mojo"
+- Right-click any folder in Windows Explorer to see "Organize with Mojo" and "Run Rules with Mojo"
 - No admin rights required (uses HKCU registry)
 - Toggle in Settings > General
 - Registry keys cleaned up automatically on uninstall
@@ -109,7 +115,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - `Ctrl+1` through `Ctrl+8`: switch tabs instantly
 - `Ctrl+O`: Organize Now
 - `Ctrl+Z`: Undo
-- `Ctrl+P`: Preview
+- `Ctrl+P`: Preview (Organize tab) / `Ctrl+Shift+P`: Preview Rules (Rules tab)
+- `Ctrl+R`: Run Rules (when Rules tab is active)
 - `Ctrl+F`: focus search or folder input
 - `Esc`: close any open dialog
 - `?`: show keyboard shortcuts help
@@ -139,6 +146,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 ### History and Stats
 - Session history: every organize and rules session saved with date, time, folder and file details
 - Session type badges are color coded: Organize (grey), Smart Group (blue), Watcher (yellow), Rules (purple)
+- Badge on the History tab icon shows count of new sessions since last visit
+- Filter sessions by type using color coded chips (All, Organize, Rules, Smart Group, Watcher)
 - Search: filter sessions in real time by folder name or filename
 - Export: download any session as a .txt file with one click
 - Open location and Undo this file actions for individual files within a session
@@ -283,6 +292,7 @@ All your settings, history and rules are stored in a **`MojoData/`** folder next
 - General: Default Folder, Start with Windows, Minimize to Tray, Windows Explorer context menu, Size Filter
 - Auto-Schedule: organize automatically on chosen days and time
 - Cleanup Schedule: run cleanup automatically with selectable sections
+- Rules Schedule: run all enabled rules automatically on chosen days and time
 - Rename Rules: configure automatic file renaming with live preview
 - Categories: customize extensions, add icons, enable/disable or create new ones
 - Ignore List: add folders and extensions to skip during all operations
@@ -340,14 +350,7 @@ mojo-file-organizer/
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for full version history.
-
----
-
-## Roadmap
-
-### v3.18+
-- [ ] Windows Widget for quick stats
+See [CHANGELOG.md](https://github.com/mojouto3/mojo-file-organizer/blob/main/CHANGELOG.md) for full version history.
 
 ---
 
