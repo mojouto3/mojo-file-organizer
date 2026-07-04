@@ -859,14 +859,14 @@ function sanitizeDay(day) {
 // ── IPC: Schedule ─────────────────────────────────────────────────
 ipcMain.handle('schedule', async (_, { days, time, folder }) => {
   const { exec } = require('child_process');
-  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const exePath = app.getPath('exe');
   const safeFolder = sanitizePath(folder);
   const safeTime = sanitizeTime(time);
   const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
   const results = [];
   await new Promise(r => exec('schtasks /delete /tn "MojoFileOrganizer" /f', r));
   for (const day of safeDays) {
-    const cmd = `schtasks /create /tn "MojoFileOrganizer_${day}" /tr "\\"${exePath}\\" --hidden --organize \\"${safeFolder}\\"" /sc weekly /d ${day} /st ${safeTime} /f`;
+    const cmd = `schtasks /create /tn "MojoFileOrganizer_${day}" /tr "'${exePath}' --hidden --organize '${safeFolder}'" /sc weekly /d ${day} /st ${safeTime} /f`;
     await new Promise((resolve) => {
       exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
     });
@@ -887,7 +887,7 @@ ipcMain.handle('unschedule', async () => {
 
 ipcMain.handle('schedule-cleanup', async (_, { days, time, folder, sections }) => {
   const { exec } = require('child_process');
-  const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
+  const exePath = app.getPath('exe');
   const safeFolder = sanitizePath(folder);
   const safeTime = sanitizeTime(time);
   const safeDays = (Array.isArray(days) ? days : []).map(sanitizeDay).filter(Boolean);
@@ -896,7 +896,7 @@ ipcMain.handle('schedule-cleanup', async (_, { days, time, folder, sections }) =
   const results = [];
   await new Promise(r => exec('schtasks /delete /tn "MojoCleanup" /f', r));
   for (const day of safeDays) {
-    const cmd = `schtasks /create /tn "MojoCleanup_${day}" /tr "\"${exePath}\" --hidden --cleanup \"${safeFolder}\" --sections ${sectionsArg}" /sc weekly /d ${day} /st ${safeTime} /f`;
+    const cmd = `schtasks /create /tn "MojoCleanup_${day}" /tr "'${exePath}' --hidden --cleanup '${safeFolder}' --sections ${sectionsArg}" /sc weekly /d ${day} /st ${safeTime} /f`;
     await new Promise((resolve) => {
       exec(cmd, (err, _, stderr) => { results.push(err ? { ok: false, msg: stderr } : { ok: true }); resolve(); });
     });
