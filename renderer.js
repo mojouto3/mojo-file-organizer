@@ -89,7 +89,12 @@ function showTab(name) {
   page.classList.add('tab-enter');
   const tabEl = document.getElementById(`tab-${name}`);
   if (tabEl) tabEl.classList.add('active');
-  if (name === 'history')  loadHistory();
+  if (name === 'history') {
+    lastSeenHistoryCount = cachedSessions.length;
+    const badge = document.getElementById('historyTabBadge');
+    if (badge) badge.classList.add('hidden');
+    loadHistory();
+  }
   if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
@@ -330,10 +335,24 @@ function resetGroup() {
 // ── History ───────────────────────────────────────────────────────
 let cachedSessions = [];
 let historyTypeFilter = 'all';
+let lastSeenHistoryCount = 0;
+
+function updateHistoryBadge() {
+  const badge = document.getElementById('historyTabBadge');
+  if (!badge) return;
+  const newCount = cachedSessions.length - lastSeenHistoryCount;
+  if (newCount > 0) {
+    badge.textContent = newCount > 99 ? '99+' : newCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
 
 async function loadHistory() {
   cachedSessions = await window.api.getLog();
   renderHistory(cachedSessions);
+  updateHistoryBadge();
 }
 
 function renderHistory(sessions) {

@@ -92,6 +92,15 @@ body {
   border-radius: 2px 2px 0 0;
 }
 .tab-spacer { flex: 1; }
+.tab-badge {
+  position: absolute; top: 6px; right: 6px;
+  background: var(--green); color: #000;
+  font-size: 9px; font-weight: 700;
+  min-width: 14px; height: 14px;
+  border-radius: 7px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
 
 /* ── Pages ── */
 .page {
