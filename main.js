@@ -425,6 +425,17 @@ app.whenReady().then(async () => {
       });
     }
   }
+
+  // Handle context menu launch: --rules "folder"
+  const rulesContextIdx = process.argv.indexOf('--rules');
+  if (rulesContextIdx !== -1 && !process.argv.includes('--hidden')) {
+    const folder = process.argv[rulesContextIdx + 1];
+    if (folder) {
+      mainWindow.webContents.once('did-finish-load', () => {
+        mainWindow.webContents.send('context-menu-rules', folder);
+      });
+    }
+  }
   const cleanupIdx = process.argv.indexOf('--cleanup');
   if (cleanupIdx !== -1) {
     const folder = process.argv[cleanupIdx + 1];
@@ -1524,17 +1535,26 @@ ipcMain.handle('register-context-menu', async () => {
   return new Promise((resolve) => {
     const { exec } = require('child_process');
     const exePath = app.getPath('exe').replace(/\\/g, '\\\\');
-    const label = 'Organize with Mojo';
+    const labelOrganize = 'Organize with Mojo';
+    const labelRules = 'Run Rules with Mojo';
 
     const cmds = [
-      // Folder right-click
-      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /ve /d "${label}" /f`,
+      // Organize - Folder right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /ve /d "${labelOrganize}" /f`,
       `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /v "Icon" /d "${exePath},0" /f`,
       `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize\\command" /ve /d "\\"${exePath}\\" --organize \\"%1\\"" /f`,
-      // Folder background right-click
-      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /ve /d "${label}" /f`,
+      // Organize - Folder background right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /ve /d "${labelOrganize}" /f`,
       `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /v "Icon" /d "${exePath},0" /f`,
       `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize\\command" /ve /d "\\"${exePath}\\" --organize \\"%V\\"" /f`,
+      // Run Rules - Folder right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoRules" /ve /d "${labelRules}" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoRules" /v "Icon" /d "${exePath},0" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\shell\\MojoRules\\command" /ve /d "\\"${exePath}\\" --rules \\"%1\\"" /f`,
+      // Run Rules - Folder background right-click
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoRules" /ve /d "${labelRules}" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoRules" /v "Icon" /d "${exePath},0" /f`,
+      `reg add "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoRules\\command" /ve /d "\\"${exePath}\\" --rules \\"%V\\"" /f`,
     ];
 
     let i = 0;
@@ -1552,6 +1572,8 @@ ipcMain.handle('unregister-context-menu', async () => {
     const cmds = [
       `reg delete "HKCU\\Software\\Classes\\Directory\\shell\\MojoOrganize" /f`,
       `reg delete "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoOrganize" /f`,
+      `reg delete "HKCU\\Software\\Classes\\Directory\\shell\\MojoRules" /f`,
+      `reg delete "HKCU\\Software\\Classes\\Directory\\Background\\shell\\MojoRules" /f`,
     ];
     let i = 0;
     const runNext = () => {
