@@ -640,7 +640,10 @@ async function loadStats() {
   const empty = document.getElementById('statsEmpty');
   const grid  = document.getElementById('statsGrid');
 
-  if (!stats.totalFiles) {
+  const hasOrganize = stats.totalFiles > 0;
+  const hasRules = stats.rulesStats?.total > 0;
+
+  if (!hasOrganize && !hasRules) {
     grid.innerHTML = '';
     document.getElementById('chartWrap').innerHTML = '';
     if (empty) empty.classList.remove('hidden');
@@ -649,27 +652,50 @@ async function loadStats() {
   }
   if (empty) empty.classList.add('hidden');
 
-  grid.innerHTML = `
-    <div class="stat-card"><div class="stat-num">${stats.totalFiles.toLocaleString()}</div><div class="stat-label">Total Files Organized</div></div>
-    <div class="stat-card"><div class="stat-num">${stats.totalSessions}</div><div class="stat-label">Sessions</div></div>
-    <div class="stat-card"><div class="stat-num">${Object.keys(stats.byCategory).length}</div><div class="stat-label">Categories Used</div></div>`;
+  let gridHTML = '';
+
+  if (hasOrganize) {
+    gridHTML += `
+      <div class="stat-card"><div class="stat-num">${stats.totalFiles.toLocaleString()}</div><div class="stat-label">Files Organized</div></div>
+      <div class="stat-card"><div class="stat-num">${stats.totalSessions}</div><div class="stat-label">Organize Sessions</div></div>
+      <div class="stat-card"><div class="stat-num">${Object.keys(stats.byCategory).length}</div><div class="stat-label">Categories Used</div></div>`;
+  }
+
+  if (hasRules) {
+    const rs = stats.rulesStats;
+    gridHTML += `
+      <div class="stat-card"><div class="stat-num">${rs.total.toLocaleString()}</div><div class="stat-label">Files Processed by Rules</div></div>
+      <div class="stat-card"><div class="stat-num">${rs.sessions}</div><div class="stat-label">Rules Sessions</div></div>
+      <div class="stat-card" style="grid-column:span 1">
+        <div class="stat-num" style="font-size:13px;gap:10px;display:flex;justify-content:center">
+          <span style="color:var(--green)">${rs.move} moved</span>
+          <span style="color:var(--danger)">${rs.delete} deleted</span>
+          <span style="color:var(--accent)">${rs.rename} renamed</span>
+        </div>
+        <div class="stat-label">Rules Breakdown</div>
+      </div>`;
+  }
+
+  grid.innerHTML = gridHTML;
 
   const chart = document.getElementById('chartWrap');
   chart.innerHTML = '';
-  const sorted = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]);
-  const max = sorted[0]?.[1] || 1;
-  const total = sorted.reduce((s, [, c]) => s + c, 0);
-  const catColors = ['#3ddb3d','#378add','#ef9f27','#d4537e','#7f77dd','#1dacd6','#f97316','#28c840'];
-  for (const [idx, [cat, count]] of sorted.entries()) {
-    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
-    const color = catColors[idx % catColors.length];
-    chart.innerHTML += `<div class="chart-row">
-      <div class="chart-label">${cat}</div>
-      <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%;background:${color}"></div></div>
-      <div class="chart-count">${count} <span class="chart-pct">${pct}%</span></div>
-    </div>`;
+  if (hasOrganize) {
+    const sorted = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]);
+    const max = sorted[0]?.[1] || 1;
+    const total = sorted.reduce((s, [, c]) => s + c, 0);
+    const catColors = ['#3ddb3d','#378add','#ef9f27','#d4537e','#7f77dd','#1dacd6','#f97316','#28c840'];
+    for (const [idx, [cat, count]] of sorted.entries()) {
+      const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      const color = catColors[idx % catColors.length];
+      chart.innerHTML += `<div class="chart-row">
+        <div class="chart-label">${cat}</div>
+        <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%;background:${color}"></div></div>
+        <div class="chart-count">${count} <span class="chart-pct">${pct}%</span></div>
+      </div>`;
+    }
+    if (!sorted.length) chart.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center">No data yet</div>`;
   }
-  if (!sorted.length) chart.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center">No data yet</div>`;
 }
 
 // ── Settings ──────────────────────────────────────────────────────

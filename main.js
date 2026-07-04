@@ -827,10 +827,34 @@ ipcMain.handle('delete-session', async (_, id) => { writeLog(readLog().filter(s 
 ipcMain.handle('get-stats', async () => {
   const sessions = readLog();
   const byCategory = {};
+  const rulesStats = { move: 0, delete: 0, rename: 0, total: 0, sessions: 0 };
+  let organizeTotalFiles = 0;
+  let organizeTotalSessions = 0;
+
   for (const s of sessions) {
-    for (const m of s.moved) { byCategory[m.category] = (byCategory[m.category] || 0) + 1; }
+    if (s.type === 'rules') {
+      rulesStats.sessions++;
+      for (const r of (s.results || [])) {
+        rulesStats.total++;
+        if (r.action === 'move')   rulesStats.move++;
+        if (r.action === 'delete') rulesStats.delete++;
+        if (r.action === 'rename') rulesStats.rename++;
+      }
+    } else {
+      organizeTotalSessions++;
+      for (const m of (s.moved || [])) {
+        byCategory[m.category] = (byCategory[m.category] || 0) + 1;
+        organizeTotalFiles++;
+      }
+    }
   }
-  return { totalFiles: sessions.reduce((sum, s) => sum + s.total, 0), totalSessions: sessions.length, byCategory };
+
+  return {
+    totalFiles: organizeTotalFiles,
+    totalSessions: organizeTotalSessions,
+    byCategory,
+    rulesStats
+  };
 });
 
 // ── Sanitization helpers ─────────────────────────────────────────
