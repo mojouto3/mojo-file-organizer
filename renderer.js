@@ -788,7 +788,15 @@ document.addEventListener('keydown', (e) => {
     switch (e.key) {
       case 'o': e.preventDefault(); { const f = document.getElementById('folderInput')?.value; if (f) { showTab('organize'); organize(); } else { showTab('organize'); showToast(tr('selectFolderFirst') || 'Select a folder first'); } } break;
       case 'z': e.preventDefault(); document.getElementById('undoBtn')?.click(); break;
-      case 'p': e.preventDefault(); { const f = document.getElementById('folderInput')?.value; if (f) { showTab('organize'); showPreview(f); } else { showTab('organize'); showToast(tr('selectFolderFirst') || 'Select a folder first'); } } break;
+      case 'p': e.preventDefault(); {
+        if (e.shiftKey) {
+          const activeTab = document.querySelector('.page:not(.hidden)');
+          if (activeTab?.id === 'page-rules') { previewRules(); }
+        } else {
+          const f = document.getElementById('folderInput')?.value; if (f) { showTab('organize'); showPreview(f); } else { showTab('organize'); showToast(tr('selectFolderFirst') || 'Select a folder first'); }
+        }
+      } break;
+      case 'r': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-rules') runRules(); } break;
       case 'f': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-history') { document.getElementById('historySearch')?.focus(); } else { document.querySelector('.page:not(.hidden) input[type="text"]')?.focus(); } } break;
       case '1': e.preventDefault(); showTab('organize'); break;
       case '2': e.preventDefault(); showTab('group'); break;
