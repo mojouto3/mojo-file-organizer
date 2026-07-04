@@ -597,6 +597,12 @@
       <span class="card-title" data-i18n="rules">Rules</span>
       <span class="badge" id="rulesCount"></span>
       <div style="margin-left:auto;display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="bulkToggleRules(true)" title="Enable all rules">
+          <i data-lucide="check-circle"></i><span>All On</span>
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="bulkToggleRules(false)" title="Disable all rules">
+          <i data-lucide="circle"></i><span>All Off</span>
+        </button>
         <button class="btn btn-outline btn-sm" onclick="exportRules()" title="Export rules">
           <i data-lucide="download"></i><span data-i18n="export">Export</span>
         </button>
