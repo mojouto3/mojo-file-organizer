@@ -2769,6 +2769,14 @@ async function loadRules() {
   renderPresetRules();
 }
 
+async function bulkToggleRules(enabled) {
+  if (!rulesData.length) return;
+  rulesData = rulesData.map(r => ({ ...r, enabled }));
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+  showToast(enabled ? 'All rules enabled' : 'All rules disabled');
+}
+
 async function exportRules() {
   const result = await window.api.exportRules();
   if (result.cancelled) return;
