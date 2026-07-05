@@ -2937,9 +2937,10 @@ function filterRulesList() {
     list.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">No rules match "${sanitize(q)}"</div>`;
     return;
   }
-  list.innerHTML = filtered.map((r, i) => {
+  list.innerHTML = filtered.map((r) => {
     const realIdx = rulesData.indexOf(r);
-    return `<div class="rule-card ${r.enabled ? '' : 'disabled'}">
+    return `<div class="rule-card ${r.enabled ? '' : 'disabled'}" draggable="true" data-idx="${realIdx}">
+      <div class="rule-drag-handle"><i data-lucide="grip-vertical"></i></div>
       <div class="rule-card-body">
         <div class="rule-card-name">${sanitize(r.name)}</div>
         <div class="rule-card-summary">${summarizeRule(r)}</div>
@@ -2952,6 +2953,38 @@ function filterRulesList() {
     </div>`;
   }).join('');
   lucide.createIcons();
+  initRulesDrag();
+}
+
+function initRulesDrag() {
+  const list = document.getElementById('rulesList');
+  if (!list) return;
+  let dragIdx = null;
+
+  list.querySelectorAll('.rule-card').forEach(card => {
+    card.addEventListener('dragstart', () => {
+      dragIdx = parseInt(card.dataset.idx);
+      card.classList.add('dragging');
+    });
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      list.querySelectorAll('.rule-card').forEach(c => c.classList.remove('drag-over'));
+    });
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      list.querySelectorAll('.rule-card').forEach(c => c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('drop', async e => {
+      e.preventDefault();
+      const dropIdx = parseInt(card.dataset.idx);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+      const moved = rulesData.splice(dragIdx, 1)[0];
+      rulesData.splice(dropIdx, 0, moved);
+      await window.api.saveRules(rulesData);
+      renderRulesList();
+    });
+  });
 }
 
 function summarizeRule(r) {
