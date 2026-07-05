@@ -680,7 +680,7 @@ ipcMain.handle('save-settings', async (_, s) => {
   // Whitelist allowed keys
   const allowed = ['language','minimizeToTray','startWithWindows','defaultFolder',
     'onboardingComplete','theme','schedule','cleanupSchedule','sizeFilter',
-    'renameRules','contextMenuEnabled'];
+    'renameRules','contextMenuEnabled','rulesSchedule','rulesDryRun','accentColor','ignoredFolders','ignoredExtensions'];
   const clean = {};
   for (const key of allowed) { if (key in s) clean[key] = s[key]; }
   writeSettings(clean);

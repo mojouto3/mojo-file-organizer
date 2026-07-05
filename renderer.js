@@ -1355,6 +1355,21 @@ async function disableCleanupSchedule() {
 }
 
 // ── Rules Schedule ────────────────────────────────────────────────
+async function toggleDryRun() {
+  appSettings.rulesDryRun = !appSettings.rulesDryRun;
+  await window.api.saveSettings(appSettings);
+  const btn = document.getElementById('dryRunToggle');
+  if (btn) btn.classList.toggle('on', appSettings.rulesDryRun);
+  showToast(appSettings.rulesDryRun ? 'Dry-run mode enabled' : 'Dry-run mode disabled');
+}
+
+async function confirmDryRun() {
+  document.getElementById('dryRunConfirmRow')?.classList.add('hidden');
+  appSettings.rulesDryRun = false;
+  await runRules();
+  appSettings.rulesDryRun = true;
+}
+
 async function pickRulesScheduleFolder() {
   const f = await window.api.pickFolder();
   if (f) {
@@ -1435,6 +1450,8 @@ async function disableRulesSchedule() {
 
 function initRulesScheduleUI() {
   const rs = appSettings.rulesSchedule;
+  const btn = document.getElementById('dryRunToggle');
+  if (btn) btn.classList.toggle('on', !!appSettings.rulesDryRun);
   if (!rs) return;
   if (rs.folder) {
     const el = document.getElementById('rulesScheduleFolder');
@@ -3255,10 +3272,18 @@ async function previewRules() {
 
 async function runRules() {
   document.getElementById('rulesPreviewResults')?.classList.add('hidden');
+  document.getElementById('dryRunConfirmRow')?.classList.add('hidden');
   const folder = document.getElementById('rulesFolder')?.value;
   if (!folder) { showToast(tr('selectFolderFirst') || 'Select a folder first'); return; }
   const activeRules = rulesData.filter(r => r.enabled);
   if (!activeRules.length) { showToast('No active rules'); return; }
+
+  if (appSettings.rulesDryRun) {
+    await previewRules();
+    document.getElementById('dryRunConfirmRow')?.classList.remove('hidden');
+    return;
+  }
+
   await window.api.addRecentFolder(folder);
 
   const statusEl = document.getElementById('rulesRunStatus');
