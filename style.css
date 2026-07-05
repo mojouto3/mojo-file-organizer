@@ -1750,6 +1750,14 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   animation: emptyStateIn 0.2s ease;
 }
 .rule-card.disabled { opacity: 0.5; }
+.rule-card.drag-over { border-color: var(--green); background: var(--green-dim); }
+.rule-card.dragging { opacity: 0.4; }
+.rule-drag-handle {
+  color: var(--text-dim); cursor: grab; padding: 2px 0; flex-shrink: 0;
+  display: flex; align-items: center;
+}
+.rule-drag-handle:active { cursor: grabbing; }
+.rule-drag-handle i { width: 14px; height: 14px; }
 .rule-card-body { flex: 1; }
 .rule-card-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .rule-card-summary { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
