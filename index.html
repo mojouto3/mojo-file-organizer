@@ -631,6 +631,10 @@
     <div class="card-header">
       <i data-lucide="play" class="card-icon"></i>
       <span class="card-title" data-i18n="runRules">Run Rules</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text-dim)">Dry-run</span>
+        <button class="setting-toggle" id="dryRunToggle" onclick="toggleDryRun()" style="width:32px;height:18px"></button>
+      </div>
     </div>
     <div class="folder-row">
       <input type="text" id="rulesFolder" readonly placeholder="Choose a folder..."/>
@@ -648,6 +652,14 @@
       <span class="status-text" id="rulesRunStatus"></span>
     </div>
     <div id="rulesPreviewResults" class="hidden" style="margin-top:10px"></div>
+    <div id="dryRunConfirmRow" class="action-row hidden" style="margin-top:10px">
+      <button class="btn btn-green" onclick="confirmDryRun()">
+        <i data-lucide="check"></i>Confirm & Execute
+      </button>
+      <button class="btn btn-outline" onclick="document.getElementById('dryRunConfirmRow').classList.add('hidden')">
+        <i data-lucide="x"></i>Cancel
+      </button>
+    </div>
     <div id="rulesRunSummary" class="rules-run-summary hidden"></div>
     <div id="rulesRunResults"></div>
     <div class="action-row hidden" id="rulesUndoRow" style="margin-top:10px">
