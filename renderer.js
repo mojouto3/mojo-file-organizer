@@ -335,6 +335,16 @@ function resetGroup() {
 // ── History ───────────────────────────────────────────────────────
 let cachedSessions = [];
 let historyTypeFilter = 'all';
+let historyCompact = false;
+
+function toggleHistoryCompact() {
+  historyCompact = !historyCompact;
+  const list = document.getElementById('historyList');
+  if (list) list.classList.toggle('compact', historyCompact);
+  const btn = document.getElementById('historyCompactToggle');
+  if (btn) btn.classList.toggle('on', historyCompact);
+  localStorage.setItem('historyCompact', historyCompact ? '1' : '0');
+}
 let lastSeenHistoryCount = 0;
 
 function updateHistoryBadge() {
@@ -353,6 +363,11 @@ async function loadHistory() {
   cachedSessions = await window.api.getLog();
   renderHistory(cachedSessions);
   updateHistoryBadge();
+  historyCompact = localStorage.getItem('historyCompact') === '1';
+  const list = document.getElementById('historyList');
+  if (list) list.classList.toggle('compact', historyCompact);
+  const btn = document.getElementById('historyCompactToggle');
+  if (btn) btn.classList.toggle('on', historyCompact);
 }
 
 function renderHistory(sessions) {

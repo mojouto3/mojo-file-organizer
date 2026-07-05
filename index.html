@@ -233,7 +233,11 @@
       <i data-lucide="clock" class="card-icon"></i>
       <span class="card-title" data-i18n="sessionHistory">Session History</span>
       <span class="badge" id="historyCount"></span>
-      <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" style="margin-left:auto" data-i18n="clearAll">Clear All</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text-dim)">Compact</span>
+        <button class="setting-toggle" id="historyCompactToggle" onclick="toggleHistoryCompact()" style="width:32px;height:18px"></button>
+        <button class="btn btn-danger-outline btn-sm" onclick="clearLog()" data-i18n="clearAll">Clear All</button>
+      </div>
     </div>
     <div class="history-search-wrap">
       <input type="text" id="historySearch" class="history-search-input" placeholder="Search sessions..." data-i18n-placeholder="searchSessions" oninput="filterHistory()"/>
