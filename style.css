@@ -267,6 +267,21 @@ input[type="text"]:focus { border-color: #444; }
 .session-list.compact .session-folder { font-size: 10px; }
 .session-list.compact .session-body { display: none; }
 .session-list.compact .session-chevron { display: none; }
+.session-note {
+  font-size: 11px; color: var(--text-dim); padding: 4px 14px 6px;
+  border-left: 2px solid var(--accent, var(--green));
+  margin: 0 14px 6px; border-radius: 0 4px 4px 0;
+  background: var(--surface2);
+}
+.session-note-edit {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; margin-bottom: 4px;
+}
+.session-note-input {
+  flex: 1; background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 6px; padding: 5px 10px; font-size: 11px; color: var(--text);
+}
+.session-note-input:focus { outline: none; border-color: var(--green); }
 .session-del { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 2px; border-radius: 4px; opacity: 0; transition: opacity 0.15s; display: flex; }
 .session-del i { width: 13px; height: 13px; }
 .session-header:hover .session-del { opacity: 1; }
