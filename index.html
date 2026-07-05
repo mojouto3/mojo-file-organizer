@@ -620,6 +620,9 @@
       <p data-i18n="noRules">No rules yet.</p>
       <span class="empty-state-hint" data-i18n="noRulesHint">Create rules to automate file actions based on conditions.</span>
     </div>
+    <div id="rulesSearchWrap" class="hidden" style="margin-bottom:8px">
+      <input type="text" id="rulesSearch" class="history-search-input" placeholder="Search rules..." oninput="filterRulesList()"/>
+    </div>
     <div id="rulesList"></div>
   </div>
 
