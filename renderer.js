@@ -913,6 +913,10 @@ if (window.api.onTrayAction) {
       const input = document.getElementById('folderInput');
       if (input) input.value = data.folder;
       await showPreview(data.folder);
+    } else if (data.action === 'rules') {
+      showTab('rules');
+      const input = document.getElementById('rulesFolder');
+      if (input) input.value = data.folder;
     }
   });
 }

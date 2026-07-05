@@ -162,6 +162,13 @@ function updateTrayMenu() {
     if (total > 0) statsLabel = `Mojo File Organizer — ${total} files organized`;
   } catch (e) {}
 
+  const lastRulesFolder = (() => {
+    try {
+      const log = readLog();
+      return log.find(s => s.type === 'rules')?.folder || '';
+    } catch (e) { return ''; }
+  })();
+
   const menuTemplate = [
     { label: statsLabel, enabled: false },
     { type: 'separator' },
@@ -175,12 +182,30 @@ function updateTrayMenu() {
       }
     },
     ...(lastFolder ? [{
-      label: `⚡ Organize Last Folder`,
-      sublabel: path.basename(lastFolder),
+      label: `⚡ Organize Last Folder (${path.basename(lastFolder)})`,
       click: async () => {
         showWindow();
         setTimeout(() => {
           if (mainWindow) mainWindow.webContents.send('tray-action', { action: 'organize', folder: lastFolder });
+        }, 500);
+      }
+    }] : []),
+    { type: 'separator' },
+    {
+      label: '⚡ Run Rules on Downloads',
+      click: async () => {
+        showWindow();
+        setTimeout(() => {
+          if (mainWindow) mainWindow.webContents.send('tray-action', { action: 'rules', folder: downloadsFolder });
+        }, 500);
+      }
+    },
+    ...(lastRulesFolder ? [{
+      label: `⚡ Run Rules on Last Folder (${path.basename(lastRulesFolder)})`,
+      click: async () => {
+        showWindow();
+        setTimeout(() => {
+          if (mainWindow) mainWindow.webContents.send('tray-action', { action: 'rules', folder: lastRulesFolder });
         }, 500);
       }
     }] : []),
