@@ -2829,6 +2829,39 @@ async function loadRules() {
   rulesData = await window.api.getRules() || [];
   renderRulesList();
   renderPresetRules();
+  updateRulesLastRun();
+}
+
+async function updateRulesLastRun() {
+  const el = document.getElementById('rulesLastRun');
+
+  // Always load recent folders chips
+  const recent = await window.api.getRecentFolders();
+  const chipsEl = document.getElementById('rulesFolderChips');
+  if (chipsEl && recent?.length) {
+    chipsEl.innerHTML = recent.map(r =>
+      `<button class="recent-folder-chip" title="${r.path}" onclick="document.getElementById('rulesFolder').value='${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}'">${sanitize(r.name)}</button>`
+    ).join('');
+    chipsEl.classList.remove('hidden');
+  }
+
+  if (!el) return;
+  const log = await window.api.getLog();
+  const last = log.find(s => s.type === 'rules');
+  if (!last) { el.classList.add('hidden'); return; }
+
+  const d = new Date(last.timestamp);
+  const dateStr = d.toLocaleDateString();
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  el.classList.remove('hidden');
+  el.innerHTML = `<i data-lucide="clock" style="width:11px;height:11px;display:inline;vertical-align:middle;margin-right:3px"></i>Last run: ${dateStr} ${timeStr} on <span style="color:var(--text)">${sanitize(last.folder)}</span> — ${last.total} file${last.total === 1 ? '' : 's'} processed`;
+  lucide.createIcons();
+
+  // Auto-load last used folder if input is empty
+  const folderInput = document.getElementById('rulesFolder');
+  if (folderInput && !folderInput.value && last.folder) {
+    folderInput.value = last.folder;
+  }
 }
 
 async function bulkToggleRules(enabled) {
@@ -3222,6 +3255,7 @@ async function runRules() {
   if (!folder) { showToast(tr('selectFolderFirst') || 'Select a folder first'); return; }
   const activeRules = rulesData.filter(r => r.enabled);
   if (!activeRules.length) { showToast('No active rules'); return; }
+  await window.api.addRecentFolder(folder);
 
   const statusEl = document.getElementById('rulesRunStatus');
   const runBtn = document.getElementById('runRulesBtn');
@@ -3305,6 +3339,7 @@ async function runRules() {
   if (undoRow) undoRow.classList.toggle('hidden', lastRulesMoves.length === 0);
 
   if (matched.length) await loadHistory();
+  updateRulesLastRun();
 }
 
 async function undoRulesRun() {
