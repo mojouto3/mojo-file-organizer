@@ -441,12 +441,16 @@ function renderHistory(sessions) {
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type type-rules">Rules</span>
           <span class="session-badge">${s.total} ${s.total === 1 ? 'file' : 'files'}</span>
+          <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
+            <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
+          </button>
           <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
             <i data-lucide="folder-open"></i>
           </button>
           <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
           <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
         </div>
+        ${s.note ? `<div class="session-note">${sanitize(s.note)}</div>` : ''}
         <div class="session-body">${rulesGroupsHTML}</div>`;
     } else {
       el.innerHTML = `
@@ -455,6 +459,9 @@ function renderHistory(sessions) {
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
           <span class="session-badge">${s.total} moved</span>
+          <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
+            <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
+          </button>
           <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
             <i data-lucide="download"></i>
           </button>
@@ -467,12 +474,48 @@ function renderHistory(sessions) {
           <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
           <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
         </div>
+        ${s.note ? `<div class="session-note">${sanitize(s.note)}</div>` : ''}
         <div class="session-body">${groupsHTML}</div>`;
     }
     list.appendChild(el);
   }
   lucide.createIcons();
   attachPreviewsToHistory();
+}
+
+async function editSessionNote(sessionId, btn) {
+  const session = cachedSessions.find(s => s.id === sessionId);
+  if (!session) return;
+  const sessionEl = btn.closest('.session');
+  if (!sessionEl) return;
+
+  // Check if already editing
+  const existing = sessionEl.querySelector('.session-note-edit');
+  if (existing) { existing.remove(); return; }
+
+  const current = session.note || '';
+  const wrap = document.createElement('div');
+  wrap.className = 'session-note-edit';
+  wrap.innerHTML = `
+    <input type="text" class="session-note-input" maxlength="200" placeholder="Add a note..." value="${sanitize(current)}"/>
+    <button class="btn btn-green btn-sm" onclick="saveSessionNote(${sessionId}, this)"><i data-lucide="check"></i></button>
+    <button class="btn btn-outline btn-sm" onclick="this.closest('.session-note-edit').remove()"><i data-lucide="x"></i></button>`;
+  const noteEl = sessionEl.querySelector('.session-note');
+  if (noteEl) noteEl.after(wrap);
+  else sessionEl.querySelector('.session-header').after(wrap);
+  wrap.querySelector('input').focus();
+  lucide.createIcons();
+}
+
+async function saveSessionNote(sessionId, btn) {
+  const wrap = btn.closest('.session-note-edit');
+  const input = wrap?.querySelector('input');
+  if (!input) return;
+  const note = input.value.trim().slice(0, 200);
+  await window.api.updateSessionNote({ id: sessionId, note });
+  const session = cachedSessions.find(s => s.id === sessionId);
+  if (session) session.note = note;
+  await loadHistory();
 }
 
 function setHistoryTypeFilter(type) {

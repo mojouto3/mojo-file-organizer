@@ -858,6 +858,12 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
 ipcMain.handle('get-log',        async ()      => readLog());
 ipcMain.handle('clear-log',      async ()      => { writeLog([]); return true; });
 ipcMain.handle('delete-session', async (_, id) => { writeLog(readLog().filter(s => s.id !== id)); return true; });
+ipcMain.handle('update-session-note', async (_, { id, note }) => {
+  const log = readLog();
+  const s = log.find(s => s.id === id);
+  if (s) { s.note = note.slice(0, 200); writeLog(log); }
+  return true;
+});
 
 // ── IPC: Stats ────────────────────────────────────────────────────
 ipcMain.handle('get-stats', async () => {
