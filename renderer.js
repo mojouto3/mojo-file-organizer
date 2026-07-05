@@ -2914,26 +2914,43 @@ function renderRulesList() {
   const list = document.getElementById('rulesList');
   const empty = document.getElementById('rulesEmpty');
   const count = document.getElementById('rulesCount');
+  const searchWrap = document.getElementById('rulesSearchWrap');
   if (!list) return;
   if (count) count.textContent = rulesData.length || '';
   if (!rulesData.length) {
     list.innerHTML = '';
     empty?.classList.remove('hidden');
+    searchWrap?.classList.add('hidden');
     return;
   }
   empty?.classList.add('hidden');
-  list.innerHTML = rulesData.map((r, i) => `
-    <div class="rule-card ${r.enabled ? '' : 'disabled'}">
+  if (searchWrap) searchWrap.classList.toggle('hidden', rulesData.length < 4);
+  filterRulesList();
+}
+
+function filterRulesList() {
+  const list = document.getElementById('rulesList');
+  if (!list) return;
+  const q = (document.getElementById('rulesSearch')?.value || '').toLowerCase().trim();
+  const filtered = q ? rulesData.filter(r => r.name?.toLowerCase().includes(q)) : rulesData;
+  if (!filtered.length && q) {
+    list.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">No rules match "${sanitize(q)}"</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map((r, i) => {
+    const realIdx = rulesData.indexOf(r);
+    return `<div class="rule-card ${r.enabled ? '' : 'disabled'}">
       <div class="rule-card-body">
         <div class="rule-card-name">${sanitize(r.name)}</div>
         <div class="rule-card-summary">${summarizeRule(r)}</div>
       </div>
       <div class="rule-card-actions">
-        <button class="setting-toggle ${r.enabled ? 'on' : ''}" onclick="toggleRule(${i})" style="width:32px;height:18px"></button>
-        <button class="btn btn-outline btn-sm" onclick="openRuleEditor(${i})"><i data-lucide="pencil"></i></button>
-        <button class="btn btn-outline btn-sm" onclick="deleteRule(${i})" style="color:var(--danger)"><i data-lucide="trash-2"></i></button>
+        <button class="setting-toggle ${r.enabled ? 'on' : ''}" onclick="toggleRule(${realIdx})" style="width:32px;height:18px"></button>
+        <button class="btn btn-outline btn-sm" onclick="openRuleEditor(${realIdx})"><i data-lucide="pencil"></i></button>
+        <button class="btn btn-outline btn-sm" onclick="deleteRule(${realIdx})" style="color:var(--danger)"><i data-lucide="trash-2"></i></button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   lucide.createIcons();
 }
 
