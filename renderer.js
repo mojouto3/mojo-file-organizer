@@ -2930,6 +2930,8 @@ const PRESET_RULES = [
 ];
 
 let rulesData = [];
+let rulesBatchFolders = [];
+let rulesMultiMode = false;
 let editingRuleId = null;
 
 async function loadRules() {
@@ -3300,6 +3302,71 @@ async function saveRule() {
   showToast(`✓ Rule "${name}" saved`);
 }
 
+function toggleRulesMulti() {
+  rulesMultiMode = !rulesMultiMode;
+  const toggle = document.getElementById('rulesMultiToggle');
+  if (toggle) toggle.classList.toggle('on', rulesMultiMode);
+  document.getElementById('rulesSingleMode')?.classList.toggle('hidden', rulesMultiMode);
+  document.getElementById('rulesMultiMode')?.classList.toggle('hidden', !rulesMultiMode);
+  const runBtn = document.getElementById('runRulesBtn');
+  if (runBtn) {
+    runBtn.innerHTML = rulesMultiMode
+      ? `<i data-lucide="zap"></i><span>Run All</span>`
+      : `<i data-lucide="play"></i><span data-i18n="runRules">Run Rules</span>`;
+    lucide.createIcons();
+  }
+}
+
+async function pickRulesBatchFolder() {
+  const f = await window.api.pickFolder();
+  if (!f) return;
+  if (rulesBatchFolders.includes(f)) { showToast(tr('folderAlreadyAdded')); return; }
+  rulesBatchFolders.push(f);
+  renderRulesBatchList();
+}
+
+function renderRulesBatchList() {
+  const list = document.getElementById('rulesBatchList');
+  if (!list) return;
+  list.innerHTML = rulesBatchFolders.map((f, i) => `
+    <div class="batch-folder-item">
+      <span class="batch-folder-path" title="${sanitize(f)}">${sanitize(f)}</span>
+      <span class="batch-folder-status" id="rulesBatchStatus-${i}"></span>
+      <button class="btn btn-outline btn-sm" onclick="rulesBatchFolders.splice(${i},1);renderRulesBatchList()">
+        <i data-lucide="x"></i>
+      </button>
+    </div>`).join('');
+  lucide.createIcons();
+}
+
+async function runRulesBatch() {
+  if (!rulesBatchFolders.length) { showToast('Add at least one folder'); return; }
+  const activeRules = rulesData.filter(r => r.enabled);
+  if (!activeRules.length) { showToast('No active rules'); return; }
+  const runBtn = document.getElementById('runRulesBtn');
+  if (runBtn) runBtn.disabled = true;
+  for (let i = 0; i < rulesBatchFolders.length; i++) {
+    const folder = rulesBatchFolders[i];
+    const statusEl = document.getElementById(`rulesBatchStatus-${i}`);
+    if (statusEl) statusEl.textContent = 'Running...';
+    const result = await window.api.runRules({ folderPath: folder, rules: activeRules });
+    if (statusEl) {
+      if (result.ok) {
+        const count = result.results.filter(r => r.ok).length;
+        statusEl.textContent = `✓ ${count} files`;
+        statusEl.style.color = 'var(--green)';
+      } else {
+        statusEl.textContent = '✗ Error';
+        statusEl.style.color = 'var(--danger)';
+      }
+    }
+    await window.api.addRecentFolder(folder);
+  }
+  if (runBtn) runBtn.disabled = false;
+  await loadHistory();
+  updateRulesLastRun();
+}
+
 async function pickRulesFolder() {
   const folder = await window.api.pickFolder();
   if (folder) { const el = document.getElementById('rulesFolder'); if (el) el.value = folder; }
@@ -3357,6 +3424,7 @@ async function previewRules() {
 }
 
 async function runRules() {
+  if (rulesMultiMode) { await runRulesBatch(); return; }
   document.getElementById('rulesPreviewResults')?.classList.add('hidden');
   document.getElementById('dryRunConfirmRow')?.classList.add('hidden');
   const folder = document.getElementById('rulesFolder')?.value;
