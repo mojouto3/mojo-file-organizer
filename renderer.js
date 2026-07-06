@@ -3187,6 +3187,7 @@ function renderRuleConditions(conditions) {
         <option value="name" ${c.field==='name'?'selected':''}>Name</option>
         <option value="extension" ${c.field==='extension'?'selected':''}>Extension</option>
         <option value="age" ${c.field==='age'?'selected':''}>Age</option>
+        <option value="date_range" ${c.field==='date_range'?'selected':''}>Date Range</option>
         <option value="size" ${c.field==='size'?'selected':''}>Size</option>
       </select>
       ${getConditionOpUI(c)}
@@ -3216,6 +3217,11 @@ function getConditionOpUI(c) {
       <option value="days" ${c.unit==='days'?'selected':''}>days</option>
       <option value="months" ${c.unit==='months'?'selected':''}>months</option>
     </select>`;
+  if (c.field === 'date_range') return `
+    <span style="font-size:11px;color:var(--text-dim)">from</span>
+    <input type="date" class="rule-input" id="cond-from-${c._i??0}" value="${c.valueFrom||''}" style="width:130px"/>
+    <span style="font-size:11px;color:var(--text-dim)">to</span>
+    <input type="date" class="rule-input" id="cond-to-${c._i??0}" value="${c.valueTo||''}" style="width:130px"/>`;
   if (c.field === 'size') return `
     <select class="rule-select" id="cond-op-${c._i??0}">
       <option value="gt" ${c.op==='gt'?'selected':''}>larger than</option>
@@ -3255,7 +3261,9 @@ function getConditionsFromUI() {
     field: document.getElementById(`cond-field-${i}`)?.value || 'name',
     op: document.getElementById(`cond-op-${i}`)?.value || 'contains',
     value: document.getElementById(`cond-val-${i}`)?.value || '',
-    unit: document.getElementById(`cond-unit-${i}`)?.value || ''
+    unit: document.getElementById(`cond-unit-${i}`)?.value || '',
+    valueFrom: document.getElementById(`cond-from-${i}`)?.value || '',
+    valueTo: document.getElementById(`cond-to-${i}`)?.value || ''
   }));
 }
 
