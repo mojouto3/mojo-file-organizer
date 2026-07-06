@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.21.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.22.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
@@ -80,12 +80,19 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 ### File Rules Engine
 - New Rules tab (Ctrl+8) with preset and custom rules for automating file actions
 - 6 preset rules ready to enable with one click
-- Custom rule builder: conditions (name, extension, age, size), logic (ALL/ANY), actions (move, delete, rename)
+- Rule Templates library with 4 ready-made rule sets (Downloads Cleanup, Developer Workspace, Photo Organizer, Old Files Archiver)
+- Custom rule builder: conditions (name, extension, age, date range, size, file content), logic (ALL/ANY), actions (move, delete, rename)
+- File content condition: match text files containing a keyword (txt, md, csv, log, json, and more)
+- Date range condition: match files modified between two dates
 - Preview button shows which files would be affected before running, without executing any action
+- Global dry-run mode: Run Rules always shows preview first and requires confirmation before executing
 - Warning shown when multiple rules match the same file, both in Preview and after Run Rules
 - Progress indicator and disabled buttons during a run to prevent double-clicks
 - Bulk enable/disable all rules at once with All On / All Off buttons
+- Drag and drop to reorder rules (execution order follows display order)
+- Search/filter rules by name
 - Keyboard shortcuts: Ctrl+R to run rules, Ctrl+Shift+P to preview (when Rules tab is active)
+- Multi-folder support: run rules on multiple folders at once, same pattern as Batch Organize
 - Run rules on any folder with live results per file
 - Action summary above the results showing counts per type (moved, deleted, renamed)
 - Undo support for move and rename actions, directly from the results panel
@@ -95,6 +102,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Rules runs saved to History tab with files grouped by action type and per-file undo support
 - Rules statistics in the Stats tab: total processed, sessions, breakdown by action type
 - Schedule rules to run automatically on selected days and time, same pattern as Cleanup Schedule
+- Run Rules with Mojo option in Windows Explorer right-click menu
 
 ### Batch Organize
 - Organize multiple folders at once from the Organize tab
@@ -147,7 +155,9 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Session history: every organize and rules session saved with date, time, folder and file details
 - Session type badges are color coded: Organize (grey), Smart Group (blue), Watcher (yellow), Rules (purple)
 - Badge on the History tab icon shows count of new sessions since last visit
+- Compact mode: denser single-line view for users with many sessions
 - Filter sessions by type using color coded chips (All, Organize, Rules, Smart Group, Watcher)
+- Add short notes to any session, displayed inline below the session header
 - Search: filter sessions in real time by folder name or filename
 - Export: download any session as a .txt file with one click
 - Open location and Undo this file actions for individual files within a session

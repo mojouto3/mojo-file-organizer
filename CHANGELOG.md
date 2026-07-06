@@ -4,6 +4,24 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.22.0] - 2026-07-07
+
+### Added
+- Rules tab: Rule Templates library with 4 ready-made rule sets (Downloads Cleanup, Developer Workspace, Photo Organizer, Old Files Archiver)
+- Rules tab: file content condition, match text files containing a keyword
+- Rules tab: date range condition, match files modified between two dates
+- Rules tab: global dry-run mode, Run Rules shows preview first and requires confirmation
+- Rules tab: drag and drop to reorder rules
+- Rules tab: search/filter rules by name (shown when 4 or more rules exist)
+- Rules tab: multi-folder support, run rules on multiple folders at once
+- Rules tab: last run timestamp and recent folder chips below the folder input
+- Rules tab: notifications history log in Settings tab
+- History tab: compact mode for denser single-line session view
+- History tab: notes on sessions, editable inline
+- Tray menu: Run Rules on Downloads and Run Rules on Last Folder quick actions
+
+---
+
 ## [3.21.0] - 2026-07-04
 
 ### Added
