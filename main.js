@@ -1409,7 +1409,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
       const fileMatches = [];
       for (const rule of rules) {
         if (!rule.enabled) continue;
-        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs });
         if (!matched) continue;
         fileMatches.push(rule.name);
       }
@@ -1443,11 +1443,11 @@ async function executeRules(folderPath, rules) {
 
       for (const rule of rules) {
         if (!rule.enabled) continue;
-        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes });
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs });
         if (!matched) continue;
 
         const overlaps = rules.filter(r => r.enabled && r.name !== rule.name &&
-          evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes })).map(r => r.name);
+          evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs })).map(r => r.name);
 
         const actionResult = { file: f.name, rule: rule.name, action: rule.action.type, ok: false };
         if (overlaps.length) actionResult.overlaps = overlaps;
@@ -1514,6 +1514,14 @@ function evaluateCondition(c, file) {
     case 'age': {
       const days = unit === 'months' ? Number(value) * 30 : Number(value);
       return op === 'gt' ? file.ageDays > days : file.ageDays < days;
+    }
+    case 'date_range': {
+      if (!file.mtimeMs) return false;
+      const from = c.valueFrom ? new Date(c.valueFrom).getTime() : null;
+      const to = c.valueTo ? new Date(c.valueTo + 'T23:59:59').getTime() : null;
+      if (from && file.mtimeMs < from) return false;
+      if (to && file.mtimeMs > to) return false;
+      return true;
     }
     case 'size': {
       const bytes = unit === 'GB' ? Number(value) * 1073741824 : unit === 'MB' ? Number(value) * 1048576 : Number(value) * 1024;
