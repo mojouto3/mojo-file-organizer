@@ -2396,6 +2396,34 @@ function toggleSettingsCard(name) {
   const state = getAccordionState();
   state[name] = collapsed;
   saveAccordionState(state);
+  if (name === 'notiflog' && !collapsed) loadNotificationLog();
+}
+
+async function loadNotificationLog() {
+  const list = document.getElementById('notifLogList');
+  if (!list) return;
+  const log = await window.api.getNotificationLog();
+  if (!log.length) {
+    list.innerHTML = `<div style="color:var(--text-dim);font-size:11px;padding:8px 0">No notifications yet</div>`;
+    return;
+  }
+  list.innerHTML = log.map(n => {
+    const d = new Date(n.timestamp);
+    const dateStr = d.toLocaleDateString();
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `<div style="padding:6px 0;border-bottom:0.5px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">${sanitize(n.title)}</span>
+        <span style="font-size:10px;color:var(--text-dim)">${dateStr} ${timeStr}</span>
+      </div>
+      ${n.body ? `<div style="font-size:11px;color:var(--text-dim);margin-top:2px">${sanitize(n.body)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function clearNotificationLog() {
+  await window.api.clearNotificationLog();
+  loadNotificationLog();
 }
 
 function restoreAccordionState() {
