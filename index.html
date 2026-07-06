@@ -1128,6 +1128,23 @@
     </div>
   </div>
 
+  <!-- Notifications Log -->
+  <div class="card accordion-card collapsed" id="settingsCard-notiflog">
+    <div class="card-header" onclick="toggleSettingsCard('notiflog')">
+      <i data-lucide="bell" class="card-icon"></i>
+      <span class="card-title">Notifications Log</span>
+      <i data-lucide="chevron-down" class="accordion-chevron"></i>
+    </div>
+    <div class="card-body">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+        <button class="btn btn-danger-outline btn-sm" onclick="clearNotificationLog()">
+          <i data-lucide="trash-2"></i>Clear All
+        </button>
+      </div>
+      <div id="notifLogList"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Cleanup Preview Modal -->

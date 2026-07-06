@@ -239,6 +239,18 @@ function showWindow() {
 }
 
 // ── Notification ──────────────────────────────────────────────────
+const NOTIF_LOG_FILE = path.join(DATA_DIR, 'mojo-organizer.notifications.json');
+function readNotifLog() {
+  try { if (fs.existsSync(NOTIF_LOG_FILE)) return JSON.parse(fs.readFileSync(NOTIF_LOG_FILE, 'utf8')); } catch (e) {}
+  return [];
+}
+function appendNotif(entry) {
+  const log = readNotifLog();
+  log.unshift(entry);
+  if (log.length > 50) log.splice(50);
+  fs.writeFileSync(NOTIF_LOG_FILE, JSON.stringify(log, null, 2));
+}
+
 function sendNotification(title, body, { silent = false, urgency = 'normal' } = {}) {
   if (!Notification.isSupported() || silent) return;
   new Notification({
@@ -248,6 +260,7 @@ function sendNotification(title, body, { silent = false, urgency = 'normal' } = 
     urgency,
     timeoutType: 'default'
   }).show();
+  appendNotif({ title, body, timestamp: new Date().toISOString() });
 }
 
 function formatOrganizeNotification(moved) {
@@ -858,6 +871,8 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
 ipcMain.handle('get-log',        async ()      => readLog());
 ipcMain.handle('clear-log',      async ()      => { writeLog([]); return true; });
 ipcMain.handle('delete-session', async (_, id) => { writeLog(readLog().filter(s => s.id !== id)); return true; });
+ipcMain.handle('get-notification-log', async () => readNotifLog());
+ipcMain.handle('clear-notification-log', async () => { fs.writeFileSync(NOTIF_LOG_FILE, '[]'); return true; });
 ipcMain.handle('update-session-note', async (_, { id, note }) => {
   const log = readLog();
   const s = log.find(s => s.id === id);
