@@ -2929,6 +2929,55 @@ const PRESET_RULES = [
   },
 ];
 
+const RULE_TEMPLATES = [
+  {
+    id: 'tpl-downloads',
+    name: 'Downloads Cleanup',
+    desc: 'Auto-clean old installers, temp files and archive large downloads',
+    icon: 'download',
+    color: 'rgba(96,165,250,0.1)', iconColor: '#60a5fa',
+    rules: [
+      { name: 'Delete old installers', conditions: [{ field: 'age', op: 'gt', value: 180, unit: 'days' }, { field: 'extension', op: 'eq', value: 'exe' }], logic: 'AND', action: { type: 'delete' }, enabled: true },
+      { name: 'Clean temp files', conditions: [{ field: 'extension', op: 'eq', value: 'tmp' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
+      { name: 'Archive old downloads', conditions: [{ field: 'age', op: 'gt', value: 90, unit: 'days' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
+    ]
+  },
+  {
+    id: 'tpl-developer',
+    name: 'Developer Workspace',
+    desc: 'Clean build artifacts, logs and old backup files',
+    icon: 'code-2',
+    color: 'rgba(167,139,250,0.1)', iconColor: '#a78bfa',
+    rules: [
+      { name: 'Delete log files', conditions: [{ field: 'extension', op: 'eq', value: 'log' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
+      { name: 'Delete temp files', conditions: [{ field: 'extension', op: 'eq', value: 'tmp' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
+      { name: 'Remove old backups', conditions: [{ field: 'name', op: 'contains', value: 'backup' }, { field: 'age', op: 'gt', value: 30, unit: 'days' }], logic: 'AND', action: { type: 'delete' }, enabled: true },
+    ]
+  },
+  {
+    id: 'tpl-photos',
+    name: 'Photo Organizer',
+    desc: 'Move large photos and old screenshots to dedicated folders',
+    icon: 'image',
+    color: 'rgba(251,191,36,0.1)', iconColor: '#fbbf24',
+    rules: [
+      { name: 'Archive large photos', conditions: [{ field: 'size', op: 'gt', value: 5, unit: 'MB' }, { field: 'extension', op: 'eq', value: 'jpg' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
+      { name: 'Move screenshots', conditions: [{ field: 'name', op: 'starts', value: 'Screenshot' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
+    ]
+  },
+  {
+    id: 'tpl-archive',
+    name: 'Old Files Archiver',
+    desc: 'Move documents and files older than 1 year to an archive folder',
+    icon: 'archive',
+    color: 'rgba(61,219,61,0.1)', iconColor: '#3ddb3d',
+    rules: [
+      { name: 'Archive old documents', conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }, { field: 'extension', op: 'eq', value: 'pdf' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
+      { name: 'Archive old files', conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
+    ]
+  },
+];
+
 let rulesData = [];
 let rulesBatchFolders = [];
 let rulesMultiMode = false;
@@ -2938,7 +2987,40 @@ async function loadRules() {
   rulesData = await window.api.getRules() || [];
   renderRulesList();
   renderPresetRules();
+  renderRuleTemplates();
   updateRulesLastRun();
+}
+
+function renderRuleTemplates() {
+  const list = document.getElementById('ruleTemplatesList');
+  if (!list) return;
+  list.innerHTML = RULE_TEMPLATES.map(t => {
+    return `<div class="preset-rule-row">
+      <div class="preset-rule-icon" style="background:${t.color}"><i data-lucide="${t.icon}" style="color:${t.iconColor}"></i></div>
+      <div class="preset-rule-body">
+        <div class="preset-rule-name">${t.name}</div>
+        <div class="preset-rule-desc">${t.desc} (${t.rules.length} rules)</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="importRuleTemplate('${t.id}')">
+        <i data-lucide="download"></i> Import
+      </button>
+    </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+async function importRuleTemplate(templateId) {
+  const tpl = RULE_TEMPLATES.find(t => t.id === templateId);
+  if (!tpl) return;
+  const existingNames = new Set(rulesData.map(r => r.name?.toLowerCase()));
+  const toAdd = tpl.rules
+    .filter(r => !existingNames.has(r.name?.toLowerCase()))
+    .map(r => ({ ...r, id: `${templateId}-${Date.now()}-${Math.random().toString(36).slice(2)}` }));
+  if (!toAdd.length) { showToast('All rules from this template already exist'); return; }
+  rulesData = [...rulesData, ...toAdd];
+  await window.api.saveRules(rulesData);
+  renderRulesList();
+  showToast(`✓ ${toAdd.length} rule${toAdd.length === 1 ? '' : 's'} imported from "${tpl.name}"`);
 }
 
 async function updateRulesLastRun() {
