@@ -636,16 +636,29 @@
       <i data-lucide="play" class="card-icon"></i>
       <span class="card-title" data-i18n="runRules">Run Rules</span>
       <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:var(--text-dim)">Multi-folder</span>
+        <button class="setting-toggle" id="rulesMultiToggle" onclick="toggleRulesMulti()" style="width:32px;height:18px"></button>
         <span style="font-size:11px;color:var(--text-dim)">Dry-run</span>
         <button class="setting-toggle" id="dryRunToggle" onclick="toggleDryRun()" style="width:32px;height:18px"></button>
       </div>
     </div>
-    <div class="folder-row">
-      <input type="text" id="rulesFolder" readonly placeholder="Choose a folder..."/>
-      <button class="btn btn-outline" onclick="pickRulesFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+    <!-- Single folder mode -->
+    <div id="rulesSingleMode">
+      <div class="folder-row">
+        <input type="text" id="rulesFolder" readonly placeholder="Choose a folder..."/>
+        <button class="btn btn-outline" onclick="pickRulesFolder()"><i data-lucide="folder-open"></i><span data-i18n="browse">Browse</span></button>
+      </div>
+      <div id="rulesFolderChips" class="recent-chips hidden"></div>
+      <div id="rulesLastRun" class="hidden" style="font-size:10px;color:var(--text-dim);margin-top:6px"></div>
     </div>
-    <div id="rulesFolderChips" class="recent-chips hidden"></div>
-    <div id="rulesLastRun" class="hidden" style="font-size:10px;color:var(--text-dim);margin-top:6px"></div>
+    <!-- Multi folder mode -->
+    <div id="rulesMultiMode" class="hidden">
+      <div class="batch-folder-list" id="rulesBatchList"></div>
+      <div class="folder-row" style="margin-top:8px">
+        <input type="text" id="rulesBatchInput" readonly placeholder="Add a folder..."/>
+        <button class="btn btn-outline" onclick="pickRulesBatchFolder()"><i data-lucide="folder-plus"></i><span data-i18n="addFolder">Add Folder</span></button>
+      </div>
+    </div>
     <div class="action-row" style="margin-top:10px">
       <button class="btn btn-outline" id="previewRulesBtn" onclick="previewRules()">
         <i data-lucide="eye"></i><span data-i18n="preview">Preview</span>
