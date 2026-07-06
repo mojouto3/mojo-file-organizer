@@ -3271,6 +3271,7 @@ function renderRuleConditions(conditions) {
         <option value="age" ${c.field==='age'?'selected':''}>Age</option>
         <option value="date_range" ${c.field==='date_range'?'selected':''}>Date Range</option>
         <option value="size" ${c.field==='size'?'selected':''}>Size</option>
+        <option value="content" ${c.field==='content'?'selected':''}>Content</option>
       </select>
       ${getConditionOpUI(c)}
       <button class="batch-folder-remove" onclick="removeCondition(${i})"><i data-lucide="x"></i></button>
@@ -3315,6 +3316,13 @@ function getConditionOpUI(c) {
       <option value="MB" ${c.unit==='MB'?'selected':''}>MB</option>
       <option value="GB" ${c.unit==='GB'?'selected':''}>GB</option>
     </select>`;
+  if (c.field === 'content') return `
+    <select class="rule-select" id="cond-op-${c._i??0}" style="width:130px">
+      <option value="contains" ${c.op==='contains'?'selected':''}>contains</option>
+      <option value="not_contains" ${c.op==='not_contains'?'selected':''}>does not contain</option>
+    </select>
+    <input class="rule-input" id="cond-val-${c._i??0}" value="${sanitize(c.value||'')}" placeholder="keyword" style="flex:1"/>
+    <span style="font-size:10px;color:var(--text-dim)">text files only</span>`;
   return '';
 }
 

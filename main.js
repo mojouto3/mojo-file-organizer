@@ -1409,7 +1409,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
       const fileMatches = [];
       for (const rule of rules) {
         if (!rule.enabled) continue;
-        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs });
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs, content: readFileContentIfNeeded(fullPath, ext, rules) });
         if (!matched) continue;
         fileMatches.push(rule.name);
       }
@@ -1443,11 +1443,11 @@ async function executeRules(folderPath, rules) {
 
       for (const rule of rules) {
         if (!rule.enabled) continue;
-        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs });
+        const matched = evaluateRuleConditions(rule, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs, content: readFileContentIfNeeded(fullPath, ext, rules) });
         if (!matched) continue;
 
         const overlaps = rules.filter(r => r.enabled && r.name !== rule.name &&
-          evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs })).map(r => r.name);
+          evaluateRuleConditions(r, { name: f.name, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs, content: readFileContentIfNeeded(fullPath, ext, rules) })).map(r => r.name);
 
         const actionResult = { file: f.name, rule: rule.name, action: rule.action.type, ok: false };
         if (overlaps.length) actionResult.overlaps = overlaps;
@@ -1523,12 +1523,33 @@ function evaluateCondition(c, file) {
       if (to && file.mtimeMs > to) return false;
       return true;
     }
+    case 'content': {
+      if (!file.content) return false;
+      const keyword = String(value).toLowerCase();
+      return op === 'not_contains'
+        ? !file.content.toLowerCase().includes(keyword)
+        : file.content.toLowerCase().includes(keyword);
+    }
     case 'size': {
       const bytes = unit === 'GB' ? Number(value) * 1073741824 : unit === 'MB' ? Number(value) * 1048576 : Number(value) * 1024;
       return op === 'gt' ? file.sizeBytes > bytes : file.sizeBytes < bytes;
     }
   }
   return false;
+}
+
+const TEXT_EXTENSIONS = new Set(['txt','md','csv','log','json','xml','yaml','yml','html','css','js','ts','py','java','cpp','cs','go','php','sql','ini','cfg','conf','sh','bat','ps1','env','gitignore','rtf']);
+const MAX_CONTENT_SIZE = 1024 * 1024; // 1MB
+
+function readFileContentIfNeeded(fullPath, ext, rules) {
+  const needsContent = rules.some(r => r.enabled && (r.conditions || []).some(c => c.field === 'content'));
+  if (!needsContent) return null;
+  if (!TEXT_EXTENSIONS.has(ext)) return null;
+  try {
+    const stat = fs.statSync(fullPath);
+    if (stat.size > MAX_CONTENT_SIZE) return null;
+    return fs.readFileSync(fullPath, 'utf8');
+  } catch (e) { return null; }
 }
 
 function applyRenameRulesToFile(filename, rules) {
