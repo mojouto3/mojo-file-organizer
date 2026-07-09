@@ -900,6 +900,8 @@ document.addEventListener('keydown', (e) => {
         }
       } break;
       case 'r': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-rules') runRules(); } break;
+      case 's':
+      case 'S': if (e.shiftKey) { e.preventDefault(); const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-cleanup') scanCleanup(); } break;
       case 'f': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-history') { document.getElementById('historySearch')?.focus(); } else { document.querySelector('.page:not(.hidden) input[type="text"]')?.focus(); } } break;
       case '1': e.preventDefault(); showTab('organize'); break;
       case '2': e.preventDefault(); showTab('group'); break;
