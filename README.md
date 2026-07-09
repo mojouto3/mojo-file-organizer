@@ -7,6 +7,7 @@
 **A modern, elegant file organizer desktop app for Windows**
 
 [![Version](https://img.shields.io/badge/version-3.22.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![CI](https://github.com/mojouto3/mojo-file-organizer/actions/workflows/ci.yml/badge.svg)](https://github.com/mojouto3/mojo-file-organizer/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
 [![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
