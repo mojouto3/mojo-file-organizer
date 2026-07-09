@@ -1,0 +1,32 @@
+name: Feature request
+description: Suggest a new feature or enhancement
+title: "feat: "
+labels: ["feat"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should this feature do?
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Why is this useful?
+      description: What problem does this solve, or what value does it add?
+    validations:
+      required: false
+  - type: textarea
+    id: details
+    attributes:
+      label: Implementation notes (optional)
+      description: Any specifics on how it should work, edge cases, or an example.
+    validations:
+      required: false
+  - type: checkboxes
+    id: ui
+    attributes:
+      label: UI impact
+      options:
+        - label: This involves UI changes and needs a mockup before implementation

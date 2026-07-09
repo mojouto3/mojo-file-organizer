@@ -23,6 +23,7 @@ jobs:
             --arg url "$RELEASE_URL" \
             --arg desc "$BODY_SHORT"$'\n\n'"$DOWNLOAD_LINE" \
             --arg version "$RELEASE_TAG" \
+            --arg image "https://raw.githubusercontent.com/mojouto3/mojo-file-organizer/main/assets/social-preview.png" \
             '{
               username: "Mojo File Organizer",
               embeds: [{
@@ -30,6 +31,7 @@ jobs:
                 url: $url,
                 description: $desc,
                 color: 4053821,
+                image: { url: $image },
                 fields: [
                   { name: "Version", value: $version, inline: true },
                   { name: "Platform", value: "Windows x64", inline: true }
