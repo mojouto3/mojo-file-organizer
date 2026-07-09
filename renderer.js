@@ -2985,6 +2985,11 @@ let rulesBatchFolders = [];
 let rulesMultiMode = false;
 let editingRuleId = null;
 
+function scrollToTemplates() {
+  const card = document.getElementById('ruleTemplatesCard');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 async function loadRules() {
   rulesData = await window.api.getRules() || [];
   renderRulesList();
