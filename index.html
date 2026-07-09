@@ -632,7 +632,15 @@
     <div class="empty-state hidden" id="rulesEmpty">
       <i data-lucide="git-branch"></i>
       <p data-i18n="noRules">No rules yet.</p>
-      <span class="empty-state-hint" data-i18n="noRulesHint">Create rules to automate file actions based on conditions.</span>
+      <span class="empty-state-hint" data-i18n="noRulesHint">Create your own rule or start with a ready-made template.</span>
+      <div style="display:flex;gap:8px;margin-top:10px;justify-content:center">
+        <button class="btn btn-green btn-sm" onclick="openRuleEditor()">
+          <i data-lucide="plus"></i>Add Rule
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="scrollToTemplates()">
+          <i data-lucide="layout-template"></i>Browse Templates
+        </button>
+      </div>
     </div>
     <div id="rulesSearchWrap" class="hidden" style="margin-bottom:8px">
       <input type="text" id="rulesSearch" class="history-search-input" placeholder="Search rules..." oninput="filterRulesList()"/>
