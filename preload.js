@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('api', {
   scanDuplicates:    (opts)  => ipcRenderer.invoke('scan-duplicates', opts),
   deleteDuplicates:  (files) => ipcRenderer.invoke('delete-duplicates', files),
   restoreDuplicates: (files) => ipcRenderer.invoke('restore-duplicates', files),
-  startWatcher:     (folder) => ipcRenderer.invoke('start-watcher', folder),
+  startWatcher:     (opts) => ipcRenderer.invoke('start-watcher', opts),
   stopWatcher:      ()       => ipcRenderer.invoke('stop-watcher'),
   getWatcherStatus: ()       => ipcRenderer.invoke('get-watcher-status'),
   onWatcherEvent:   (cb)     => { ipcRenderer.removeAllListeners('watcher-event'); ipcRenderer.on('watcher-event', (_, data) => cb(data)); },

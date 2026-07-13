@@ -1774,11 +1774,9 @@ let watcherEventCount = 0;
 async function initWatcher() {
   const status = await window.api.getWatcherStatus();
   if (status.active) {
-  document.getElementById('watcherFolderInput').value = status.folder;
-  if (document.getElementById('page-watcher') && !document.getElementById('page-watcher').classList.contains('hidden')) {
-    setWatcherActive(true);
+    document.getElementById('watcherFolderInput').value = status.folder;
   }
-}
+  setWatcherActive(!!status.active);
 
   window.api.onWatcherEvent((data) => {
     addWatcherEvent(data.filename, data.category);
@@ -1799,7 +1797,8 @@ async function startWatcher() {
   const folder = document.getElementById('watcherFolderInput').value;
   if (!folder) { showToast(tr('selectFolderFirst')); return; }
 
-  const result = await window.api.startWatcher(folder);
+  const useRules = document.getElementById('watcherUseRules')?.classList.contains('on') || false;
+  const result = await window.api.startWatcher({ folderPath: folder, useRules });
   if (result.ok) {
     setWatcherActive(true);
     const empty = document.getElementById('watcherEmpty');
