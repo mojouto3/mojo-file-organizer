@@ -1815,7 +1815,7 @@ ipcMain.handle('restore-duplicates', async (_, files) => {
 let activeWatcher = null;
 let watcherFolder = null;
 
-ipcMain.handle('start-watcher', async (_, folderPath) => {
+ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
   try {
     if (activeWatcher) {
       activeWatcher.close();
@@ -1844,6 +1844,45 @@ ipcMain.handle('start-watcher', async (_, folderPath) => {
 
         const { sizeFilter } = readSettings();
         if (shouldIgnoreSize(filePath, sizeFilter)) return;
+
+        // Try Rules first if enabled
+        if (useRules) {
+          const rules = readRules().filter(r => r.enabled);
+          if (rules.length) {
+            const stat = fs.statSync(filePath);
+            const ext = path.extname(filename).toLowerCase().replace('.', '');
+            const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
+            const sizeBytes = stat.size;
+            const content = readFileContentIfNeeded(filePath, ext, rules);
+            const fileObj = { name: filename, ext, ageDays, sizeBytes, mtimeMs: stat.mtimeMs, content };
+
+            for (const rule of rules) {
+              if (!evaluateRuleConditions(rule, fileObj)) continue;
+              try {
+                if (rule.action.type === 'delete') {
+                  await shell.trashItem(filePath);
+                  sendNotification(`🗑 ${filename}`, `Deleted by rule: ${rule.name}`);
+                  if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'delete' });
+                } else if (rule.action.type === 'move' && rule.action.dest) {
+                  const dest = path.resolve(rule.action.dest);
+                  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+                  const moveTo = path.join(dest, filename);
+                  fs.renameSync(filePath, moveTo);
+                  sendNotification(`→ ${filename}`, `Moved by rule: ${rule.name}`);
+                  if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'move' });
+                } else if (rule.action.type === 'rename') {
+                  const newName = applyRenameRulesToFile(filename, rule.action.renameRules || {});
+                  if (newName !== filename) {
+                    fs.renameSync(filePath, path.join(folderPath, newName));
+                    sendNotification(`✏ ${filename}`, `Renamed by rule: ${rule.name}`);
+                    if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'rename' });
+                  }
+                }
+              } catch (e) {}
+              return; // Rule handled — skip category organize
+            }
+          }
+        }
 
         const cat = getCategory(path.extname(filename), cats);
         if (!cat) return;

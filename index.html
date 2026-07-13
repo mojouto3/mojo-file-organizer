@@ -555,13 +555,17 @@
     </div>
     <div id="recentFolders-watcher"></div>
     <div class="bookmark-panel hidden" id="bookmarkPanel-watcher"></div>
-    <div class="action-row">
-      <button class="btn btn-outline" id="startWatcherBtn" onclick="startWatcher()" style="display:none">
+    <div class="action-row" style="align-items:center;gap:12px">
+      <button class="btn btn-outline hidden" id="startWatcherBtn" onclick="startWatcher()">
         <i data-lucide="play"></i><span data-i18n="startWatching">Start Watching</span>
       </button>
       <button class="btn btn-danger-outline hidden" id="stopWatcherBtn" onclick="stopWatcher()">
         <i data-lucide="square"></i><span data-i18n="stop">Stop</span>
       </button>
+      <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
+        <span style="font-size:11px;color:var(--text-dim)">Also run Rules</span>
+        <button class="setting-toggle" id="watcherUseRules" onclick="this.classList.toggle('on')" style="width:32px;height:18px" title="Apply enabled Rules to new files before organizing by category"></button>
+      </div>
     </div>
   </div>
   <div class="card hidden" id="watcherLogCard">
