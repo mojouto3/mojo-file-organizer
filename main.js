@@ -1418,7 +1418,13 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
 
       const preview = { file: f.name, rule: fileMatches[0], action: rules.find(r => r.name === fileMatches[0])?.action?.type };
       const firstRule = rules.find(r => r.name === fileMatches[0]);
-      if (firstRule?.action?.type === 'move') preview.dest = firstRule.action.dest || '';
+      if (firstRule?.action?.type === 'move') {
+        preview.dest = firstRule.action.dest || '';
+        if (preview.dest) {
+          const moveTo = path.join(path.resolve(preview.dest), f.name);
+          if (fs.existsSync(moveTo)) preview.conflict = true;
+        }
+      }
       if (firstRule?.action?.type === 'rename') {
         preview.newName = applyRenameRulesToFile(f.name, firstRule.action.renameRules || {});
       }
@@ -1460,8 +1466,22 @@ async function executeRules(folderPath, rules) {
             if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
             if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
             const moveTo = path.join(dest, f.name);
-            fs.renameSync(fullPath, moveTo);
-            actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
+            if (fs.existsSync(moveTo)) {
+              // File exists at destination — rename with suffix
+              const ext = path.extname(f.name);
+              const base = path.basename(f.name, ext);
+              let suffix = 1;
+              let safePath = moveTo;
+              while (fs.existsSync(safePath)) {
+                safePath = path.join(dest, `${base}_${suffix}${ext}`);
+                suffix++;
+              }
+              fs.renameSync(fullPath, safePath);
+              actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = safePath; actionResult.renamed = true;
+            } else {
+              fs.renameSync(fullPath, moveTo);
+              actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
+            }
           } else if (rule.action.type === 'rename') {
             const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
             if (newName !== f.name) {

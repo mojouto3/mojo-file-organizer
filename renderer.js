@@ -3522,6 +3522,7 @@ async function previewRules() {
           <span class="rule-result-action">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 delete' : `rename to ${sanitize(r.newName||r.file)}`}</span>
           <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
           <span style="font-size:10px;font-weight:600;color:var(--accent);margin-left:4px">PREVIEW</span>
+          ${r.conflict ? `<span style="font-size:10px;color:#ef4444;margin-left:4px" title="A file with this name already exists at the destination — will be renamed with suffix">⚠ conflict</span>` : ''}
           ${r.overlaps?.length ? `<span style="font-size:10px;color:#fbbf24;margin-left:4px" title="Also matched: ${r.overlaps.map(o => sanitize(o)).join(', ')}">⚠</span>` : ''}
         </div>`).join('')}</div>`;
     }
@@ -3604,6 +3605,7 @@ async function runRules() {
           <span style="flex:1">${sanitize(r.file)}</span>
           <span class="rule-result-action ${r.action==='delete'?'del':''}">${r.action === 'move' ? `→ ${sanitize(r.dest||'')}` : r.action === 'delete' ? '🗑 deleted' : `renamed to ${sanitize(r.newName||'')}`}</span>
           <span style="font-size:10px;color:var(--text-dim)">${sanitize(r.rule)}</span>
+          ${r.renamed ? `<span style="font-size:10px;color:#ef4444;margin-left:4px" title="Destination existed — renamed with suffix">⚠ renamed</span>` : ''}
           ${r.overlaps?.length ? `<span style="font-size:10px;color:#fbbf24;margin-left:4px" title="Also matched: ${r.overlaps.map(o => sanitize(o)).join(', ')}">⚠</span>` : ''}
         </div>`).join('')}</div>`;
     }
