@@ -624,6 +624,9 @@
         <button class="btn btn-outline btn-sm" onclick="importRules()" title="Import rules">
           <i data-lucide="upload"></i><span data-i18n="import">Import</span>
         </button>
+        <button class="btn btn-outline btn-sm" onclick="exportAppData()" title="Backup all settings and rules">
+          <i data-lucide="archive"></i><span>Backup</span>
+        </button>
         <button class="btn btn-green btn-sm" onclick="openRuleEditor()">
           <i data-lucide="plus"></i><span data-i18n="addRule">Add Rule</span>
         </button>
@@ -1109,7 +1112,7 @@
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-title" data-i18n="exportSettings">Export settings</div>
-          <div class="setting-desc" data-i18n="exportSettingsDesc">Save all settings, categories and groups to a file</div>
+          <div class="setting-desc">Save all settings, categories, groups and rules to a file</div>
         </div>
         <button class="btn btn-outline btn-sm" onclick="exportAppData()">
           <i data-lucide="download"></i><span data-i18n="export">Export</span>
@@ -1118,7 +1121,7 @@
       <div class="setting-row">
         <div class="setting-info">
           <div class="setting-title" data-i18n="importSettings">Import settings</div>
-          <div class="setting-desc" data-i18n="importSettingsDesc">Restore settings from a previously exported file</div>
+          <div class="setting-desc">Restore settings, categories, groups and rules from a backup file</div>
         </div>
         <button class="btn btn-outline btn-sm" onclick="importAppData()">
           <i data-lucide="upload"></i><span data-i18n="import">Import</span>
