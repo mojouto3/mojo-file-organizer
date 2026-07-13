@@ -6,7 +6,7 @@
 
 **A modern, elegant file organizer desktop app for Windows**
 
-[![Version](https://img.shields.io/badge/version-3.22.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
+[![Version](https://img.shields.io/badge/version-3.23.0-brightgreen?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![CI](https://github.com/mojouto3/mojo-file-organizer/actions/workflows/ci.yml/badge.svg)](https://github.com/mojouto3/mojo-file-organizer/actions/workflows/ci.yml)
 [![Platform](https://img.shields.io/badge/platform-Windows-blue?style=flat-square)](https://github.com/mojouto3/mojo-file-organizer/releases)
 [![Electron](https://img.shields.io/badge/electron-42.x-47848F?style=flat-square)](https://electronjs.org)
@@ -126,6 +126,7 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - `Ctrl+Z`: Undo
 - `Ctrl+P`: Preview (Organize tab) / `Ctrl+Shift+P`: Preview Rules (Rules tab)
 - `Ctrl+R`: Run Rules (when Rules tab is active)
+- `Ctrl+Shift+S`: Scan Folder (when Cleanup tab is active)
 - `Ctrl+F`: focus search or folder input
 - `Esc`: close any open dialog
 - `?`: show keyboard shortcuts help
@@ -149,7 +150,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 
 ### File Watcher
 - Real-time monitoring: watches a folder and auto-organizes new files as they arrive
-- Activity log: see every file organized with timestamp and destination
+- Optional Rules integration: enable "Also run Rules" to apply your Rules to new files before category organize
+- Activity log: see every file organized with timestamp, destination and rule name
 - Windows notifications: get notified when files are auto-organized
 
 ### History and Stats
@@ -193,8 +195,8 @@ Unlike basic file sorters, Mojo File Organizer gives you full control: customize
 - Configurable from Settings > General (0 = disabled)
 
 ### Onboarding
-- 5-step welcome tour shown automatically on first launch
-- Covers core features, tools, customization, history and theme/language setup
+- 8-step welcome tour shown automatically on first launch
+- Covers core features, File Rules Engine, tools, customization, history and theme/language setup
 - Reopenable from Settings > About & Updates
 
 ### Suggested Cleanup
