@@ -1,6 +1,6 @@
 {
   "name": "mojo-file-organizer",
-  "version": "3.22.0",
+  "version": "3.23.0",
   "description": "A modern, elegant file organizer desktop app for Windows",
   "main": "main.js",
   "author": "mojomultimedia",
