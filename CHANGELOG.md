@@ -4,6 +4,23 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.23.0] - 2026-07-09
+
+### Added
+- File Watcher: "Also run Rules" toggle to apply enabled Rules to new files before category organize
+- Onboarding tour: new step covering the File Rules Engine (tour is now 8 steps)
+- Rules tab: improved empty state with Add Rule and Browse Templates buttons
+- Rules tab: Backup button in the card header for quick full backup
+- Settings: export and import descriptions now explicitly mention Rules
+- Cleanup tab: Ctrl+Shift+S keyboard shortcut for Scan Folder
+
+### Fixed
+- Rules move action no longer silently overwrites existing files at destination — conflicting files are automatically renamed with a suffix (e.g. filename_1.ext)
+- Preview mode now shows a red "conflict" badge when a destination file already exists
+- File Watcher Start Watching button was not visible due to inline style conflict with hidden class
+
+---
+
 ## [3.22.0] - 2026-07-07
 
 ### Added
