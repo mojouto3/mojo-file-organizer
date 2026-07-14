@@ -89,13 +89,12 @@ function showTab(name) {
   page.classList.add('tab-enter');
   const tabEl = document.getElementById(`tab-${name}`);
   if (tabEl) tabEl.classList.add('active');
-  if (name === 'history') {
+  if (name === 'activity') {
     lastSeenHistoryCount = cachedSessions.length;
     const badge = document.getElementById('historyTabBadge');
     if (badge) badge.classList.add('hidden');
     loadHistory();
   }
-  if (name === 'stats')    loadStats();
   if (name === 'settings') renderSettings();
   if (name === 'watcher')  initWatcher();
   if (name === 'rules')    loadRules();
@@ -337,6 +336,28 @@ let cachedSessions = [];
 let historyTypeFilter = 'all';
 let historyCompact = false;
 
+function setActivityView(view) {
+  const sessionsView = document.getElementById('activitySessionsView');
+  const statsView = document.getElementById('activityStatsView');
+  const sessionControls = document.getElementById('activitySessionControls');
+  const statsControls = document.getElementById('activityStatsControls');
+  const title = document.getElementById('activityCardTitle');
+  const btnSessions = document.getElementById('activityViewSessions');
+  const btnStats = document.getElementById('activityViewStats');
+  const isStats = view === 'stats';
+
+  if (sessionsView) sessionsView.style.display = isStats ? 'none' : '';
+  if (statsView) statsView.style.display = isStats ? '' : 'none';
+  if (sessionControls) sessionControls.style.display = isStats ? 'none' : 'flex';
+  if (statsControls) statsControls.style.display = isStats ? 'flex' : 'none';
+  if (title) title.textContent = isStats ? 'Stats' : 'Session History';
+
+  if (btnSessions) btnSessions.classList.toggle('active', !isStats);
+  if (btnStats) btnStats.classList.toggle('active', isStats);
+
+  if (isStats) loadStats();
+}
+
 function toggleHistoryCompact() {
   historyCompact = !historyCompact;
   const list = document.getElementById('historyList');
@@ -368,6 +389,7 @@ async function loadHistory() {
   if (list) list.classList.toggle('compact', historyCompact);
   const btn = document.getElementById('historyCompactToggle');
   if (btn) btn.classList.toggle('on', historyCompact);
+  setActivityView('sessions');
 }
 
 function renderHistory(sessions) {
@@ -902,11 +924,11 @@ document.addEventListener('keydown', (e) => {
       case 'r': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-rules') runRules(); } break;
       case 's':
       case 'S': if (e.shiftKey) { e.preventDefault(); const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-cleanup') scanCleanup(); } break;
-      case 'f': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-history') { document.getElementById('historySearch')?.focus(); } else { document.querySelector('.page:not(.hidden) input[type="text"]')?.focus(); } } break;
+      case 'f': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-activity') { document.getElementById('historySearch')?.focus(); } else { document.querySelector('.page:not(.hidden) input[type="text"]')?.focus(); } } break;
       case '1': e.preventDefault(); showTab('organize'); break;
       case '2': e.preventDefault(); showTab('group'); break;
-      case '3': e.preventDefault(); showTab('history'); break;
-      case '4': e.preventDefault(); showTab('stats'); break;
+      case '3': e.preventDefault(); showTab('activity'); break;
+      case '4': e.preventDefault(); showTab('group'); break;
       case '5': e.preventDefault(); showTab('duplicates'); break;
       case '6': e.preventDefault(); showTab('cleanup'); break;
       case '7': e.preventDefault(); showTab('watcher'); break;
@@ -1149,7 +1171,7 @@ async function loadCleanupSuggestions() {
       suggestions.push({ id, type: 'clean', icon: 'bar-chart-2',
         title: tr('suggCatTitle').replace('{cat}', cat).replace('{count}', count),
         desc: tr('suggCatDesc'),
-        action: () => showTab('stats'),
+        action: () => showTab('activity'),
         actionLabel: tr('suggViewStats')
       });
     }
@@ -2390,14 +2412,19 @@ function saveAccordionState(state) {
   catch (e) {}
 }
 
+function showSettingsSection(name) {
+  document.querySelectorAll('.settings-section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+  const section = document.getElementById(`settingsSection-${name}`);
+  if (section) section.classList.remove('hidden');
+  const navItem = document.querySelector(`.settings-nav-item[data-section="${name}"]`);
+  if (navItem) navItem.classList.add('active');
+  if (name === 'notiflog') loadNotificationLog();
+  lucide.createIcons();
+}
+
 function toggleSettingsCard(name) {
-  const card = document.getElementById(`settingsCard-${name}`);
-  if (!card) return;
-  const collapsed = card.classList.toggle('collapsed');
-  const state = getAccordionState();
-  state[name] = collapsed;
-  saveAccordionState(state);
-  if (name === 'notiflog' && !collapsed) loadNotificationLog();
+  showSettingsSection(name);
 }
 
 async function loadNotificationLog() {
@@ -2984,9 +3011,53 @@ let rulesBatchFolders = [];
 let rulesMultiMode = false;
 let editingRuleId = null;
 
+function setOrganizeView(view) {
+  const mainView = document.getElementById('organizeMainView');
+  const schedView = document.getElementById('organizeScheduleView');
+  const btnOrg = document.getElementById('organizeViewOrganize');
+  const btnSched = document.getElementById('organizeViewSchedule');
+  const btnBatch = document.getElementById('batchModeBtn');
+  if (mainView) mainView.style.display = view === 'organize' || view === 'batch' ? '' : 'none';
+  if (schedView) schedView.style.display = view === 'schedule' ? '' : 'none';
+  if (btnOrg) btnOrg.classList.toggle('active', view === 'organize');
+  if (btnSched) btnSched.classList.toggle('active', view === 'schedule');
+  if (btnBatch) btnBatch.classList.toggle('active', view === 'batch');
+  // Show/hide batch mode inside main view
+  const singleMode = document.getElementById('singleFolderMode');
+  const batchMode = document.getElementById('batchFolderMode');
+  if (singleMode) singleMode.classList.toggle('hidden', view === 'batch');
+  if (batchMode) batchMode.classList.toggle('hidden', view !== 'batch');
+  lucide.createIcons();
+}
+
+function setCleanupView(view) {
+  const scanView = document.getElementById('cleanupScanView');
+  const schedView = document.getElementById('cleanupScheduleView');
+  const btnScan = document.getElementById('cleanupViewScan');
+  const btnSched = document.getElementById('cleanupViewSchedule');
+  if (scanView) scanView.style.display = view === 'scan' ? '' : 'none';
+  if (schedView) schedView.style.display = view === 'schedule' ? '' : 'none';
+  if (btnScan) btnScan.classList.toggle('active', view === 'scan');
+  if (btnSched) btnSched.classList.toggle('active', view === 'schedule');
+  lucide.createIcons();
+}
+
+function setRulesView(view) {
+  const views = { run: 'rulesRunView', myrules: 'rulesMyruleView', templates: 'rulesTemplatesView' };
+  const btns = { run: 'rulesViewRun', myrules: 'rulesViewMyRules', templates: 'rulesViewTemplates' };
+  Object.entries(views).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = k === view ? '' : 'none';
+  });
+  Object.entries(btns).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', k === view);
+  });
+  lucide.createIcons();
+}
+
 function scrollToTemplates() {
-  const card = document.getElementById('ruleTemplatesCard');
-  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setRulesView('templates');
 }
 
 async function loadRules() {
