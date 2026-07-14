@@ -410,9 +410,9 @@ function createWindow() {
   const startHidden = process.argv.includes('--hidden');
 
   mainWindow = new BrowserWindow({
-    width: 960,
+    width: 1100,
     height: 680,
-    minWidth: 800,
+    minWidth: 1000,
     minHeight: 560,
     icon: path.join(__dirname, 'assets', 'icon.ico'),
     webPreferences: {
