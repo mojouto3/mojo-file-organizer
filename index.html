@@ -41,7 +41,10 @@
 
 <!-- Tab bar -->
 <div class="tabbar">
-  <button class="tab active" id="tab-organize" onclick="showTab('organize')">
+  <button class="tab active" id="tab-home" onclick="showTab('home')">
+    <i data-lucide="home"></i><span>Home</span>
+  </button>
+  <button class="tab" id="tab-organize" onclick="showTab('organize')">
     <i data-lucide="folder-open"></i><span data-i18n="organize">Organize</span>
   </button>
   <button class="tab" id="tab-duplicates" onclick="showTab('duplicates')">
@@ -70,6 +73,11 @@
   <button class="tab" id="tab-settings" onclick="showTab('settings')">
     <i data-lucide="settings"></i><span data-i18n="settings">Settings</span>
   </button>
+</div>
+
+<!-- ══ HOME ══ -->
+<div class="page" id="page-home">
+  <div id="homeContent"></div>
 </div>
 
 <!-- ══ ORGANIZE ══ -->
@@ -1081,7 +1089,14 @@
     </div>
     <div class="shortcuts-list">
       <div class="shortcut-group-label" data-i18n="navigation">Navigation</div>
-      <div class="shortcut-row"><span>Ctrl + 1–8</span><span data-i18n="switchTabs">Switch tabs</span></div>
+      <div class="shortcut-row"><span>Ctrl + 2</span><span>Organize</span></div>
+      <div class="shortcut-row"><span>Ctrl + 3</span><span>Duplicates</span></div>
+      <div class="shortcut-row"><span>Ctrl + 4</span><span>Cleanup</span></div>
+      <div class="shortcut-row"><span>Ctrl + 5</span><span>Activity</span></div>
+      <div class="shortcut-row"><span>Ctrl + 6</span><span>Smart Group</span></div>
+      <div class="shortcut-row"><span>Ctrl + 7</span><span>Rules</span></div>
+      <div class="shortcut-row"><span>Ctrl + 8</span><span>Watcher</span></div>
+      <div class="shortcut-row"><span>Ctrl + 9</span><span>Settings</span></div>
       <div class="shortcut-group-label" data-i18n="actions">Actions</div>
       <div class="shortcut-row"><span>Ctrl + O</span><span data-i18n="organizeNow">Organize Now</span></div>
       <div class="shortcut-row"><span>Ctrl + P</span><span data-i18n="preview">Preview</span></div>
@@ -1203,15 +1218,15 @@
           <p class="ob-title" data-i18n="obStep5Title">Built for power users</p>
           <p class="ob-desc" data-i18n="obStep5Desc">Work faster with keyboard shortcuts and Windows Explorer integration.</p>
           <div class="ob-features">
-            <div class="ob-feature"><i data-lucide="zap"></i><div><p data-i18n="obStep5F1">Keyboard shortcuts</p><span data-i18n="obStep5F1Desc">Ctrl+1-8 for tabs, Ctrl+O organize, Ctrl+P preview</span></div></div>
+            <div class="ob-feature"><i data-lucide="zap"></i><div><p data-i18n="obStep5F1">Keyboard shortcuts</p><span data-i18n="obStep5F1Desc">Ctrl+2-9 for tabs, Ctrl+O organize, Ctrl+P preview</span></div></div>
             <div class="ob-feature"><i data-lucide="mouse-pointer-2"></i><div><p data-i18n="obStep5F2">Explorer context menu</p><span data-i18n="obStep5F2Desc">Right-click any folder to organize with MFO</span></div></div>
             <div class="ob-feature"><i data-lucide="help-circle"></i><div><p data-i18n="obStep5F3">Shortcuts help</p><span data-i18n="obStep5F3Desc">Press ? or click the ? button to see all shortcuts</span></div></div>
           </div>
         </div>
 
-        <!-- Step 6: History -->
+        <!-- Step 6: Activity -->
         <div class="ob-step">
-          <div class="ob-icon"><i data-lucide="history"></i></div>
+          <div class="ob-icon"><i data-lucide="activity"></i></div>
           <p class="ob-title" data-i18n="obStep6Title">Track everything</p>
           <p class="ob-desc" data-i18n="obStep6Desc">Every action is logged so you always know what happened — and can undo it.</p>
           <div class="ob-features">

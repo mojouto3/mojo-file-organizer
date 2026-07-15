@@ -630,6 +630,7 @@ function writeBookmarks(b) { fs.writeFileSync(BOOKMARKS_FILE, JSON.stringify(b, 
 
 // ── IPC: Updates ──────────────────────────────────────────────────
 ipcMain.handle('get-app-version', async () => APP_VERSION);
+ipcMain.handle('get-username', async () => require('os').userInfo().username);
 ipcMain.handle('check-for-updates', async () => checkForUpdates());
 ipcMain.handle('download-update', async () => {
   try { await autoUpdater.downloadUpdate(); return { ok: true }; }
@@ -869,6 +870,7 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
 
 // ── IPC: Log ──────────────────────────────────────────────────────
 ipcMain.handle('get-log',        async ()      => readLog());
+ipcMain.handle('add-session',    async (_, s)  => { appendSession(s); return true; });
 ipcMain.handle('clear-log',      async ()      => { writeLog([]); return true; });
 ipcMain.handle('delete-session', async (_, id) => { writeLog(readLog().filter(s => s.id !== id)); return true; });
 ipcMain.handle('get-notification-log', async () => readNotifLog());
