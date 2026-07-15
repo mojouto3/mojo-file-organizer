@@ -4,6 +4,24 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.25.0] - 2026-07-15
+
+### Added
+- Tab bar: active tab now shows pill highlight with accent color instead of underline, making the current section immediately obvious
+- Recent folder chips in Run Rules tab, consistent with all other tabs
+- Scroll reset to top when switching tabs
+
+### Fixed
+- Organize All button was missing from single folder mode
+- Batch folder mode HTML rendering issue
+- Date inputs in Activity tab were stretching too wide
+- Internal view buttons (Organize|Schedule|Batch, Scan|Schedule, Run|My Rules|Templates, Sessions|Stats) now use a neutral active state so they don't compete visually with the main tab highlight
+- Input, recent chips, and action buttons now aligned to the same left edge across all tabs
+- "Stores / Clients" label renamed to "Groups" for generality
+- "Mojo" changed to "MFO" in the Organize empty state hint
+
+---
+
 ## [3.24.0] - 2026-07-14
 
 ### Added
