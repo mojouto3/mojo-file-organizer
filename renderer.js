@@ -57,6 +57,7 @@ async function init() {
   initCleanupScheduleUI();
   initRulesScheduleUI();
   initContextMenuToggle();
+  showTab('home');
 }
 
 // ── Language ──────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ function showTab(name) {
   page.scrollTop = 0;
   const tabEl = document.getElementById(`tab-${name}`);
   if (tabEl) tabEl.classList.add('active');
+  if (name === 'home') loadHome();
   if (name === 'activity') {
     lastSeenHistoryCount = cachedSessions.length;
     const badge = document.getElementById('historyTabBadge');
@@ -336,6 +338,200 @@ function resetGroup() {
 let cachedSessions = [];
 let historyTypeFilter = 'all';
 let historyCompact = false;
+
+async function runRulesFromHome() {
+  const folder = currentFolder || appSettings.defaultFolder;
+  if (!folder) { showToast('No default folder set'); return; }
+
+  const activeRules = rulesData.filter(r => r.enabled);
+  if (!activeRules.length) { showToast('No active rules'); return; }
+
+  showToast('Running rules...');
+  try {
+    await window.api.runRules({ folderPath: folder, rules: activeRules });
+    showToast('Rules completed');
+    loadHome();
+  } catch (e) {
+    showToast('Rules failed');
+  }
+}
+
+async function loadHome() {
+  const container = document.getElementById('homeContent');
+  if (!container) return;
+
+  const [sessions, settings, rules, stats, username] = await Promise.all([
+    window.api.getLog(),
+    window.api.getSettings(),
+    window.api.getRules(),
+    window.api.getStats(),
+    window.api.getUsername().catch(() => '')
+  ]);
+
+  const defaultFolder = settings.defaultFolder || currentFolder || null;
+  const folderName = defaultFolder ? (defaultFolder.split('\\').pop() || defaultFolder.split('/').pop() || defaultFolder) : null;
+  const enabledRules = (rules || []).filter(r => r.enabled);
+  const lastOrganizeSession = sessions.find(s => s.type === 'organize' || !s.type);
+  const lastRuleSession = sessions.find(s => s.type === 'rules');
+  const watcherActive = document.getElementById('stopWatcherBtn') && !document.getElementById('stopWatcherBtn').classList.contains('hidden');
+  const watcherFolder = document.getElementById('watcherFolderInput')?.value || '';
+  const recentSessions = sessions.filter(s => {
+    const count = s.total || s.count || s.moved?.length || s.files?.length || s.results?.length || 0;
+    return count > 0;
+  }).slice(0, 3);
+  const totalFiles = stats?.totalFiles || 0;
+  const totalSessions = stats?.totalSessions || sessions.length;
+  const totalRulesFiles = stats?.rulesStats?.total || 0;
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  let html = `
+  <div class="home-greeting">
+    <div>
+      <div class="home-greeting-title">${greeting}${username ? ', ' + username : ''}</div>
+      <div class="home-greeting-sub">${dateStr} · Here's your overview</div>
+    </div>
+    <button class="btn-icon" onclick="loadHome()" title="Refresh"><i data-lucide="refresh-cw"></i></button>
+  </div>`;
+
+  // Smart cleanup reminder - find most neglected recent folder
+  const recentFolders = await window.api.getRecentFolders().catch(() => []);
+  // Only check well-known top-level folders (Downloads, Desktop, Documents etc)
+  const userBase = defaultFolder ? defaultFolder.split('\\').slice(0, 3).join('\\') : '';
+  const wellKnown = ['Downloads', 'Desktop', 'Documents', 'Pictures', 'Music'];
+  const organizedFolders = [...new Set(sessions.filter(s => s.type === 'organize' || !s.type).map(s => s.folder).filter(Boolean))];
+  const foldersToCheck = organizedFolders.filter(f => {
+    const parts = f.replace(/\\/g, '/').split('/');
+    return wellKnown.some(wk => parts[parts.length - 1].toLowerCase() === wk.toLowerCase());
+  });
+
+  let reminderFolder = null;
+  let maxDays = 30;
+  for (const f of foldersToCheck) {
+    const lastC = sessions.find(s => s.type === 'cleanup' && s.folder?.toLowerCase().replace(/\\/g, '/') === f?.toLowerCase().replace(/\\/g, '/'));
+    const days = lastC
+      ? Math.floor((Date.now() - new Date(lastC.timestamp).getTime()) / 86400000)
+      : 999;
+    if (days > maxDays) { maxDays = days; reminderFolder = f; }
+  }
+
+  if (reminderFolder) {
+    const rfName = reminderFolder.split('\\').pop() || reminderFolder.split('/').pop() || reminderFolder;
+    const rfEscaped = reminderFolder.replace(/\\/g, '\\\\');
+    html += `
+  <div class="home-reminder" onclick="showTab('cleanup');setCleanupFolder('${rfEscaped}')">
+    <i data-lucide="triangle-alert" style="color:#fbbf24;width:16px;height:16px;flex-shrink:0"></i>
+    <div style="flex:1">
+      <div class="home-reminder-title">${rfName} hasn't been cleaned in ${maxDays > 60 ? Math.floor(maxDays / 30) + ' months' : maxDays + ' days'}</div>
+      <div class="home-reminder-desc">Run a scan to find temp files, installers and empty folders</div>
+    </div>
+    <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showTab('cleanup');setCleanupFolder('${rfEscaped}')"><i data-lucide="trash-2"></i>Clean now</button>
+  </div>`;
+  }
+
+  // Quick Organize card
+  const lastOrgTime = lastOrganizeSession ? timeAgo(lastOrganizeSession.timestamp) : null;
+  html += `
+  <div class="card home-organize-card" onclick="showTab('organize')">
+    <div class="home-organize-top">
+      <div class="home-organize-label"><i data-lucide="zap" style="width:11px;height:11px"></i>QUICK ORGANIZE</div>
+      <div class="home-organize-folder">${folderName || 'No folder selected'}</div>
+      <div class="home-organize-meta">${lastOrgTime ? `Last organized ${lastOrgTime}` : 'Not organized yet'}</div>
+    </div>
+    <button class="home-organize-btn" onclick="event.stopPropagation();showTab('organize')">
+      <i data-lucide="zap"></i>Organize Now
+    </button>
+    <div class="home-stats-row">
+      <div class="home-stat"><div class="home-stat-num">${totalFiles.toLocaleString()}</div><div class="home-stat-label">Files organized</div></div>
+      <div class="home-stat"><div class="home-stat-num">${totalSessions}</div><div class="home-stat-label">Sessions</div></div>
+      <div class="home-stat"><div class="home-stat-num" style="color:var(--accent,#a78bfa)">${totalRulesFiles.toLocaleString()}</div><div class="home-stat-label">Via rules</div></div>
+    </div>
+  </div>`;
+
+  // Rules + Watcher side by side
+  html += `<div class="home-grid">`;
+
+  // Rules card
+  const rulesRows = enabledRules.slice(0, 3).map(r => {
+    const rSession = sessions.find(s => s.type === 'rules' && s.rulesRan?.includes(r.id));
+    const rTime = rSession ? timeAgo(rSession.timestamp) : '';
+    return `<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--green)"></span><span class="home-rule-name">${r.name}</span><span class="home-rule-time">${rTime}</span></div>`;
+  });
+  if (rules.filter(r => !r.enabled).length > 0) {
+    const disabledRule = rules.filter(r => !r.enabled)[0];
+    rulesRows.push(`<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--border-strong)"></span><span class="home-rule-name" style="color:var(--text-dim)">${disabledRule.name}</span><span class="home-rule-time">Disabled</span></div>`);
+  }
+
+  html += `
+  <div class="card home-side-card" onclick="showTab('rules')">
+    <div class="home-side-header">
+      <i data-lucide="sliders-horizontal" style="width:13px;height:13px;color:var(--text-dim)"></i>
+      <span class="home-side-label">RULES</span>
+      <span class="home-side-link" onclick="event.stopPropagation();runRulesFromHome()">Run all <i data-lucide="chevron-right" style="width:11px;height:11px"></i></span>
+    </div>
+    ${rulesRows.length > 0 ? rulesRows.join('') : '<div class="home-rule-row" style="color:var(--text-dim);font-size:11px;padding:8px 14px">No rules configured</div>'}
+  </div>`;
+
+  // Watcher card
+  html += `
+  <div class="card home-side-card" onclick="showTab('watcher')">
+    <div class="home-side-header">
+      <i data-lucide="eye" style="width:13px;height:13px;color:var(--text-dim)"></i>
+      <span class="home-side-label">WATCHER</span>
+      <span class="home-side-link">View <i data-lucide="chevron-right" style="width:11px;height:11px"></i></span>
+    </div>
+    <div style="padding:10px 14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:${watcherActive ? 'var(--green)' : 'var(--border-strong)'};box-shadow:${watcherActive ? '0 0 6px var(--green)' : 'none'};flex-shrink:0;display:inline-block"></span>
+        <span style="font-size:12px;font-weight:500;color:var(--text)">${watcherActive ? 'Active' : 'Inactive'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim)">${watcherActive && watcherFolder ? watcherFolder : 'Not monitoring'}</div>
+    </div>
+  </div>`;
+
+  html += `</div>`;
+
+  // Recent Activity
+  if (recentSessions.length > 0) {
+    const actRows = recentSessions.map(s => {
+      const typeLabel = s.type === 'rules' ? 'Rules' : s.type === 'watcher' ? 'Watcher' : s.type === 'cleanup' ? 'Cleanup' : 'Organize';
+      const typeClass = s.type === 'rules' ? 'rules' : s.type === 'watcher' ? 'watcher' : s.type === 'cleanup' ? 'cleanup' : 'organize';
+      const count = s.total || s.moved?.length || s.results?.length || s.files?.length || s.count || 0;
+      const folder = s.folder?.split('\\').pop() || s.folder?.split('/').pop() || s.folder || '';
+      return `<div class="home-activity-row" onclick="showTab('activity')">
+        <span class="home-activity-type ${typeClass}">${typeLabel}</span>
+        <span class="home-activity-folder">${folder}</span>
+        <span class="home-activity-meta">${count} file${count !== 1 ? 's' : ''} · ${timeAgo(s.timestamp)}</span>
+      </div>`;
+    });
+
+    html += `
+  <div class="card" style="overflow:hidden" onclick="showTab('activity')">
+    <div class="home-side-header" style="cursor:pointer">
+      <i data-lucide="activity" style="width:13px;height:13px;color:var(--text-dim)"></i>
+      <span class="home-side-label">RECENT ACTIVITY</span>
+      <span class="home-side-link">View all <i data-lucide="chevron-right" style="width:11px;height:11px"></i></span>
+    </div>
+    ${actRows.join('')}
+  </div>`;
+  }
+
+  container.innerHTML = html;
+  lucide.createIcons();
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 2) return 'just now';
+  if (mins < 60) return `${mins} minutes ago`;
+  if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  return `${days} day${days !== 1 ? 's' : ''} ago`;
+}
 
 function setActivityView(view) {
   const sessionsView = document.getElementById('activitySessionsView');
@@ -926,14 +1122,14 @@ document.addEventListener('keydown', (e) => {
       case 's':
       case 'S': if (e.shiftKey) { e.preventDefault(); const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-cleanup') scanCleanup(); } break;
       case 'f': e.preventDefault(); { const activeTab = document.querySelector('.page:not(.hidden)'); if (activeTab?.id === 'page-activity') { document.getElementById('historySearch')?.focus(); } else { document.querySelector('.page:not(.hidden) input[type="text"]')?.focus(); } } break;
-      case '1': e.preventDefault(); showTab('organize'); break;
-      case '2': e.preventDefault(); showTab('group'); break;
-      case '3': e.preventDefault(); showTab('activity'); break;
-      case '4': e.preventDefault(); showTab('group'); break;
-      case '5': e.preventDefault(); showTab('duplicates'); break;
-      case '6': e.preventDefault(); showTab('cleanup'); break;
-      case '7': e.preventDefault(); showTab('watcher'); break;
-      case '8': e.preventDefault(); showTab('rules'); break;
+      case '1': e.preventDefault(); showTab('home'); break;
+      case '2': e.preventDefault(); showTab('organize'); break;
+      case '3': e.preventDefault(); showTab('duplicates'); break;
+      case '4': e.preventDefault(); showTab('cleanup'); break;
+      case '5': e.preventDefault(); showTab('activity'); break;
+      case '6': e.preventDefault(); showTab('group'); break;
+      case '7': e.preventDefault(); showTab('rules'); break;
+      case '8': e.preventDefault(); showTab('watcher'); break;
       case '9': e.preventDefault(); showTab('settings'); break;
     }
   }
@@ -2211,6 +2407,16 @@ async function runCleanup() {
 
   const result = await window.api.runCleanup(toDelete);
   lastCleanupDeleted = result.deleted;
+
+  await window.api.addSession({
+    id: Date.now(),
+    timestamp: new Date().toISOString(),
+    type: 'cleanup',
+    folder: currentCleanupFolder,
+    count: result.deleted.length,
+    files: result.deleted
+  });
+  showToast(`Debug: saved cleanup for "${currentCleanupFolder}"`);
 
   document.getElementById('undoCleanupBtn').style.display = result.deleted.length ? 'flex' : 'none';
   showToast(tr('cleanedItems').replace('{count}', result.deleted.length));
