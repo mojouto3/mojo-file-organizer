@@ -4,6 +4,32 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.0] - 2026-07-15
+
+### Added
+- Home tab as default landing page with full dashboard (Ctrl+1)
+- Quick Organize card with folder info, stats and one-click organize
+- Rules card showing enabled rules with Run all button
+- Watcher card showing active/inactive status
+- Recent Activity card showing last 3 meaningful sessions
+- Smart cleanup reminder for Downloads/Desktop/Documents folders
+- Personalized greeting using Windows username
+- Refresh button to reload Home data
+- Cleanup sessions now logged for reminder tracking
+
+### Changed
+- Keyboard shortcuts updated: Ctrl+1 for Home, Ctrl+2-9 for tabs
+- Onboarding tour updated with Home tab and Activity tab highlights
+- All "Mojo" references renamed to "MFO" across all 5 languages
+- "Stores / Clients" renamed to "Groups" in all languages
+- Removed all em-dashes from UI text and translations
+
+### Fixed
+- 16 missing translation keys added to EN and GR
+- 0-file sessions hidden from Home recent activity
+
+---
+
 ## [3.25.0] - 2026-07-15
 
 ### Added
