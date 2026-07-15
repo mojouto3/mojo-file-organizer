@@ -87,6 +87,7 @@ function showTab(name) {
   page.classList.remove('tab-enter');
   void page.offsetWidth;
   page.classList.add('tab-enter');
+  page.scrollTop = 0;
   const tabEl = document.getElementById(`tab-${name}`);
   if (tabEl) tabEl.classList.add('active');
   if (name === 'activity') {
@@ -99,8 +100,8 @@ function showTab(name) {
   if (name === 'watcher')  initWatcher();
   if (name === 'rules')    loadRules();
   if (name === 'cleanup') { initRecycleBin(); loadCleanupSuggestions(); }
-  if (['organize','group','duplicates','cleanup','watcher'].includes(name)) {
-    const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher' };
+  if (['organize','group','duplicates','cleanup','watcher','rules'].includes(name)) {
+    const ctxMap = { organize: 'organize', group: 'group', duplicates: 'duplicates', cleanup: 'cleanup', watcher: 'watcher', rules: 'rules' };
     renderRecentFolders(ctxMap[name]);
   }
   lucide.createIcons();

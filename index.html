@@ -78,8 +78,6 @@
   <!-- Organize tab header -->
   <div class="card" style="margin-bottom:10px">
     <div class="card-header">
-      <i data-lucide="folder-open" class="card-icon"></i>
-      <span class="card-title">Organize</span>
       <div style="flex:1;display:flex;justify-content:center">
         <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px">
           <button id="organizeViewOrganize" onclick="setOrganizeView('organize')" class="activity-view-btn active"><i data-lucide="folder-open" style="width:14px;height:14px"></i>Organize</button>
@@ -108,6 +106,11 @@
       </div>
       <div id="recentFolders-organize"></div>
       <div class="bookmark-panel hidden" id="bookmarkPanel-organize"></div>
+      <div class="action-row">
+        <button class="btn btn-green" id="organizeAllBtn" onclick="organize()">
+          <i data-lucide="zap"></i><span data-i18n="organizeAll">Organize All</span>
+        </button>
+      </div>
     </div>
 
     <!-- Batch mode -->
@@ -115,8 +118,7 @@
       <div class="batch-folder-list" id="batchFolderList"></div>
       <div class="folder-row" style="margin-top:8px">
         <input type="text" id="batchFolderInput" readonly placeholder="Add a folder..."/>
-        <button class="btn btn-outline btn-sm" onclick="pickBatchFolder()"><i data-lucide="folder-plus"></i><span>Add</span></button>
-      </div>"><i data-lucide="folder-plus"></i><span data-i18n="addFolder">Add Folder</span></button>
+        <button class="btn btn-outline btn-sm" onclick="pickBatchFolder()"><i data-lucide="folder-plus"></i><span data-i18n="addFolder">Add Folder</span></button>
         <button class="btn btn-outline btn-sm" onclick="addBatchDownloads()"><i data-lucide="download"></i><span data-i18n="downloads">Downloads</span></button>
       </div>
       <div class="action-row" style="margin-top:10px">
@@ -154,7 +156,7 @@
         <i data-lucide="folder-open"></i>
       </div>
       <p class="oes-title" data-i18n="selectFolderToStart">Select a folder to get started</p>
-      <p class="oes-hint" data-i18n="selectFolderHint">Choose any folder and Mojo will preview what will be organized</p>
+      <p class="oes-hint">Choose any folder and MFO will preview what will be organized</p>
       <div class="oes-shortcuts">
         <div class="oes-shortcut"><kbd>Ctrl+O</kbd><span data-i18n="organizeNow">Organize Now</span></div>
         <div class="oes-shortcut"><kbd>Ctrl+P</kbd><span data-i18n="preview">Preview</span></div>
@@ -233,7 +235,7 @@
   <div class="card">
     <div class="card-header">
       <i data-lucide="store" class="card-icon"></i>
-      <span class="card-title" data-i18n="storesClients">Stores / Clients</span>
+      <span class="card-title" >Groups</span>
       <span class="badge" id="groupCount">0</span>
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="btn btn-outline btn-sm" onclick="exportGroups()" title="Export groups">
@@ -245,7 +247,7 @@
       </div>
     </div>
     <div class="folder-row">
-      <input type="text" id="groupNameInput" placeholder="e.g. Nike, store1, ClientABC..."/>
+      <input type="text" id="groupNameInput" placeholder="e.g. Work, Personal, Downloads..."/>
       <button class="btn btn-green btn-sm" onclick="addGroup()" style="min-width:80px"><i data-lucide="plus"></i><span>Add</span></button>
     </div>
     <div class="chip-list" id="groupList"></div>
@@ -314,8 +316,8 @@
     <div id="activitySessionsView">
       <div class="history-search-wrap">
         <input type="text" id="historySearch" class="history-search-input" placeholder="Search sessions..." data-i18n-placeholder="searchSessions" oninput="filterHistory()"/>
-        <input type="date" id="historyDateFrom" class="history-search-input" style="width:140px" onchange="filterHistory()" title="From date"/>
-        <input type="date" id="historyDateTo" class="history-search-input" style="width:140px" onchange="filterHistory()" title="To date"/>
+        <input type="date" id="historyDateFrom" class="history-search-input" style="width:130px;flex:none" onchange="filterHistory()" title="From date"/>
+        <input type="date" id="historyDateTo" class="history-search-input" style="width:130px;flex:none" onchange="filterHistory()" title="To date"/>
         <button class="btn btn-outline btn-sm" onclick="clearHistoryFilter()" title="Clear filters"><i data-lucide="x"></i></button>
       </div>
       <div class="history-type-filter">
@@ -399,8 +401,6 @@
   <!-- Cleanup tab view toggle -->
   <div class="card" style="margin-bottom:10px">
     <div class="card-header">
-      <i data-lucide="trash-2" class="card-icon"></i>
-      <span class="card-title">Cleanup</span>
       <div style="flex:1;display:flex;justify-content:center">
         <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px">
           <button id="cleanupViewScan" onclick="setCleanupView('scan')" class="activity-view-btn active"><i data-lucide="search" style="width:13px;height:13px"></i>Scan</button>
@@ -585,9 +585,6 @@
   <!-- Rules tab view toggle -->
   <div class="card" style="margin-bottom:10px">
     <div class="card-header">
-      <i data-lucide="sliders-horizontal" class="card-icon"></i>
-      <span class="card-title">Rules</span>
-      <span class="badge" id="rulesCount"></span>
       <div style="flex:1;display:flex;justify-content:center">
         <div style="display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:3px;gap:2px">
           <button id="rulesViewRun" onclick="setRulesView('run')" class="activity-view-btn active"><i data-lucide="play" style="width:13px;height:13px"></i>Run</button>
@@ -626,8 +623,8 @@
           <input type="text" id="rulesFolder" readonly placeholder="Choose a folder..."/>
           <button class="btn btn-outline btn-sm" onclick="pickRulesFolder()"><i data-lucide="folder-open"></i><span>Browse</span></button>
         </div>
-        <div id="rulesFolderChips" class="recent-chips hidden"></div>
-        <div id="rulesLastRun" class="hidden" style="font-size:10px;color:var(--text-dim);margin-top:6px"></div>
+        <div id="recentFolders-rules"></div>
+        <div id="rulesLastRun" class="hidden" style="font-size:10px;color:var(--text-dim);padding:0 14px 6px"></div>
       </div>
       <div id="rulesMultiMode" class="hidden">
         <div class="batch-folder-list" id="rulesBatchList"></div>
