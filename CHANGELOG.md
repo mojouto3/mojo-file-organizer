@@ -4,6 +4,30 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.1] - 2026-07-16
+
+### Added
+- ESLint setup with `npm run lint` / `npm run lint:fix`
+
+### Fixed
+- Category and group names are now sanitized before being rendered in the UI and in exported PDF/CSV, preventing HTML injection via a custom category or group name
+- CSV export now escapes embedded double quotes in exported fields
+- Missing `actions`/`delete`/`navigation` translation keys added for de/es/ru
+- Cleanup scanning (installers, junk, old files, duplicates, empty folders) is now recursive, so it finds items inside category subfolders created by Organize instead of only the top-level folder
+- The "hasn't been cleaned" reminder on Home no longer shows a fabricated duration for folders that were never cleaned, and matches folders correctly regardless of a trailing slash
+- Scheduled/CLI cleanup (`--cleanup`) now actually scans and deletes for real and logs a session, instead of silently doing nothing while reporting success
+- Cleanup deletion errors are now shown to the user instead of being hidden behind a generic success message
+- Activity list now shows the correct type and count for Cleanup sessions, lists the cleaned files when expanded, and Undo works correctly on them
+- `window.api.previewRules` was missing from the preload bridge - the Rules "Preview" button and Dry-run mode have been non-functional since they were built; both now work
+- "Run all" on the Home Rules card now respects the global Dry-run setting instead of running for real regardless of it, and reliably targets the last-organized folder instead of an unrelated stale folder
+- Per-rule "last run" time on Home was always blank; now shows the correct time
+- Home's Watcher card now reflects the real watcher status instead of stale local UI state
+- "Scan by Name" in the Duplicates tab could never find anything (it compared exact filenames within one folder, which are always unique); now normalizes common copy-suffix patterns (`_1`, ` (1)`, ` - Copy`) and scans recursively
+- Fixed the Scan by Content/Scan by Name toggle button not reflecting the active mode
+- `organize`, `run-rules`, `scan-cleanup`, `scan-duplicates`, and the file watcher now use async file operations instead of blocking the main process on large folders
+
+---
+
 ## [3.26.0] - 2026-07-15
 
 ### Added
