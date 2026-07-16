@@ -66,7 +66,8 @@ function applyLanguage(l) {
   const t = TRANSLATIONS[l] || TRANSLATIONS['en'];
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
-    if (t[key]) el.textContent = t[key];
+    const value = t[key] ?? TRANSLATIONS['en'][key];
+    if (value) el.textContent = value;
   });
 }
 
@@ -131,17 +132,18 @@ async function showPreview(folder) {
   }
 
   const grid = document.getElementById('categoryGrid');
-  grid.innerHTML = '';
+  const cards = [];
   for (const [cat, names] of Object.entries(grouped)) {
     const icon = getCatIcon(cat);
     const preview = names.slice(0, 3).map(n => `<div class="cat-card-file">${n.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('');
     const more = names.length > 3 ? `<div class="cat-card-file" style="color:#444">+${names.length - 3} more</div>` : '';
-    grid.innerHTML += `<div class="cat-card">
-      <div class="cat-card-name"><i data-lucide="${icon}"></i>${cat}</div>
+    cards.push(`<div class="cat-card">
+      <div class="cat-card-name"><i data-lucide="${icon}"></i>${sanitize(cat)}</div>
       <div class="cat-card-count">${names.length} <span class="cat-card-label">file${names.length !== 1 ? 's' : ''}</span></div>
       <div class="cat-card-files">${preview}${more}</div>
-    </div>`;
+    </div>`);
   }
+  grid.innerHTML = cards.join('');
   lucide.createIcons();
   document.getElementById('previewCount').textContent = `${files.length} files`;
   document.getElementById('previewCard').classList.remove('hidden');
@@ -179,14 +181,15 @@ async function organize() {
   }
 
   const grid = document.getElementById('resultsGrid');
-  grid.innerHTML = '';
+  const resultCards = [];
   for (const [cat, count] of Object.entries(grouped)) {
-    grid.innerHTML += `<div class="cat-card">
-      <div class="cat-card-name"><i data-lucide="${getCatIcon(cat)}"></i>${cat}</div>
+    resultCards.push(`<div class="cat-card">
+      <div class="cat-card-name"><i data-lucide="${getCatIcon(cat)}"></i>${sanitize(cat)}</div>
       <div class="cat-card-count">${count}</div>
       <div class="cat-card-label">file${count !== 1 ? 's' : ''} moved</div>
-    </div>`;
+    </div>`);
   }
+  grid.innerHTML = resultCards.join('');
   lucide.createIcons();
   document.getElementById('movedCount').textContent = `${result.moved.length} moved`;
   document.getElementById('previewCard').classList.add('hidden');
@@ -219,7 +222,7 @@ function renderGroupChips() {
   if (!list) return;
   count.textContent = groups.length;
   list.innerHTML = groups.map((g, i) => `
-    <div class="chip">${g.name}
+    <div class="chip">${sanitize(g.name)}
       <button class="chip-del" onclick="removeGroup(${i})"><i data-lucide="x"></i></button>
     </div>`).join('');
   lucide.createIcons();
@@ -304,14 +307,15 @@ async function organizeGroups() {
     grouped[m.group]++;
   }
   const grid = document.getElementById('groupResultsGrid');
-  grid.innerHTML = '';
+  const groupCards = [];
   for (const [grp, count] of Object.entries(grouped)) {
-    grid.innerHTML += `<div class="cat-card">
-      <div class="cat-card-name"><i data-lucide="store"></i>${grp}</div>
+    groupCards.push(`<div class="cat-card">
+      <div class="cat-card-name"><i data-lucide="store"></i>${sanitize(grp)}</div>
       <div class="cat-card-count">${count}</div>
       <div class="cat-card-label">file${count !== 1 ? 's' : ''} moved</div>
-    </div>`;
+    </div>`);
   }
+  grid.innerHTML = groupCards.join('');
   lucide.createIcons();
   document.getElementById('groupMovedCount').textContent = `${result.moved.length} moved`;
   document.getElementById('groupPreviewCard').classList.add('hidden');
@@ -610,9 +614,9 @@ function renderHistory(sessions) {
     }
 
     const groupsHTML = Object.entries(grouped).map(([cat, files]) => `
-      <div class="session-cat" data-category="${cat}" data-session-id="${s.id}" data-session-folder="${s.folder.replace(/"/g,'&quot;')}"
+      <div class="session-cat" data-category="${sanitize(cat)}" data-session-id="${s.id}" data-session-folder="${s.folder.replace(/"/g,'&quot;')}"
            ondragover="handleHistoryDragOver(event)" ondragleave="handleHistoryDragLeave(event)" ondrop="handleHistoryDrop(event)">
-        <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${cat} (${files.length})</div>
+        <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${sanitize(cat)} (${files.length})</div>
         <div class="file-chips">${files.map(f => `
           <span class="file-chip-wrap" draggable="${f.to ? 'true' : 'false'}"
                 ${f.to ? `data-preview-path="${f.to.replace(/\\/g,'\\\\').replace(/"/g,'&quot;')}"` : ''}
@@ -962,15 +966,17 @@ async function loadStats() {
     const max = sorted[0]?.[1] || 1;
     const total = sorted.reduce((s, [, c]) => s + c, 0);
     const catColors = ['#3ddb3d','#378add','#ef9f27','#d4537e','#7f77dd','#1dacd6','#f97316','#28c840'];
+    const rows = [];
     for (const [idx, [cat, count]] of sorted.entries()) {
       const pct = total > 0 ? Math.round((count / total) * 100) : 0;
       const color = catColors[idx % catColors.length];
-      chart.innerHTML += `<div class="chart-row">
-        <div class="chart-label">${cat}</div>
+      rows.push(`<div class="chart-row">
+        <div class="chart-label">${sanitize(cat)}</div>
         <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%;background:${color}"></div></div>
         <div class="chart-count">${count} <span class="chart-pct">${pct}%</span></div>
-      </div>`;
+      </div>`);
     }
+    chart.innerHTML = rows.join('');
     if (!sorted.length) chart.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center">No data yet</div>`;
   }
 }

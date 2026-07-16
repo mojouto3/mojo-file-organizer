@@ -718,6 +718,9 @@ const TRANSLATIONS = {
   },
 
   de: {
+    actions: 'Aktionen',
+    delete: 'Löschen',
+    navigation: 'Navigation',
     organize: 'Organisieren',
     smartGroup: 'Smart-Gruppe',
     history: 'Verlauf',
@@ -1053,6 +1056,9 @@ const TRANSLATIONS = {
   },
 
   es: {
+    actions: 'Acciones',
+    delete: 'Eliminar',
+    navigation: 'Navegación',
     organize: 'Organizar',
     smartGroup: 'Grupo inteligente',
     history: 'Historial',
@@ -1378,6 +1384,9 @@ const TRANSLATIONS = {
   },
 
   ru: {
+    actions: 'Действия',
+    delete: 'Удалить',
+    navigation: 'Навигация',
     organize: 'Организовать',
     smartGroup: 'Умная группа',
     history: 'История',
