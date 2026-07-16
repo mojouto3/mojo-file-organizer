@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, Notification, nativeImage } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
+const fsp   = fs.promises;
 const os    = require('os');
 const https = require('https');
 
@@ -727,7 +728,7 @@ ipcMain.handle('preview', async (_, folderPath) => {
       const cat = getCategory(path.extname(f.name), cats);
       if (cat) results.push({ name: f.name, newName: applyRenameRules(f.name, renameRules), category: cat });
     }
-  } catch (e) {}
+  } catch (e) { console.error('preview failed:', e.message); }
   return results;
 });
 
@@ -737,7 +738,9 @@ ipcMain.handle('organize', async (_, folderPath) => {
   const { sizeFilter, renameRules } = readSettings();
   const moved = [], errors = [];
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    const entries = await fsp.readdir(folderPath, { withFileTypes: true });
+    const files = entries.filter(f => f.isFile());
+    let processed = 0;
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
       const src = path.join(folderPath, f.name);
@@ -748,8 +751,11 @@ ipcMain.handle('organize', async (_, folderPath) => {
       if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
       const newName = applyRenameRules(f.name, renameRules);
       const dest = getUniqueDest(destFolder, newName);
-      try { fs.renameSync(src, dest); moved.push({ name: f.name, category: cat, from: src, to: dest }); }
+      try { await fsp.rename(src, dest); moved.push({ name: f.name, category: cat, from: src, to: dest }); }
       catch (e) { errors.push({ name: f.name, error: e.message }); }
+      // Yield to the event loop periodically so the app (tray, window, other IPC)
+      // stays responsive when organizing folders with lots of files.
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'organize', moved: moved.map(m => ({ name: m.name, category: m.category, from: m.from, to: m.to })), errors, total: moved.length });
@@ -830,7 +836,7 @@ ipcMain.handle('preview-groups', async (_, folderPath) => {
         if (filenameMatchesGroup(f.name, g.name)) { results.push({ name: f.name, group: g.name }); break; }
       }
     }
-  } catch (e) {}
+  } catch (e) { console.error('preview-groups failed:', e.message); }
   return results;
 });
 
@@ -921,6 +927,15 @@ function sanitizePath(p) {
   if (typeof p !== 'string') return '';
   // Remove characters dangerous in shell contexts
   return p.replace(/[&|;`$<>'"]/g, '');
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function sanitizeTime(t) {
@@ -1032,16 +1047,21 @@ ipcMain.handle('pick-folder',   async () => {
 ipcMain.handle('get-downloads', async () => path.join(os.homedir(), 'Downloads'));
 
 // ── IPC: Export Stats ─────────────────────────────────────────────
+function csvField(v) {
+  return String(v ?? '').replace(/"/g, '""');
+}
+
 ipcMain.handle('export-csv', async (_, exportPath) => {
   try {
     const sessions = readLog();
     const rows = ['Date,Time,Folder,Type,File,Category'];
     for (const s of sessions) {
+      if (!Array.isArray(s.moved)) continue;
       const date = new Date(s.timestamp);
       const dateStr = date.toLocaleDateString('en-GB');
       const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
       for (const m of s.moved) {
-        rows.push(`"${dateStr}","${timeStr}","${s.folder}","${s.type}","${m.name}","${m.category}"`);
+        rows.push(`"${csvField(dateStr)}","${csvField(timeStr)}","${csvField(s.folder)}","${csvField(s.type)}","${csvField(m.name)}","${csvField(m.category)}"`);
       }
     }
     fs.writeFileSync(exportPath, rows.join('\n'), 'utf8');
@@ -1056,15 +1076,16 @@ ipcMain.handle('export-pdf', async (_, exportPath) => {
     const sessions = readLog();
     const byCategory = {};
     for (const s of sessions) {
+      if (!Array.isArray(s.moved)) continue;
       for (const m of s.moved) {
         byCategory[m.category] = (byCategory[m.category] || 0) + 1;
       }
     }
-    const totalFiles = sessions.reduce((sum, s) => sum + s.total, 0);
+    const totalFiles = sessions.reduce((sum, s) => sum + (s.total || 0), 0);
 
     const categoryRows = Object.entries(byCategory)
       .sort((a, b) => b[1] - a[1])
-      .map(([cat, count]) => `<tr><td>${cat}</td><td>${count}</td></tr>`)
+      .map(([cat, count]) => `<tr><td>${escapeHtml(cat)}</td><td>${count}</td></tr>`)
       .join('');
 
     const html = `<!DOCTYPE html>
@@ -1211,7 +1232,7 @@ function scanFolder(folderPath) {
         }
       }
     }
-  } catch (e) {}
+  } catch (e) { console.error('scanFolder failed:', e.message); }
   return { installers, junk, emptyFolders };
 }
 
@@ -1231,7 +1252,7 @@ function scanOldFiles(folderPath, monthsThreshold) {
         }
       } catch (e) {}
     }
-  } catch (e) {}
+  } catch (e) { console.error('scanOldFiles failed:', e.message); }
   return oldFiles;
 }
 
@@ -1253,7 +1274,7 @@ ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
         hashMap[hash] = fullPath;
       }
     }
-  } catch (e) {}
+  } catch (e) { console.error('scan-cleanup duplicates scan failed:', e.message); }
 
   // Old files
   const oldFiles = oldFilesMonths ? scanOldFiles(folderPath, oldFilesMonths) : [];
