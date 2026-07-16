@@ -42,6 +42,10 @@ async function init() {
     currentFolder = appSettings.defaultFolder;
     document.getElementById('folderInput').value = appSettings.defaultFolder;
   }
+  if (appSettings.rulesFolder) {
+    const rf = document.getElementById('rulesFolder');
+    if (rf) rf.value = appSettings.rulesFolder;
+  }
 
   document.getElementById('groupNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') addGroup(); });
   document.getElementById('newCatName').addEventListener('keydown',     e => { if (e.key === 'Enter') addCategory(); });
@@ -240,7 +244,8 @@ async function importGroups() {
   if (result.cancelled) return;
   if (result.ok) {
     showToast(`✓ ${result.added} ${tr('groupsImported')}`);
-    await loadGroups();
+    groups = await window.api.getGroups();
+    renderGroupChips();
   } else {
     showToast(`✗ ${result.error}`);
   }
@@ -344,16 +349,39 @@ let historyTypeFilter = 'all';
 let historyCompact = false;
 
 async function runRulesFromHome() {
-  const folder = currentFolder || appSettings.defaultFolder;
+  let folder = document.getElementById('rulesFolder')?.value || appSettings.rulesFolder;
+  if (!folder) {
+    // Fall back to the most recently organized folder (same source Quick
+    // Organize uses), rather than the Organize tab's possibly-stale
+    // currentFolder or the unrelated pinned Settings default folder.
+    const log = await window.api.getLog().catch(() => []);
+    const lastOrganize = log.find(s => s.type === 'organize' || !s.type);
+    folder = lastOrganize?.folder || currentFolder || appSettings.defaultFolder;
+  }
   if (!folder) { showToast('No default folder set'); return; }
 
-  const activeRules = rulesData.filter(r => r.enabled);
+  const allRules = await window.api.getRules() || [];
+  const activeRules = allRules.filter(r => r.enabled);
   if (!activeRules.length) { showToast('No active rules'); return; }
 
-  showToast('Running rules...');
+  const folderName = folder.split('\\').pop() || folder.split('/').pop() || folder;
+
+  if (appSettings.rulesDryRun) {
+    // Respect the global Dry-run setting rather than silently running for
+    // real - send the user to the Rules tab where the preview + explicit
+    // confirm-to-run-for-real flow already exists.
+    showTab('rules');
+    setRulesFolder(folder);
+    await previewRules();
+    showToast(`Dry-run is on: previewing ${folderName} instead of running for real`);
+    return;
+  }
+
+  showToast(`Running rules on ${folderName}...`);
   try {
-    await window.api.runRules({ folderPath: folder, rules: activeRules });
-    showToast('Rules completed');
+    const result = await window.api.runRules({ folderPath: folder, rules: activeRules });
+    const matched = result?.results?.length || 0;
+    showToast(matched > 0 ? `Rules completed: ${matched} file${matched !== 1 ? 's' : ''} matched on ${folderName}` : `No files matched any rule on ${folderName}`);
     loadHome();
   } catch (e) {
     showToast('Rules failed');
@@ -364,21 +392,26 @@ async function loadHome() {
   const container = document.getElementById('homeContent');
   if (!container) return;
 
-  const [sessions, settings, rules, stats, username] = await Promise.all([
+  const [sessions, settings, rules, stats, username, watcherStatus] = await Promise.all([
     window.api.getLog(),
     window.api.getSettings(),
     window.api.getRules(),
     window.api.getStats(),
-    window.api.getUsername().catch(() => '')
+    window.api.getUsername().catch(() => ''),
+    window.api.getWatcherStatus().catch(() => ({ active: false, folder: null }))
   ]);
 
   const defaultFolder = settings.defaultFolder || currentFolder || null;
-  const folderName = defaultFolder ? (defaultFolder.split('\\').pop() || defaultFolder.split('/').pop() || defaultFolder) : null;
   const enabledRules = (rules || []).filter(r => r.enabled);
   const lastOrganizeSession = sessions.find(s => s.type === 'organize' || !s.type);
+  // Quick Organize follows whatever folder was most recently organized (falls back
+  // to the pinned Settings default folder if there's no organize history yet), so
+  // the folder name and "last organized" timestamp always refer to the same folder.
+  const quickOrganizeFolder = lastOrganizeSession ? lastOrganizeSession.folder : defaultFolder;
+  const folderName = quickOrganizeFolder ? (quickOrganizeFolder.split('\\').pop() || quickOrganizeFolder.split('/').pop() || quickOrganizeFolder) : null;
   const lastRuleSession = sessions.find(s => s.type === 'rules');
-  const watcherActive = document.getElementById('stopWatcherBtn') && !document.getElementById('stopWatcherBtn').classList.contains('hidden');
-  const watcherFolder = document.getElementById('watcherFolderInput')?.value || '';
+  const watcherActive = watcherStatus?.active || false;
+  const watcherFolder = watcherStatus?.folder || '';
   const recentSessions = sessions.filter(s => {
     const count = s.total || s.count || s.moved?.length || s.files?.length || s.results?.length || 0;
     return count > 0;
@@ -405,6 +438,7 @@ async function loadHome() {
   // Only check well-known top-level folders (Downloads, Desktop, Documents etc)
   const userBase = defaultFolder ? defaultFolder.split('\\').slice(0, 3).join('\\') : '';
   const wellKnown = ['Downloads', 'Desktop', 'Documents', 'Pictures', 'Music'];
+  const normPath = (p) => (p || '').toLowerCase().replace(/\\/g, '/').replace(/\/+$/, '');
   const organizedFolders = [...new Set(sessions.filter(s => s.type === 'organize' || !s.type).map(s => s.folder).filter(Boolean))];
   const foldersToCheck = organizedFolders.filter(f => {
     const parts = f.replace(/\\/g, '/').split('/');
@@ -412,23 +446,30 @@ async function loadHome() {
   });
 
   let reminderFolder = null;
+  let reminderNeverCleaned = false;
   let maxDays = 30;
   for (const f of foldersToCheck) {
-    const lastC = sessions.find(s => s.type === 'cleanup' && s.folder?.toLowerCase().replace(/\\/g, '/') === f?.toLowerCase().replace(/\\/g, '/'));
-    const days = lastC
-      ? Math.floor((Date.now() - new Date(lastC.timestamp).getTime()) / 86400000)
-      : 999;
-    if (days > maxDays) { maxDays = days; reminderFolder = f; }
+    const lastC = sessions.find(s => s.type === 'cleanup' && normPath(s.folder) === normPath(f));
+    if (!lastC) {
+      // Never cleaned at all - surface it, but don't fabricate a duration for it
+      if (!reminderFolder) { reminderFolder = f; reminderNeverCleaned = true; }
+      continue;
+    }
+    const days = Math.floor((Date.now() - new Date(lastC.timestamp).getTime()) / 86400000);
+    if (!reminderNeverCleaned && days > maxDays) { maxDays = days; reminderFolder = f; }
   }
 
   if (reminderFolder) {
     const rfName = reminderFolder.split('\\').pop() || reminderFolder.split('/').pop() || reminderFolder;
     const rfEscaped = reminderFolder.replace(/\\/g, '\\\\');
+    const reminderTitle = reminderNeverCleaned
+      ? `${rfName} has never been cleaned`
+      : `${rfName} hasn't been cleaned in ${maxDays > 60 ? Math.floor(maxDays / 30) + ' months' : maxDays + ' days'}`;
     html += `
   <div class="home-reminder" onclick="showTab('cleanup');setCleanupFolder('${rfEscaped}')">
     <i data-lucide="triangle-alert" style="color:#fbbf24;width:16px;height:16px;flex-shrink:0"></i>
     <div style="flex:1">
-      <div class="home-reminder-title">${rfName} hasn't been cleaned in ${maxDays > 60 ? Math.floor(maxDays / 30) + ' months' : maxDays + ' days'}</div>
+      <div class="home-reminder-title">${reminderTitle}</div>
       <div class="home-reminder-desc">Run a scan to find temp files, installers and empty folders</div>
     </div>
     <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();showTab('cleanup');setCleanupFolder('${rfEscaped}')"><i data-lucide="trash-2"></i>Clean now</button>
@@ -459,7 +500,7 @@ async function loadHome() {
 
   // Rules card
   const rulesRows = enabledRules.slice(0, 3).map(r => {
-    const rSession = sessions.find(s => s.type === 'rules' && s.rulesRan?.includes(r.id));
+    const rSession = sessions.find(s => s.type === 'rules' && s.results?.some(res => res.rule === r.name));
     const rTime = rSession ? timeAgo(rSession.timestamp) : '';
     return `<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--green)"></span><span class="home-rule-name">${r.name}</span><span class="home-rule-time">${rTime}</span></div>`;
   });
@@ -613,7 +654,15 @@ function renderHistory(sessions) {
       grouped[f.category].push(f);
     }
 
-    const groupsHTML = Object.entries(grouped).map(([cat, files]) => `
+    const groupsHTML = s.type === 'cleanup'
+      ? `<div class="session-cat">
+          <div class="session-cat-label"><i data-lucide="trash-2"></i>Cleaned (${(s.files || []).length})</div>
+          <div class="file-chips">${(s.files || []).map(f => `
+            <span class="file-chip-wrap">
+              <span class="file-chip" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
+            </span>`).join('')}</div>
+        </div>`
+      : Object.entries(grouped).map(([cat, files]) => `
       <div class="session-cat" data-category="${sanitize(cat)}" data-session-id="${s.id}" data-session-folder="${s.folder.replace(/"/g,'&quot;')}"
            ondragover="handleHistoryDragOver(event)" ondragleave="handleHistoryDragLeave(event)" ondrop="handleHistoryDrop(event)">
         <div class="session-cat-label"><i data-lucide="${getCatIcon(cat)}"></i>${sanitize(cat)} (${files.length})</div>
@@ -663,7 +712,7 @@ function renderHistory(sessions) {
           <div class="session-date">${dateStr} ${timeStr}</div>
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type type-rules">Rules</span>
-          <span class="session-badge">${s.total} ${s.total === 1 ? 'file' : 'files'}</span>
+          <span class="session-badge">${s.total ?? s.results?.length ?? 0} ${(s.total ?? s.results?.length ?? 0) === 1 ? 'file' : 'files'}</span>
           <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
             <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
           </button>
@@ -680,8 +729,8 @@ function renderHistory(sessions) {
         <div class="session-header" onclick="toggleSession(this)">
           <div class="session-date">${dateStr} ${timeStr}</div>
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
-          <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : 'Organize'}</span>
-          <span class="session-badge">${s.total} moved</span>
+          <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : s.type === 'cleanup' ? 'type-cleanup' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : s.type === 'cleanup' ? 'Cleanup' : 'Organize'}</span>
+          <span class="session-badge">${s.type === 'cleanup' ? `${s.count ?? s.files?.length ?? 0} cleaned` : `${s.total ?? s.moved?.length ?? 0} moved`}</span>
           <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
             <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
           </button>
@@ -810,7 +859,32 @@ async function exportSession(sessionId) {
 async function undoSession(sessionId) {
   const sessions = await window.api.getLog();
   const s = sessions.find(x => x.id === sessionId);
-  if (!s || !s.moved?.length) { showToast(tr('nothingToUndo')); return; }
+  if (!s) { showToast(tr('nothingToUndo')); return; }
+
+  if (s.type === 'cleanup') {
+    if (!s.files?.length) { showToast(tr('nothingToUndo')); return; }
+    const confirmed = await showConfirm(
+      tr('confirmUndoSession').replace('{count}', s.files.length).replace('{date}', new Date(s.timestamp).toLocaleString())
+    );
+    if (!confirmed) return;
+    const r = await window.api.restoreCleanup(s.files);
+    const restored = r.restored?.length || 0;
+    const failed = r.errors?.length || 0;
+    if (restored > 0 && failed === 0) {
+      showToast(`↩ ${restored} ${tr('filesRestored')}`);
+      await window.api.deleteSession(sessionId);
+      loadHistory();
+    } else if (restored > 0 && failed > 0) {
+      showToast(`↩ ${restored} ${tr('filesRestored')} · ${failed} ${tr('filesNotFound')}`);
+      await window.api.deleteSession(sessionId);
+      loadHistory();
+    } else {
+      showToast(tr('undoFailed'));
+    }
+    return;
+  }
+
+  if (!s.moved?.length) { showToast(tr('nothingToUndo')); return; }
 
   const confirmed = await showConfirm(
     tr('confirmUndoSession').replace('{count}', s.moved.length).replace('{date}', new Date(s.timestamp).toLocaleString())
@@ -1176,14 +1250,13 @@ window.api.onContextMenuOrganize(async (folder) => {
   if (input) input.value = folder;
   appSettings.defaultFolder = folder;
   await window.api.saveSettings(appSettings);
-  await organizeFolder(folder);
+  await setFolder(folder);
 });
 
 if (window.api.onContextMenuRules) {
   window.api.onContextMenuRules(async (folder) => {
     showTab('rules');
-    const input = document.getElementById('rulesFolder');
-    if (input) input.value = folder;
+    setRulesFolder(folder);
     await window.api.addRecentFolder(folder);
   });
 }
@@ -1200,8 +1273,7 @@ if (window.api.onTrayAction) {
       await showPreview(data.folder);
     } else if (data.action === 'rules') {
       showTab('rules');
-      const input = document.getElementById('rulesFolder');
-      if (input) input.value = data.folder;
+      setRulesFolder(data.folder);
     }
   });
 }
@@ -1355,7 +1427,7 @@ async function loadCleanupSuggestions() {
       suggestions.push({ id, type: 'del', icon: 'package',
         title: tr('suggInstallersTitle').replace('{count}', oldInstallers.length),
         desc: tr('suggInstallersDesc'),
-        action: () => switchTab('cleanup'),
+        action: () => showTab('cleanup'),
         actionLabel: tr('suggRunCleanup')
       });
     }
@@ -2403,6 +2475,7 @@ async function runCleanup() {
     oldFiles:     document.getElementById('check-oldFiles')?.checked     ? (cleanupScanResults.oldFiles?.files || []) : null,
     emptyFolders: document.getElementById('check-emptyFolders')?.checked ? cleanupScanResults.emptyFolders.folders : null,
     dupApps:      dupAppsFiles,
+    folder:       currentCleanupFolder,
   };
 
   const totalCount = [toDelete.installers, toDelete.junk, toDelete.duplicates, toDelete.oldFiles, toDelete.emptyFolders, toDelete.dupApps]
@@ -2414,18 +2487,16 @@ async function runCleanup() {
   const result = await window.api.runCleanup(toDelete);
   lastCleanupDeleted = result.deleted;
 
-  await window.api.addSession({
-    id: Date.now(),
-    timestamp: new Date().toISOString(),
-    type: 'cleanup',
-    folder: currentCleanupFolder,
-    count: result.deleted.length,
-    files: result.deleted
-  });
-  showToast(`Debug: saved cleanup for "${currentCleanupFolder}"`);
-
+  // Note: main.js's performCleanupDeletion() logs the 'cleanup' session itself now,
+  // so it works consistently whether triggered from here or from the scheduled/CLI
+  // --cleanup path - no need to log it again from the renderer.
   document.getElementById('undoCleanupBtn').style.display = result.deleted.length ? 'flex' : 'none';
-  showToast(tr('cleanedItems').replace('{count}', result.deleted.length));
+  if (result.errors && result.errors.length) {
+    console.error('Cleanup errors:', result.errors);
+    showToast(`✗ ${result.deleted.length} cleaned, ${result.errors.length} failed (see console)`);
+  } else {
+    showToast(tr('cleanedItems').replace('{count}', result.deleted.length));
+  }
   await scanCleanup();
 }
 
@@ -3321,7 +3392,7 @@ async function updateRulesLastRun() {
   const chipsEl = document.getElementById('rulesFolderChips');
   if (chipsEl && recent?.length) {
     chipsEl.innerHTML = recent.map(r =>
-      `<button class="recent-folder-chip" title="${r.path}" onclick="document.getElementById('rulesFolder').value='${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}'">${sanitize(r.name)}</button>`
+      `<button class="recent-folder-chip" title="${r.path}" onclick="setRulesFolder('${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">${sanitize(r.name)}</button>`
     ).join('');
     chipsEl.classList.remove('hidden');
   }
@@ -3341,7 +3412,7 @@ async function updateRulesLastRun() {
   // Auto-load last used folder if input is empty
   const folderInput = document.getElementById('rulesFolder');
   if (folderInput && !folderInput.value && last.folder) {
-    folderInput.value = last.folder;
+    setRulesFolder(last.folder);
   }
 }
 
@@ -3755,9 +3826,16 @@ async function runRulesBatch() {
   updateRulesLastRun();
 }
 
+function setRulesFolder(folder) {
+  const el = document.getElementById('rulesFolder');
+  if (el) el.value = folder;
+  appSettings.rulesFolder = folder;
+  window.api.saveSettings(appSettings);
+}
+
 async function pickRulesFolder() {
   const folder = await window.api.pickFolder();
-  if (folder) { const el = document.getElementById('rulesFolder'); if (el) el.value = folder; }
+  if (folder) setRulesFolder(folder);
 }
 
 async function previewRules() {

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, Notification, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, Notification } = require('electron');
 const path  = require('path');
 const fs    = require('fs');
 const fsp   = fs.promises;
@@ -407,7 +407,6 @@ async function checkForUpdates() {
 
 // ── Window ────────────────────────────────────────────────────────
 function createWindow() {
-  const settings = readSettings();
   const startHidden = process.argv.includes('--hidden');
 
   mainWindow = new BrowserWindow({
@@ -427,6 +426,16 @@ function createWindow() {
   });
 
   mainWindow.loadFile('index.html');
+
+  // Frameless window has no default menu bar, so the usual DevTools
+  // accelerator isn't reliably wired up - bind it explicitly.
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    const isDevToolsShortcut = input.key === 'F12' ||
+      (input.control && input.shift && input.key.toLowerCase() === 'i');
+    if (isDevToolsShortcut && input.type === 'keyDown') {
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
 
   if (!startHidden) {
     mainWindow.once('ready-to-show', () => mainWindow.show());
@@ -483,8 +492,23 @@ app.whenReady().then(async () => {
     if (folder) {
       mainWindow.webContents.once('did-finish-load', async () => {
         const months = s.cleanupSchedule?.oldFilesMonths || 6;
-        const results = await ipcMain.emit('run-cleanup-silent', null, { folderPath: folder, sections, oldFilesMonths: months });
-        sendNotification('✓ Scheduled cleanup complete', 'Your folder has been cleaned automatically');
+        try {
+          const needsFolderScan = sections.includes('installers') || sections.includes('junk') || sections.includes('emptyFolders');
+          const scanned = needsFolderScan ? await scanFolder(folder) : { installers: [], junk: [], emptyFolders: [] };
+          const oldFiles = sections.includes('oldFiles') ? await scanOldFiles(folder, months) : [];
+          const duplicates = sections.includes('duplicates') ? await scanDuplicatesInFolder(folder) : [];
+          await performCleanupDeletion({
+            installers: sections.includes('installers') ? scanned.installers : [],
+            junk: sections.includes('junk') ? scanned.junk : [],
+            emptyFolders: sections.includes('emptyFolders') ? scanned.emptyFolders : [],
+            oldFiles,
+            duplicates,
+            folder
+          });
+        } catch (e) {
+          console.error('Scheduled cleanup failed:', e.message);
+          sendNotification('✗ Scheduled cleanup failed', e.message);
+        }
       });
     }
   }
@@ -905,7 +929,7 @@ ipcMain.handle('get-stats', async () => {
         if (r.action === 'delete') rulesStats.delete++;
         if (r.action === 'rename') rulesStats.rename++;
       }
-    } else {
+    } else if (s.type !== 'cleanup') {
       organizeTotalSessions++;
       for (const m of (s.moved || [])) {
         byCategory[m.category] = (byCategory[m.category] || 0) + 1;
@@ -1207,21 +1231,26 @@ function formatBytes(bytes) {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-function scanFolder(folderPath) {
+async function scanFolder(folderPath) {
   const ignore = readIgnoreList();
   const installers = [], junk = [], emptyFolders = [];
-  try {
-    const items = fs.readdirSync(folderPath, { withFileTypes: true });
+
+  async function walk(dir) {
+    let items;
+    try { items = await fsp.readdir(dir, { withFileTypes: true }); }
+    catch (e) { console.error('scanFolder failed to read', dir, e.message); return; }
+
+    if (items.length === 0) {
+      if (dir !== folderPath) emptyFolders.push({ name: path.basename(dir), path: dir, size: 0 });
+      return;
+    }
+
     for (const item of items) {
-      const fullPath = path.join(folderPath, item.name);
+      if (shouldIgnore(item.name, ignore)) continue;
+      const fullPath = path.join(dir, item.name);
       if (item.isDirectory()) {
-        if (shouldIgnore(item.name, ignore)) continue;
-        try {
-          const contents = fs.readdirSync(fullPath);
-          if (contents.length === 0) emptyFolders.push({ name: item.name, path: fullPath, size: 0 });
-        } catch (e) {}
+        await walk(fullPath);
       } else {
-        if (shouldIgnore(item.name, ignore)) continue;
         const ext = path.extname(item.name).toLowerCase();
         const nameLower = item.name.toLowerCase();
         const size = getFileSize(fullPath);
@@ -1232,52 +1261,77 @@ function scanFolder(folderPath) {
         }
       }
     }
-  } catch (e) { console.error('scanFolder failed:', e.message); }
+  }
+
+  try { await walk(folderPath); }
+  catch (e) { console.error('scanFolder failed:', e.message); }
   return { installers, junk, emptyFolders };
 }
 
-function scanOldFiles(folderPath, monthsThreshold) {
+async function scanOldFiles(folderPath, monthsThreshold) {
   const oldFiles = [];
+  const ignore = readIgnoreList();
   const cutoff = Date.now() - (monthsThreshold * 30 * 24 * 60 * 60 * 1000);
-  try {
-    const items = fs.readdirSync(folderPath, { withFileTypes: true });
+  let processed = 0;
+
+  async function walk(dir) {
+    let items;
+    try { items = await fsp.readdir(dir, { withFileTypes: true }); }
+    catch (e) { return; }
     for (const item of items) {
-      if (!item.isFile()) continue;
-      const fullPath = path.join(folderPath, item.name);
+      if (shouldIgnore(item.name, ignore)) continue;
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) { await walk(fullPath); continue; }
       try {
-        const stat = fs.statSync(fullPath);
+        const stat = await fsp.stat(fullPath);
         const lastUsed = Math.max(stat.mtimeMs, stat.atimeMs);
         if (lastUsed < cutoff) {
           oldFiles.push({ name: item.name, path: fullPath, size: stat.size, lastModified: stat.mtime.toISOString() });
         }
       } catch (e) {}
+      if (++processed % 50 === 0) await new Promise(r => setImmediate(r));
     }
-  } catch (e) { console.error('scanOldFiles failed:', e.message); }
+  }
+
+  try { await walk(folderPath); }
+  catch (e) { console.error('scanOldFiles failed:', e.message); }
   return oldFiles;
 }
 
-ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
-  const { installers, junk, emptyFolders } = scanFolder(folderPath);
-
-  // Duplicates
+async function scanDuplicatesInFolder(folderPath) {
   const hashMap = {};
   const duplicates = [];
-  try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
-    for (const f of files) {
-      const fullPath = path.join(folderPath, f.name);
-      const hash = hashFile(fullPath);
+  const ignore = readIgnoreList();
+  let processed = 0;
+
+  async function walk(dir) {
+    let items;
+    try { items = await fsp.readdir(dir, { withFileTypes: true }); }
+    catch (e) { return; }
+    for (const item of items) {
+      if (shouldIgnore(item.name, ignore)) continue;
+      const fullPath = path.join(dir, item.name);
+      if (item.isDirectory()) { await walk(fullPath); continue; }
+      const hash = await hashFile(fullPath);
       if (!hash) continue;
       if (hashMap[hash]) {
-        duplicates.push({ name: f.name, path: fullPath, size: getFileSize(fullPath) });
+        duplicates.push({ name: item.name, path: fullPath, size: getFileSize(fullPath) });
       } else {
         hashMap[hash] = fullPath;
       }
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
-  } catch (e) { console.error('scan-cleanup duplicates scan failed:', e.message); }
+  }
 
-  // Old files
-  const oldFiles = oldFilesMonths ? scanOldFiles(folderPath, oldFilesMonths) : [];
+  try { await walk(folderPath); }
+  catch (e) { console.error('scanDuplicatesInFolder failed:', e.message); }
+  return duplicates;
+}
+
+ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
+  const { installers, junk, emptyFolders } = await scanFolder(folderPath);
+  const duplicates = await scanDuplicatesInFolder(folderPath);
+  const oldFiles = oldFilesMonths ? await scanOldFiles(folderPath, oldFilesMonths) : [];
 
   return {
     installers: { files: installers, totalSize: installers.reduce((s, f) => s + f.size, 0) },
@@ -1289,7 +1343,7 @@ ipcMain.handle('scan-cleanup', async (_, { folderPath, oldFilesMonths }) => {
   };
 });
 
-ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFolders, oldFiles, dupApps }) => {
+async function performCleanupDeletion({ installers, junk, duplicates, emptyFolders, oldFiles, dupApps, folder: sourceFolder }) {
   const trashDir = path.join(os.homedir(), '.mojo-trash');
   if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
   const deleted = [], errors = [];
@@ -1299,12 +1353,18 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
       const trashPath = path.join(trashDir, `${Date.now()}_${file.name}`);
       fs.renameSync(file.path, trashPath);
       deleted.push({ ...file, trashPath });
-    } catch (e) { errors.push({ name: file.name, error: e.message }); }
+    } catch (e) {
+      if (e.code === 'ENOENT') return; // already gone - nothing to report
+      errors.push({ name: file.name, error: e.message });
+    }
   };
 
   const deleteFolder = (folder) => {
     try { fs.rmdirSync(folder.path); deleted.push(folder); }
-    catch (e) { errors.push({ name: folder.name, error: e.message }); }
+    catch (e) {
+      if (e.code === 'ENOENT') return; // already gone - nothing to report
+      errors.push({ name: folder.name, error: e.message });
+    }
   };
 
   if (installers) installers.forEach(deleteFile);
@@ -1314,10 +1374,22 @@ ipcMain.handle('run-cleanup', async (_, { installers, junk, duplicates, emptyFol
   if (emptyFolders) emptyFolders.forEach(deleteFolder);
   if (oldFiles) oldFiles.forEach(deleteFile);
 
-  if (deleted.length > 0) sendNotification(`✓ Cleanup complete`, `${deleted.length} item${deleted.length !== 1 ? 's' : ''} removed`);
+  if (deleted.length > 0) {
+    sendNotification(`✓ Cleanup complete`, `${deleted.length} item${deleted.length !== 1 ? 's' : ''} removed`);
+    appendSession({
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      type: 'cleanup',
+      folder: sourceFolder || null,
+      count: deleted.length,
+      files: deleted
+    });
+  }
   updateTrayTooltip();
   return { deleted, errors };
-});
+}
+
+ipcMain.handle('run-cleanup', async (_, args) => performCleanupDeletion(args));
 
 ipcMain.handle('restore-cleanup', async (_, files) => {
   const restored = [], errors = [];
@@ -1461,11 +1533,13 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
 async function executeRules(folderPath, rules) {
   const results = [];
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    const entries = await fsp.readdir(folderPath, { withFileTypes: true });
+    const files = entries.filter(f => f.isFile());
+    let processed = 0;
     for (const f of files) {
       const fullPath = path.join(folderPath, f.name);
       let stat;
-      try { stat = fs.statSync(fullPath); } catch (e) { continue; }
+      try { stat = await fsp.stat(fullPath); } catch (e) { continue; }
       const ext = path.extname(f.name).toLowerCase().replace('.', '');
       const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
       const sizeBytes = stat.size;
@@ -1487,29 +1561,30 @@ async function executeRules(folderPath, rules) {
           } else if (rule.action.type === 'move' && rule.action.dest) {
             const dest = path.resolve(rule.action.dest);
             if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
-            if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+            if (!await fsp.access(dest).then(() => true, () => false)) await fsp.mkdir(dest, { recursive: true });
             const moveTo = path.join(dest, f.name);
-            if (fs.existsSync(moveTo)) {
+            const moveToExists = await fsp.access(moveTo).then(() => true, () => false);
+            if (moveToExists) {
               // File exists at destination — rename with suffix
               const ext = path.extname(f.name);
               const base = path.basename(f.name, ext);
               let suffix = 1;
               let safePath = moveTo;
-              while (fs.existsSync(safePath)) {
+              while (await fsp.access(safePath).then(() => true, () => false)) {
                 safePath = path.join(dest, `${base}_${suffix}${ext}`);
                 suffix++;
               }
-              fs.renameSync(fullPath, safePath);
+              await fsp.rename(fullPath, safePath);
               actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = safePath; actionResult.renamed = true;
             } else {
-              fs.renameSync(fullPath, moveTo);
+              await fsp.rename(fullPath, moveTo);
               actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
             }
           } else if (rule.action.type === 'rename') {
             const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
             if (newName !== f.name) {
               const renameTo = path.join(folderPath, newName);
-              fs.renameSync(fullPath, renameTo);
+              await fsp.rename(fullPath, renameTo);
               actionResult.ok = true; actionResult.newName = newName; actionResult.from = fullPath; actionResult.to = renameTo;
             }
           }
@@ -1517,6 +1592,9 @@ async function executeRules(folderPath, rules) {
         results.push(actionResult);
         break;
       }
+      // Yield to the event loop periodically so the app stays responsive
+      // when running rules against folders with lots of files.
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
   } catch (e) { return { ok: false, error: e.message, results: [] }; }
   const matchedResults = results.filter(r => r.ok);
@@ -1759,43 +1837,71 @@ ipcMain.on('close',    () => {
 const crypto = require('crypto');
 
 function hashFile(filePath) {
-  try {
-    // Use streaming to avoid loading large files into memory
-    const hash = crypto.createHash('sha256');
-    const fd = fs.openSync(filePath, 'r');
-    const buf = Buffer.alloc(65536); // 64KB chunks
-    let bytesRead;
-    while ((bytesRead = fs.readSync(fd, buf, 0, buf.length)) > 0) {
-      hash.update(buf.slice(0, bytesRead));
-    }
-    fs.closeSync(fd);
-    return hash.digest('hex');
-  } catch (e) { return null; }
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => { if (!settled) { settled = true; resolve(value); } };
+
+    const timeout = setTimeout(() => {
+      console.error('hashFile timed out:', filePath);
+      stream?.destroy();
+      finish(null);
+    }, 20000);
+
+    let stream;
+    try {
+      const hash = crypto.createHash('sha256');
+      stream = fs.createReadStream(filePath, { highWaterMark: 65536 });
+      stream.on('data', (chunk) => hash.update(chunk));
+      stream.on('end', () => { clearTimeout(timeout); finish(hash.digest('hex')); });
+      stream.on('error', () => { clearTimeout(timeout); finish(null); });
+    } catch (e) { clearTimeout(timeout); finish(null); }
+  });
+}
+
+function normalizeNameForDupeCheck(filename) {
+  const ext = path.extname(filename);
+  let base = path.basename(filename, ext);
+  // Strip common "copy" suffix patterns: "_1", " (1)", "-1", " copy", " - Copy", "_copy"
+  base = base
+    .replace(/\s*\(\d+\)$/i, '')
+    .replace(/[-_]\d+$/i, '')
+    .replace(/\s*-\s*copy(\s*\(\d+\))?$/i, '')
+    .replace(/[-_\s]*copy$/i, '');
+  return (base + ext).toLowerCase();
 }
 
 ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
   const ignore = readIgnoreList();
   const results = {};
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true })
-      .filter(f => f.isFile() && !shouldIgnore(f.name, ignore))
-      .map(f => {
-        const fullPath = path.join(folderPath, f.name);
-        const stat = fs.statSync(fullPath);
-        return { name: f.name, path: fullPath, size: stat.size, mtime: stat.mtimeMs };
-      });
+    const files = [];
+    async function walk(dir) {
+      let items;
+      try { items = await fsp.readdir(dir, { withFileTypes: true }); }
+      catch (e) { return; }
+      for (const item of items) {
+        if (shouldIgnore(item.name, ignore)) continue;
+        const fullPath = path.join(dir, item.name);
+        if (item.isDirectory()) { await walk(fullPath); continue; }
+        const stat = await fsp.stat(fullPath);
+        files.push({ name: item.name, path: fullPath, size: stat.size, mtime: stat.mtimeMs });
+      }
+    }
+    await walk(folderPath);
 
+    let processed = 0;
     for (const file of files) {
       let key;
       if (mode === 'name') {
-        key = file.name.toLowerCase();
+        key = normalizeNameForDupeCheck(file.name);
       } else {
-        const hash = hashFile(file.path);
+        const hash = await hashFile(file.path);
         if (!hash) continue;
         key = hash;
       }
       if (!results[key]) results[key] = [];
       results[key].push({ name: file.name, path: file.path, size: file.size, mtime: file.mtime });
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
 
     const duplicates = Object.values(results).filter(g => g.length > 1);
@@ -1858,7 +1964,7 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
       setTimeout(async () => {
         const filePath = path.join(folderPath, filename);
         try {
-          const stat = fs.statSync(filePath);
+          const stat = await fsp.stat(filePath);
           if (!stat.isFile()) return;
         } catch (e) { return; }
 
@@ -1872,7 +1978,7 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
         if (useRules) {
           const rules = readRules().filter(r => r.enabled);
           if (rules.length) {
-            const stat = fs.statSync(filePath);
+            const stat = await fsp.stat(filePath);
             const ext = path.extname(filename).toLowerCase().replace('.', '');
             const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
             const sizeBytes = stat.size;
@@ -1888,15 +1994,15 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
                   if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'delete' });
                 } else if (rule.action.type === 'move' && rule.action.dest) {
                   const dest = path.resolve(rule.action.dest);
-                  if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+                  if (!await fsp.access(dest).then(() => true, () => false)) await fsp.mkdir(dest, { recursive: true });
                   const moveTo = path.join(dest, filename);
-                  fs.renameSync(filePath, moveTo);
+                  await fsp.rename(filePath, moveTo);
                   sendNotification(`→ ${filename}`, `Moved by rule: ${rule.name}`);
                   if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'move' });
                 } else if (rule.action.type === 'rename') {
                   const newName = applyRenameRulesToFile(filename, rule.action.renameRules || {});
                   if (newName !== filename) {
-                    fs.renameSync(filePath, path.join(folderPath, newName));
+                    await fsp.rename(filePath, path.join(folderPath, newName));
                     sendNotification(`✏ ${filename}`, `Renamed by rule: ${rule.name}`);
                     if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'rename' });
                   }
@@ -1911,11 +2017,11 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
         if (!cat) return;
 
         const destFolder = path.join(folderPath, cat);
-        if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+        if (!await fsp.access(destFolder).then(() => true, () => false)) await fsp.mkdir(destFolder, { recursive: true });
 
         const dest = getUniqueDest(destFolder, filename);
         try {
-          fs.renameSync(filePath, dest);
+          await fsp.rename(filePath, dest);
           appendSession({
           id: Date.now(),
           timestamp: new Date().toISOString(),

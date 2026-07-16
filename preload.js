@@ -65,6 +65,7 @@ contextBridge.exposeInMainWorld('api', {
   getRules:         ()       => ipcRenderer.invoke('get-rules'),
   saveRules:        (rules)  => ipcRenderer.invoke('save-rules', rules),
   runRules:         (opts)   => ipcRenderer.invoke('run-rules', opts),
+  previewRules:     (opts)   => ipcRenderer.invoke('preview-rules', opts),
   exportAppData:    ()       => ipcRenderer.invoke('export-app-data'),
   importAppData:    ()       => ipcRenderer.invoke('import-app-data'),
   exportGroups:     ()       => ipcRenderer.invoke('export-groups'),

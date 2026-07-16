@@ -8,6 +8,8 @@
   "type": "commonjs",
   "scripts": {
     "start": "electron .",
+    "lint": "eslint main.js preload.js renderer.js translations.js",
+    "lint:fix": "eslint main.js preload.js renderer.js translations.js --fix",
     "build": "electron-builder --win --x64",
     "release": "electron-builder --win --x64 --publish always",
     "build:portable": "electron-builder --win --x64 --config.win.target=portable",
@@ -18,7 +20,8 @@
   },
   "devDependencies": {
     "electron": "^42.3.2",
-    "electron-builder": "^26.15.0"
+    "electron-builder": "^26.15.0",
+    "eslint": "^10.7.0"
   },
   "build": {
     "appId": "com.mojomultimedia.mojo-file-organizer",
