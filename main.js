@@ -793,15 +793,18 @@ ipcMain.handle('organize', async (_, folderPath) => {
 
 ipcMain.handle('undo', async (_, moves) => {
   const restored = [], errors = [];
+  let processed = 0;
   for (const m of [...moves].reverse()) {
     try {
-      if (fs.existsSync(m.to)) {
-        fs.renameSync(m.to, m.from);
+      if (await fsp.access(m.to).then(() => true, () => false)) {
+        await fsp.rename(m.to, m.from);
         restored.push(m.name);
         const dir = path.dirname(m.to);
-        if (fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
+        const remaining = await fsp.readdir(dir).catch(() => null);
+        if (remaining && remaining.length === 0) await fsp.rmdir(dir).catch(() => {});
       }
     } catch (e) { errors.push({ name: m.name, error: e.message }); }
+    if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
   }
   updateTrayTooltip();
   return { restored, errors };
@@ -870,7 +873,9 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
   const { sizeFilter } = readSettings();
   const moved = [], errors = [];
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    const entries = await fsp.readdir(folderPath, { withFileTypes: true });
+    const files = entries.filter(f => f.isFile());
+    let processed = 0;
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
       const src = path.join(folderPath, f.name);
@@ -879,14 +884,15 @@ ipcMain.handle('organize-groups', async (_, folderPath) => {
         if (filenameMatchesGroup(f.name, g.name)) {
           const folderName = g.name.charAt(0).toUpperCase() + g.name.slice(1);
           const destFolder = path.join(folderPath, folderName);
-          if (!fs.existsSync(destFolder)) fs.mkdirSync(destFolder, { recursive: true });
+          if (!fs.existsSync(destFolder)) await fsp.mkdir(destFolder, { recursive: true });
           const src = path.join(folderPath, f.name);
           const dest = getUniqueDest(destFolder, f.name);
-          try { fs.renameSync(src, dest); moved.push({ name: f.name, group: folderName, from: src, to: dest }); }
+          try { await fsp.rename(src, dest); moved.push({ name: f.name, group: folderName, from: src, to: dest }); }
           catch (e) { errors.push({ name: f.name, error: e.message }); }
           break;
         }
       }
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
     if (moved.length > 0 || errors.length > 0) {
       appendSession({ id: Date.now(), timestamp: new Date().toISOString(), folder: folderPath, type: 'smart-group', moved: moved.map(m => ({ name: m.name, category: m.group, from: m.from, to: m.to })), errors, total: moved.length });
@@ -1914,13 +1920,17 @@ ipcMain.handle('scan-duplicates', async (_, { folderPath, mode }) => {
 ipcMain.handle('delete-duplicates', async (_, files) => {
   const deleted = [], errors = [];
   const trashDir = path.join(os.homedir(), '.mojo-trash');
-  if (!fs.existsSync(trashDir)) fs.mkdirSync(trashDir);
+  if (!fs.existsSync(trashDir)) await fsp.mkdir(trashDir, { recursive: true });
+  let processed = 0;
   for (const file of files) {
     try {
       const trashPath = path.join(trashDir, `${Date.now()}_${file.name}`);
-      fs.renameSync(file.path, trashPath);
+      await fsp.rename(file.path, trashPath);
       deleted.push({ ...file, trashPath });
-    } catch (e) { errors.push({ name: file.name, error: e.message }); }
+    } catch (e) {
+      if (e.code !== 'ENOENT') errors.push({ name: file.name, error: e.message });
+    }
+    if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
   }
   updateTrayTooltip();
   return { deleted, errors };
@@ -1928,13 +1938,15 @@ ipcMain.handle('delete-duplicates', async (_, files) => {
 
 ipcMain.handle('restore-duplicates', async (_, files) => {
   const restored = [], errors = [];
+  let processed = 0;
   for (const file of files) {
     try {
-      if (fs.existsSync(file.trashPath)) {
-        fs.renameSync(file.trashPath, file.path);
+      if (await fsp.access(file.trashPath).then(() => true, () => false)) {
+        await fsp.rename(file.trashPath, file.path);
         restored.push(file.name);
       }
     } catch (e) { errors.push({ name: file.name, error: e.message }); }
+    if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
   }
   updateTrayTooltip();
   return { restored, errors };
