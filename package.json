@@ -23,6 +23,9 @@
     "electron-builder": "^26.15.0",
     "eslint": "^10.7.0"
   },
+  "overrides": {
+    "brace-expansion": "^5.0.7"
+  },
   "build": {
     "appId": "com.mojomultimedia.mojo-file-organizer",
     "productName": "Mojo File Organizer",
