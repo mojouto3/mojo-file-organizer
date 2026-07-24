@@ -4,6 +4,14 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.2] - 2026-07-24
+
+### Fixed
+- `undo`, `organize-groups`, `delete-duplicates`, `restore-duplicates`, and `preview-rules` now use async file operations instead of blocking the main process on large folders
+- Resolved a high-severity `brace-expansion` dependency vulnerability and three other pre-existing vulnerabilities (fast-uri, js-yaml, tar) flagged by Dependabot; `npm audit` now reports 0 vulnerabilities
+
+---
+
 ## [3.26.1] - 2026-07-16
 
 ### Added
