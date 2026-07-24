@@ -1498,11 +1498,12 @@ ipcMain.handle('import-rules', async () => {
 ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
   const results = [];
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    const files = (await fsp.readdir(folderPath, { withFileTypes: true })).filter(f => f.isFile());
+    let processed = 0;
     for (const f of files) {
       const fullPath = path.join(folderPath, f.name);
       let stat;
-      try { stat = fs.statSync(fullPath); } catch (e) { continue; }
+      try { stat = await fsp.stat(fullPath); } catch (e) { continue; }
       const ext = path.extname(f.name).toLowerCase().replace('.', '');
       const ageDays = Math.floor((Date.now() - stat.mtimeMs) / 86400000);
       const sizeBytes = stat.size;
@@ -1515,7 +1516,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
         fileMatches.push(rule.name);
       }
 
-      if (fileMatches.length === 0) continue;
+      if (fileMatches.length === 0) { if (++processed % 25 === 0) await new Promise(r => setImmediate(r)); continue; }
 
       const preview = { file: f.name, rule: fileMatches[0], action: rules.find(r => r.name === fileMatches[0])?.action?.type };
       const firstRule = rules.find(r => r.name === fileMatches[0]);
@@ -1523,7 +1524,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
         preview.dest = firstRule.action.dest || '';
         if (preview.dest) {
           const moveTo = path.join(path.resolve(preview.dest), f.name);
-          if (fs.existsSync(moveTo)) preview.conflict = true;
+          if (await fsp.access(moveTo).then(() => true, () => false)) preview.conflict = true;
         }
       }
       if (firstRule?.action?.type === 'rename') {
@@ -1531,6 +1532,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
       }
       if (fileMatches.length > 1) preview.overlaps = fileMatches.slice(1);
       results.push(preview);
+      if (++processed % 25 === 0) await new Promise(r => setImmediate(r));
     }
   } catch (e) { return { ok: false, error: e.message, results: [] }; }
   return { ok: true, results };
