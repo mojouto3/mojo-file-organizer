@@ -4,6 +4,20 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.3] - 2026-07-27
+
+### Added
+- Search box in the Organize preview: filters the file list live, shows all matches per category
+- Version badge (e.g. "v3.26.0") on each file in the Duplicate App Versions section of Cleanup
+- Weekly activity trend: a sparkline with trend percentage on the Home dashboard, and a detailed weekly breakdown on the Stats tab
+
+### Fixed
+- Home's "Organize Now" button now pre-fills and previews the last-organized folder instead of opening an empty Organize tab
+- Placeholder text (e.g. the Activity search box) now translates correctly with the selected language; it was never being translated before
+- Type and count badges in the Activity session list are now consistently aligned into columns across all session types, and action buttons no longer overlap the expand arrow on hover
+
+---
+
 ## [3.26.2] - 2026-07-24
 
 ### Fixed
