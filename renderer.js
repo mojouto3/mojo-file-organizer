@@ -763,13 +763,17 @@ function renderHistory(sessions) {
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type type-rules">Rules</span>
           <span class="session-badge">${s.total ?? s.results?.length ?? 0} ${(s.total ?? s.results?.length ?? 0) === 1 ? 'file' : 'files'}</span>
-          <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
-            <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
-          </button>
-          <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-            <i data-lucide="folder-open"></i>
-          </button>
-          <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          <div class="session-actions">
+            <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
+              <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
+            </button>
+            <button class="session-open-folder" style="visibility:hidden;pointer-events:none" tabindex="-1"><i data-lucide="download"></i></button>
+            <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+              <i data-lucide="folder-open"></i>
+            </button>
+            <button class="session-open-folder" style="visibility:hidden;pointer-events:none" tabindex="-1"><i data-lucide="rotate-ccw"></i></button>
+            <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          </div>
           <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
         </div>
         ${s.note ? `<div class="session-note">${sanitize(s.note)}</div>` : ''}
@@ -781,19 +785,21 @@ function renderHistory(sessions) {
           <div class="session-folder" title="${s.folder}">${s.folder}</div>
           <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : s.type === 'cleanup' ? 'type-cleanup' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : s.type === 'cleanup' ? 'Cleanup' : 'Organize'}</span>
           <span class="session-badge">${s.type === 'cleanup' ? `${s.count ?? s.files?.length ?? 0} cleaned` : `${s.total ?? s.moved?.length ?? 0} moved`}</span>
-          <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
-            <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
-          </button>
-          <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
-            <i data-lucide="download"></i>
-          </button>
-          <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-            <i data-lucide="folder-open"></i>
-          </button>
-          <button class="session-open-folder session-undo-btn" title="${tr('undoSession')}" onclick="event.stopPropagation();undoSession(${s.id})">
-            <i data-lucide="rotate-ccw"></i>
-          </button>
-          <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          <div class="session-actions">
+            <button class="session-open-folder" title="${s.note ? 'Edit note' : 'Add note'}" onclick="event.stopPropagation();editSessionNote(${s.id}, this)">
+              <i data-lucide="${s.note ? 'message-square' : 'message-square-plus'}"></i>
+            </button>
+            <button class="session-open-folder" title="${tr('exportSession')}" onclick="event.stopPropagation();exportSession(${s.id})">
+              <i data-lucide="download"></i>
+            </button>
+            <button class="session-open-folder" title="${tr('openFolder')}" onclick="event.stopPropagation();openSessionFolder('${s.folder.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+              <i data-lucide="folder-open"></i>
+            </button>
+            <button class="session-open-folder session-undo-btn" title="${tr('undoSession')}" onclick="event.stopPropagation();undoSession(${s.id})">
+              <i data-lucide="rotate-ccw"></i>
+            </button>
+            <button class="session-del" onclick="deleteSession(event,${s.id})"><i data-lucide="x"></i></button>
+          </div>
           <span class="session-chevron"><i data-lucide="chevron-down"></i></span>
         </div>
         ${s.note ? `<div class="session-note">${sanitize(s.note)}</div>` : ''}
