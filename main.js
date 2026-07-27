@@ -926,6 +926,22 @@ ipcMain.handle('get-stats', async () => {
   let organizeTotalFiles = 0;
   let organizeTotalSessions = 0;
 
+  // Weekly trend: last 8 weeks (Monday-start), files organized per week
+  const WEEKS = 8;
+  const now = new Date();
+  const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setHours(0, 0, 0, 0);
+  thisWeekStart.setDate(now.getDate() - dayOfWeek);
+  const weekBuckets = [];
+  for (let i = WEEKS - 1; i >= 0; i--) {
+    const start = new Date(thisWeekStart);
+    start.setDate(thisWeekStart.getDate() - i * 7);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 7);
+    weekBuckets.push({ start, end, count: 0 });
+  }
+
   for (const s of sessions) {
     if (s.type === 'rules') {
       rulesStats.sessions++;
@@ -937,18 +953,27 @@ ipcMain.handle('get-stats', async () => {
       }
     } else if (s.type !== 'cleanup') {
       organizeTotalSessions++;
+      const fileCount = (s.moved || []).length;
       for (const m of (s.moved || [])) {
         byCategory[m.category] = (byCategory[m.category] || 0) + 1;
-        organizeTotalFiles++;
+      }
+      organizeTotalFiles += fileCount;
+
+      const ts = new Date(s.timestamp);
+      for (const b of weekBuckets) {
+        if (ts >= b.start && ts < b.end) { b.count += fileCount; break; }
       }
     }
   }
+
+  const weeklyTrend = weekBuckets.map(b => b.count);
 
   return {
     totalFiles: organizeTotalFiles,
     totalSessions: organizeTotalSessions,
     byCategory,
-    rulesStats
+    rulesStats,
+    weeklyTrend
   };
 });
 
