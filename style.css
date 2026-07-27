@@ -1692,6 +1692,7 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 .dup-app-keep, .dup-app-del { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
 .dup-app-file { flex: 1; font-size: 11px; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dup-app-size { font-size: 10px; color: #444; flex-shrink: 0; }
+.dup-app-version { font-size: 10px; font-weight: 600; color: var(--text-dim); background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 8px; flex-shrink: 0; }
 .dup-badge { font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
 .dup-badge.keep { background: rgba(61,219,61,0.12); color: var(--accent, var(--green)); border: 0.5px solid rgba(61,219,61,0.2); }
 .dup-badge.delete { background: rgba(224,85,85,0.1); color: var(--danger); border: 0.5px solid rgba(224,85,85,0.2); }

@@ -14,6 +14,7 @@ let appSettings = {};
 let categories = [];
 let groups = [];
 let lastMoves = [];
+let lastPreviewFiles = [];
 let lastGroupMoves = [];
 let lastRulesMoves = [];
 let currentFolder = null;
@@ -73,6 +74,11 @@ function applyLanguage(l) {
     const value = t[key] ?? TRANSLATIONS['en'][key];
     if (value) el.textContent = value;
   });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    const value = t[key] ?? TRANSLATIONS['en'][key];
+    if (value) el.placeholder = value;
+  });
 }
 
 function changeLanguage(l) {
@@ -129,6 +135,17 @@ async function showPreview(folder) {
   const files = await window.api.preview(folder);
   if (!files.length) { showToast(tr('noSortableFiles')); return; }
 
+  lastPreviewFiles = files;
+  const searchInput = document.getElementById('previewSearch');
+  if (searchInput) searchInput.value = '';
+  renderPreviewGrid(files);
+  document.getElementById('previewCount').textContent = `${files.length} files`;
+  document.getElementById('previewCard').classList.remove('hidden');
+  document.getElementById('organizeEmptyState')?.classList.add('hidden');
+  document.getElementById('resultsCard').classList.add('hidden');
+}
+
+function renderPreviewGrid(files, searchTerm) {
   const grouped = {};
   for (const f of files) {
     if (!grouped[f.category]) grouped[f.category] = [];
@@ -137,22 +154,32 @@ async function showPreview(folder) {
 
   const grid = document.getElementById('categoryGrid');
   const cards = [];
+  const isSearching = !!searchTerm;
   for (const [cat, names] of Object.entries(grouped)) {
     const icon = getCatIcon(cat);
-    const preview = names.slice(0, 3).map(n => `<div class="cat-card-file">${n.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('');
-    const more = names.length > 3 ? `<div class="cat-card-file" style="color:#444">+${names.length - 3} more</div>` : '';
+    const shown = isSearching ? names : names.slice(0, 3);
+    const preview = shown.map(n => `<div class="cat-card-file">${n.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`).join('');
+    const more = !isSearching && names.length > 3 ? `<div class="cat-card-file" style="color:#444">+${names.length - 3} more</div>` : '';
     cards.push(`<div class="cat-card">
       <div class="cat-card-name"><i data-lucide="${icon}"></i>${sanitize(cat)}</div>
       <div class="cat-card-count">${names.length} <span class="cat-card-label">file${names.length !== 1 ? 's' : ''}</span></div>
       <div class="cat-card-files">${preview}${more}</div>
     </div>`);
   }
-  grid.innerHTML = cards.join('');
+  grid.innerHTML = cards.length ? cards.join('') : `<div class="cat-grid-empty" style="grid-column:1/-1;text-align:center;color:var(--text-dim);padding:20px 0;font-size:12px">No files match "${searchTerm ? searchTerm.replace(/</g,'&lt;').replace(/>/g,'&gt;') : ''}"</div>`;
   lucide.createIcons();
-  document.getElementById('previewCount').textContent = `${files.length} files`;
-  document.getElementById('previewCard').classList.remove('hidden');
-  document.getElementById('organizeEmptyState')?.classList.add('hidden');
-  document.getElementById('resultsCard').classList.add('hidden');
+}
+
+function filterPreviewFiles() {
+  const term = (document.getElementById('previewSearch')?.value || '').trim().toLowerCase();
+  if (!term) {
+    renderPreviewGrid(lastPreviewFiles);
+    document.getElementById('previewCount').textContent = `${lastPreviewFiles.length} files`;
+    return;
+  }
+  const matches = lastPreviewFiles.filter(f => f.name.toLowerCase().includes(term));
+  renderPreviewGrid(matches, term);
+  document.getElementById('previewCount').textContent = `${matches.length} of ${lastPreviewFiles.length} files`;
 }
 
 async function organize() {
@@ -485,7 +512,7 @@ async function loadHome() {
       <div class="home-organize-folder">${folderName || 'No folder selected'}</div>
       <div class="home-organize-meta">${lastOrgTime ? `Last organized ${lastOrgTime}` : 'Not organized yet'}</div>
     </div>
-    <button class="home-organize-btn" onclick="event.stopPropagation();showTab('organize')">
+    <button class="home-organize-btn" onclick="event.stopPropagation();showTab('organize');${quickOrganizeFolder ? `setFolder('${quickOrganizeFolder.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')` : ''}">
       <i data-lucide="zap"></i>Organize Now
     </button>
     <div class="home-stats-row">
@@ -2362,15 +2389,17 @@ async function scanCleanup() {
       <div class="dup-apps-list">
         ${dupApps.map(g => `
           <div class="dup-app-group">
-            <div class="dup-app-name">${g.appName}</div>
+            <div class="dup-app-name">${sanitize(g.appName)}</div>
             <div class="dup-app-keep">
               <span class="dup-badge keep">${tr('keep')}</span>
-              <span class="dup-app-file">${g.keep.name}</span>
+              ${g.keep.version ? `<span class="dup-app-version">v${sanitize(g.keep.version)}</span>` : ''}
+              <span class="dup-app-file">${sanitize(g.keep.name)}</span>
               <span class="dup-app-size">${formatSize(g.keep.size)}</span>
             </div>
             ${g.delete.map(f => `
               <div class="dup-app-del">
                 <span class="dup-badge delete">${tr('delete')}</span>
+                ${f.version ? `<span class="dup-app-version">v${sanitize(f.version)}</span>` : ''}
                 <span class="dup-app-file">${sanitize(f.name)}</span>
                 <span class="dup-app-size">${formatSize(f.size)}</span>
               </div>`).join('')}
