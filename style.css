@@ -34,6 +34,10 @@
 }
 .home-organize-btn:hover { background: var(--green-hover); }
 .home-organize-btn i { width: 15px; height: 15px; }
+.home-sparkline-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-top: 0.5px solid var(--border); }
+.home-sparkline-label { font-size: 10px; color: var(--text-dim); flex-shrink: 0; }
+.home-sparkline { flex: 1; display: block; }
+.home-sparkline-trend { font-size: 11px; font-weight: 600; flex-shrink: 0; }
 .home-stats-row { display: flex; border-top: 0.5px solid var(--border); }
 .home-stat { flex: 1; padding: 8px 12px; text-align: center; border-right: 0.5px solid var(--border); }
 .home-stat:last-child { border-right: none; }
@@ -437,6 +441,7 @@ input[type="text"]:focus { border-color: #444; }
 .stat-label { font-size: 10px; color: var(--text-dim); margin-top: 4px; letter-spacing: 0.3px; }
 
 .chart-wrap { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.chart-wrap-title { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
 .chart-row { display: flex; align-items: center; gap: 10px; }
 .chart-label { font-size: 11px; color: var(--text-mid); width: 90px; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
 .chart-track { flex: 1; background: var(--surface2); border-radius: 3px; height: 6px; overflow: hidden; }

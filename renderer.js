@@ -505,6 +505,28 @@ async function loadHome() {
 
   // Quick Organize card
   const lastOrgTime = lastOrganizeSession ? timeAgo(lastOrganizeSession.timestamp) : null;
+  const weeklyTrend = stats.weeklyTrend || [];
+  const trendHasData = weeklyTrend.some(v => v > 0);
+  let sparklineHTML = '';
+  if (trendHasData) {
+    const max = Math.max(...weeklyTrend, 1);
+    const w = 90, h = 24, step = w / (weeklyTrend.length - 1);
+    const points = weeklyTrend.map((v, i) => `${(i * step).toFixed(1)},${(h - (v / max) * h).toFixed(1)}`).join(' ');
+    const firstHalf = weeklyTrend.slice(0, 4).reduce((a, b) => a + b, 0);
+    const secondHalf = weeklyTrend.slice(4).reduce((a, b) => a + b, 0);
+    const trendPct = firstHalf > 0 ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100) : (secondHalf > 0 ? 100 : 0);
+    const trendColor = trendPct >= 0 ? 'var(--green)' : '#e05555';
+    const trendSign = trendPct > 0 ? '+' : '';
+    sparklineHTML = `
+    <div class="home-sparkline-row">
+      <span class="home-sparkline-label">Last 8 weeks</span>
+      <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" class="home-sparkline">
+        <polyline points="${points}" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="home-sparkline-trend" style="color:${trendColor}">${trendSign}${trendPct}%</span>
+    </div>`;
+  }
+
   html += `
   <div class="card home-organize-card" onclick="showTab('organize')">
     <div class="home-organize-top">
@@ -515,6 +537,7 @@ async function loadHome() {
     <button class="home-organize-btn" onclick="event.stopPropagation();showTab('organize');${quickOrganizeFolder ? `setFolder('${quickOrganizeFolder.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')` : ''}">
       <i data-lucide="zap"></i>Organize Now
     </button>
+    ${sparklineHTML}
     <div class="home-stats-row">
       <div class="home-stat"><div class="home-stat-num">${totalFiles.toLocaleString()}</div><div class="home-stat-label">Files organized</div></div>
       <div class="home-stat"><div class="home-stat-num">${totalSessions}</div><div class="home-stat-label">Sessions</div></div>
@@ -1079,6 +1102,24 @@ async function loadStats() {
     }
     chart.innerHTML = rows.join('');
     if (!sorted.length) chart.innerHTML = `<div style="color:var(--text-dim);font-size:12px;padding:20px 0;text-align:center">No data yet</div>`;
+  }
+
+  const trendChart = document.getElementById('trendChartWrap');
+  const weeklyTrend = stats.weeklyTrend || [];
+  if (hasOrganize && weeklyTrend.some(v => v > 0)) {
+    const max = Math.max(...weeklyTrend, 1);
+    const trendRows = weeklyTrend.map((count, idx) => {
+      const weeksAgo = weeklyTrend.length - 1 - idx;
+      const label = weeksAgo === 0 ? 'This week' : weeksAgo === 1 ? 'Last week' : `${weeksAgo} weeks ago`;
+      return `<div class="chart-row">
+        <div class="chart-label">${label}</div>
+        <div class="chart-track"><div class="chart-fill" style="width:${Math.round((count/max)*100)}%;background:#3ddb3d"></div></div>
+        <div class="chart-count">${count}</div>
+      </div>`;
+    });
+    trendChart.innerHTML = `<div class="chart-wrap-title">Files organized per week</div>${trendRows.join('')}`;
+  } else {
+    trendChart.innerHTML = '';
   }
 }
 
