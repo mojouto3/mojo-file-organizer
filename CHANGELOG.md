@@ -4,6 +4,17 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.4] - 2026-07-28
+
+### Fixed
+- Rules "Rename" action never actually renamed anything - the Rule Editor never saved the data it needed, so Preview always showed the same name and running the rule silently did nothing. It now correctly applies your current Rename Rules from Settings, including proper handling of Greek characters.
+- Sanitized user-controlled text (category names, ignore list entries, rule condition values, folder paths, bookmarks, recent folders) in 8 more places across Settings, Rules, Home, and Duplicates that could otherwise render as HTML instead of plain text
+- Smart Group preview showed the group name in lowercase, but the actual folder created is capitalized (e.g. previewing "netflix" while actually creating "Netflix") - preview now matches what's actually created
+- "Show guide" could silently revert your theme and language back to dark/English if you clicked through to the end without touching those specific steps
+- Removed a duplicate internal function definition that could have caused incorrect version comparisons in the future
+
+---
+
 ## [3.26.3] - 2026-07-27
 
 ### Added
