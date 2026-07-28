@@ -3008,7 +3008,10 @@ async function obComplete() {
   }
 }
 
-function obReopen() {
+async function obReopen() {
+  const s = await window.api.getSettings();
+  obTheme = s.theme || 'dark';
+  obLang  = s.language || 'en';
   obCurrent = 0;
   obRender();
   const overlay = document.getElementById('obOverlay');
