@@ -552,11 +552,11 @@ async function loadHome() {
   const rulesRows = enabledRules.slice(0, 3).map(r => {
     const rSession = sessions.find(s => s.type === 'rules' && s.results?.some(res => res.rule === r.name));
     const rTime = rSession ? timeAgo(rSession.timestamp) : '';
-    return `<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--green)"></span><span class="home-rule-name">${r.name}</span><span class="home-rule-time">${rTime}</span></div>`;
+    return `<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--green)"></span><span class="home-rule-name">${sanitize(r.name)}</span><span class="home-rule-time">${rTime}</span></div>`;
   });
   if (rules.filter(r => !r.enabled).length > 0) {
     const disabledRule = rules.filter(r => !r.enabled)[0];
-    rulesRows.push(`<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--border-strong)"></span><span class="home-rule-name" style="color:var(--text-dim)">${disabledRule.name}</span><span class="home-rule-time">Disabled</span></div>`);
+    rulesRows.push(`<div class="home-rule-row"><span class="home-rule-dot" style="background:var(--border-strong)"></span><span class="home-rule-name" style="color:var(--text-dim)">${sanitize(disabledRule.name)}</span><span class="home-rule-time">Disabled</span></div>`);
   }
 
   html += `
@@ -760,7 +760,7 @@ function renderHistory(sessions) {
       el.innerHTML = `
         <div class="session-header" onclick="toggleSession(this)">
           <div class="session-date">${dateStr} ${timeStr}</div>
-          <div class="session-folder" title="${s.folder}">${s.folder}</div>
+          <div class="session-folder" title="${sanitize(s.folder)}">${sanitize(s.folder)}</div>
           <span class="session-type type-rules">Rules</span>
           <span class="session-badge">${s.total ?? s.results?.length ?? 0} ${(s.total ?? s.results?.length ?? 0) === 1 ? 'file' : 'files'}</span>
           <div class="session-actions">
@@ -782,7 +782,7 @@ function renderHistory(sessions) {
       el.innerHTML = `
         <div class="session-header" onclick="toggleSession(this)">
           <div class="session-date">${dateStr} ${timeStr}</div>
-          <div class="session-folder" title="${s.folder}">${s.folder}</div>
+          <div class="session-folder" title="${sanitize(s.folder)}">${sanitize(s.folder)}</div>
           <span class="session-type ${s.type === 'smart-group' ? 'type-smart-group' : s.type === 'watcher' ? 'type-watcher' : s.type === 'cleanup' ? 'type-cleanup' : 'type-organize'}">${s.type === 'smart-group' ? 'Smart Group' : s.type === 'watcher' ? 'Watcher' : s.type === 'cleanup' ? 'Cleanup' : 'Organize'}</span>
           <span class="session-badge">${s.type === 'cleanup' ? `${s.count ?? s.files?.length ?? 0} cleaned` : `${s.total ?? s.moved?.length ?? 0} moved`}</span>
           <div class="session-actions">
@@ -1934,7 +1934,7 @@ function renderCatSettings() {
     const cat = categories[i];
     const icon = iconMap[cat.name] || 'folder';
     const extChips = cat.extensions.map((ext, j) => `
-      <span class="ext-chip">${ext}
+      <span class="ext-chip">${sanitize(ext)}
         <button class="ext-chip-del" onclick="removeExt(${i},${j})"><i data-lucide="x"></i></button>
       </span>`).join('');
     const row = document.createElement('div');
@@ -1943,7 +1943,7 @@ function renderCatSettings() {
       <div class="cat-setting-header" onclick="toggleCatSetting(this)">
         <button class="cat-toggle ${cat.enabled ? 'on' : ''}" onclick="toggleCat(event,${i})"></button>
         <span class="cat-icon-wrap"><i data-lucide="${icon}"></i></span>
-        <span class="cat-setting-name">${cat.name}</span>
+        <span class="cat-setting-name">${sanitize(cat.name)}</span>
         <span class="cat-setting-count">${cat.extensions.length} ext</span>
         <button class="cat-del-btn" onclick="deleteCat(event,${i})"><i data-lucide="trash-2"></i></button>
         <span class="cat-setting-chevron"><i data-lucide="chevron-down"></i></span>
@@ -2075,7 +2075,7 @@ async function scanDuplicates(mode) {
           ? `<span class="keep-badge">KEEP <span class="keep-reason">${keepReason}</span></span>`
           : '<span class="del-badge">DELETE</span>'}
         <span class="dup-filename" title="${sanitize(f.name)}">${sanitize(f.name)}</span>
-        <span class="dup-filepath" title="${f.path}">${f.path}</span>
+        <span class="dup-filepath" title="${sanitize(f.path)}">${sanitize(f.path)}</span>
         <span class="dup-size">${size}</span>
         ${dateStr ? `<span class="dup-date">${dateStr}</span>` : ''}
       </div>`;
@@ -2207,8 +2207,8 @@ function addWatcherEvent(filename, category) {
   el.innerHTML = `
     <div class="watcher-pulse"></div>
     <span class="watcher-event-time">${now}</span>
-    <span class="watcher-event-file">${filename}</span>
-    <span class="watcher-event-cat">→ ${category}/</span>`;
+    <span class="watcher-event-file">${sanitize(filename)}</span>
+    <span class="watcher-event-cat">→ ${sanitize(category)}/</span>`;
   log.insertBefore(el, log.firstChild);
   lucide.createIcons();
 
@@ -2620,8 +2620,8 @@ function renderBookmarkPanel(context) {
     html += bookmarksList.map(b => `
       <div class="bookmark-item" onclick="useBookmark('${context}', '${b.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
         <i data-lucide="star" class="star-icon"></i>
-        <span class="bookmark-name">${b.name}</span>
-        <span class="bookmark-path" title="${b.path}">${b.path}</span>
+        <span class="bookmark-name">${sanitize(b.name)}</span>
+        <span class="bookmark-path" title="${sanitize(b.path)}">${sanitize(b.path)}</span>
         <button class="bookmark-remove" onclick="event.stopPropagation();removeBookmarkItem(${b.id}, '${context}')">
           <i data-lucide="x"></i>
         </button>
@@ -2678,8 +2678,8 @@ async function getRecentFoldersHTML(context) {
     <div class="recent-folders-row">
       <span class="recent-folders-label">${tr('recentLabel')}</span>
       ${recent.map(r => `
-        <button class="recent-folder-chip" title="${r.path}" onclick="useRecentFolder('${context}', '${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
-          ${r.name}
+        <button class="recent-folder-chip" title="${sanitize(r.path)}" onclick="useRecentFolder('${context}', '${r.path.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">
+          ${sanitize(r.name)}
         </button>`).join('')}
     </div>`;
 }
@@ -3073,13 +3073,13 @@ function renderIgnoreChips() {
 
   extEl.innerHTML = ignoreList.extensions.map((e, i) => `
     <span class="ignore-chip">
-      <span>${e}</span>
+      <span>${sanitize(e)}</span>
       <button onclick="removeIgnoreExt(${i})"><i data-lucide="x"></i></button>
     </span>`).join('');
 
   folderEl.innerHTML = ignoreList.folders.map((f, i) => `
     <span class="ignore-chip">
-      <span>${f}</span>
+      <span>${sanitize(f)}</span>
       <button onclick="removeIgnoreFolder(${i})"><i data-lucide="x"></i></button>
     </span>`).join('');
 
@@ -3659,7 +3659,7 @@ function summarizeRule(r) {
 function summarizeCondition(c) {
   const opMap = { gt: '>', lt: '<', contains: 'contains', starts: 'starts with', ends: 'ends with', not_contains: 'does not contain', eq: 'is' };
   const unit = c.unit || '';
-  return `${c.field} ${opMap[c.op] || c.op} ${c.value} ${unit}`.trim();
+  return `${sanitize(c.field)} ${opMap[c.op] || sanitize(c.op)} ${sanitize(String(c.value ?? ''))} ${sanitize(unit)}`.trim();
 }
 
 async function toggleRule(idx) {
