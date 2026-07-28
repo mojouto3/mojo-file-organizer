@@ -857,13 +857,18 @@ ipcMain.handle('preview-groups', async (_, folderPath) => {
   if (!groups.length) return [];
   const results = [];
   try {
-    const files = fs.readdirSync(folderPath, { withFileTypes: true }).filter(f => f.isFile());
+    const entries = await fsp.readdir(folderPath, { withFileTypes: true });
+    const files = entries.filter(f => f.isFile());
     for (const f of files) {
       if (shouldIgnore(f.name, ignore)) continue;
       const fullPath = path.join(folderPath, f.name);
       if (shouldIgnoreSize(fullPath, sizeFilter)) continue;
       for (const g of groups) {
-        if (filenameMatchesGroup(f.name, g.name)) { results.push({ name: f.name, group: g.name }); break; }
+        if (filenameMatchesGroup(f.name, g.name)) {
+          const folderName = g.name.charAt(0).toUpperCase() + g.name.slice(1);
+          results.push({ name: f.name, group: folderName });
+          break;
+        }
       }
     }
   } catch (e) { console.error('preview-groups failed:', e.message); }
