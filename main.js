@@ -1553,7 +1553,7 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
         }
       }
       if (firstRule?.action?.type === 'rename') {
-        preview.newName = applyRenameRulesToFile(f.name, firstRule.action.renameRules || {});
+        preview.newName = applyRenameRulesToFile(f.name);
       }
       if (fileMatches.length > 1) preview.overlaps = fileMatches.slice(1);
       results.push(preview);
@@ -1614,7 +1614,7 @@ async function executeRules(folderPath, rules) {
               actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
             }
           } else if (rule.action.type === 'rename') {
-            const newName = applyRenameRulesToFile(f.name, rule.action.renameRules || {});
+            const newName = applyRenameRulesToFile(f.name);
             if (newName !== f.name) {
               const renameTo = path.join(folderPath, newName);
               await fsp.rename(fullPath, renameTo);
@@ -1706,15 +1706,12 @@ function readFileContentIfNeeded(fullPath, ext, rules) {
   } catch (e) { return null; }
 }
 
-function applyRenameRulesToFile(filename, rules) {
-  const ext = path.extname(filename);
-  let name = path.basename(filename, ext);
-  if (rules.datePrefix) name = `${new Date().toISOString().slice(0,10)}_${name}`;
-  if (rules.dateSuffix) name = `${name}_${new Date().toISOString().slice(0,10)}`;
-  if (rules.underscores) name = name.replace(/\s+/g, '_');
-  if (rules.lowercase) name = name.toLowerCase();
-  if (rules.removeSpecial) name = name.replace(/[^a-zA-Z0-9_\-\.]/g, '');
-  return name + ext;
+function applyRenameRulesToFile(filename) {
+  // The Rule Editor tells the user rename actions "use current Rename Rules
+  // from Settings" - read those live instead of a per-rule config that was
+  // never actually populated by the UI, and reuse the already-correct
+  // implementation instead of maintaining a second, drifted copy.
+  return applyRenameRules(filename, readSettings().renameRules);
 }
 
 // ── IPC: Data Backup & Restore ────────────────────────────────────
@@ -2039,7 +2036,7 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
                   sendNotification(`→ ${filename}`, `Moved by rule: ${rule.name}`);
                   if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'move' });
                 } else if (rule.action.type === 'rename') {
-                  const newName = applyRenameRulesToFile(filename, rule.action.renameRules || {});
+                  const newName = applyRenameRulesToFile(filename);
                   if (newName !== filename) {
                     await fsp.rename(filePath, path.join(folderPath, newName));
                     sendNotification(`✏ ${filename}`, `Renamed by rule: ${rule.name}`);
