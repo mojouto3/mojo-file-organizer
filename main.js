@@ -278,7 +278,10 @@ function formatOrganizeNotification(moved) {
 
 // ── Check for Updates ────────────────────────────────────────────
 function compareVersions(a, b) {
-  // Returns 1 if a > b, -1 if a < b, 0 if equal. Ignores leading "v".
+  // Returns 1 if a > b, -1 if a < b, 0 if equal. Handles missing values and
+  // ignores a leading "v" so callers don't need to strip it themselves.
+  if (!a) return -1;
+  if (!b) return 1;
   const pa = a.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
   const pb = b.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
@@ -1213,18 +1216,6 @@ function parseInstallerInfo(filename) {
     .trim()
     .toLowerCase();
   return { appName, version, filename };
-}
-
-function compareVersions(a, b) {
-  if (!a) return -1;
-  if (!b) return 1;
-  const pa = a.split('.').map(n => parseInt(n) || 0);
-  const pb = b.split('.').map(n => parseInt(n) || 0);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    if ((pa[i] || 0) > (pb[i] || 0)) return 1;
-    if ((pa[i] || 0) < (pb[i] || 0)) return -1;
-  }
-  return 0;
 }
 
 function detectDuplicateApps(installers) {
