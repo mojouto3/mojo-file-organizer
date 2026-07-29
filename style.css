@@ -1,5 +1,28 @@
 /* ── Home tab ── */
 .home-greeting { padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; }
+
+/* ── Home skeleton loader ── */
+.home-skeleton { padding: 0 0 16px; }
+.skel {
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skelPulse 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes skelPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.skel-greeting { width: 220px; height: 20px; margin: 14px 16px 24px; }
+.skel-card { display: flex; flex-direction: column; gap: 10px; margin: 0 16px 12px; }
+.skel-line-sm { width: 30%; height: 11px; }
+.skel-line-lg { width: 55%; height: 20px; }
+.skel-btn { width: 140px; height: 32px; border-radius: 8px; margin-top: 4px; }
+.skel-stats-row { display: flex; gap: 10px; margin-top: 10px; }
+.skel-stat { flex: 1; height: 44px; }
+.skel-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 12px; }
+.skel-grid-2 .skel-card { margin: 0; }
+.skel-row { height: 14px; width: 85%; }
 .home-greeting-title { font-size: 16px; font-weight: 600; color: var(--text); }
 .home-greeting-sub { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
 
@@ -143,11 +166,21 @@ body {
   background: none; border: none; color: var(--text-dim);
   width: 32px; height: 30px; border-radius: 6px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
+  transition: color 0.15s ease;
+  position: relative;
 }
-.win-btn i { width: 14px; height: 14px; }
-.win-btn:hover { background: var(--surface2); color: var(--text); }
-.close-btn:hover { background: var(--danger); color: #fff; }
+.win-btn::before {
+  content: '';
+  position: absolute; inset: 0; border-radius: 6px;
+  background: var(--surface2); opacity: 0; transform: scale(0.7);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.win-btn:hover { color: var(--text); }
+.win-btn:hover::before { opacity: 1; transform: scale(1); }
+.win-btn:active::before { transform: scale(0.88); }
+.win-btn i { width: 14px; height: 14px; position: relative; z-index: 1; }
+.close-btn:hover { color: #fff; }
+.close-btn:hover::before { background: var(--danger); }
 
 /* ── Tabbar ── */
 .tabbar {
@@ -228,6 +261,12 @@ body {
   border-radius: var(--radius);
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
+  transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card:hover {
+  border-color: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
 }
 .card-header {
   display: flex; align-items: center; gap: 8px;
@@ -795,20 +834,6 @@ input[type="text"]:focus { border-color: #444; }
   border: 1px solid rgba(61,219,61,0.25);
 }
 
-.win-btn {
-  position: relative;
-}
-.win-btn::before {
-  content: '';
-  position: absolute; inset: 0; border-radius: 6px;
-  background: var(--surface2); opacity: 0; transform: scale(0.7);
-  transition: opacity 0.18s ease, transform 0.18s ease;
-}
-.win-btn:hover::before { opacity: 1; transform: scale(1); }
-.win-btn:active::before { transform: scale(0.88); }
-.win-btn i { position: relative; z-index: 1; }
-.close-btn:hover::before { background: var(--danger); }
-
 /* ── Tabbar refinement ── */
 .tabbar { background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%); }
 .tab {
@@ -907,10 +932,6 @@ input[type="text"]:focus { border-color: #444; }
 .color-picker-input::-webkit-color-swatch { border: none; border-radius: 7px; }
 
 /* ── Settings card refinement ── */
-.card {
-  transition: border-color 0.25s ease;
-}
-.card:hover { border-color: #333; }
 .setting-row { transition: opacity 0.15s ease; }
 
 .setting-toggle, .cat-toggle {
@@ -1136,13 +1157,6 @@ input[type="text"]:focus { border-color: #444; }
 }
 
 /* ── Card hover lift ── */
-.card {
-  transition: border-color 0.25s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-}
 .cat-card, .stat-card, .session, .cat-setting-row, .dup-group, .cleanup-section, .bookmark-item {
   transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
