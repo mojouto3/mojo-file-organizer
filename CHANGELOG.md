@@ -4,6 +4,17 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [3.26.5] - 2026-07-29
+
+### Added
+- Visual polish pass across the app: subtle depth on cards, gradient accents on Home's stat numbers, glassmorphism blur on all modals and dialogs, an animated count-up for Home's stats, hover feedback on buttons and chips, a skeleton loading placeholder for Home, colored icon badges on all empty states, scrollbar hover feedback, an on-brand keyboard focus ring, staggered fade-in for lists, and a success checkmark bounce after Organize completes
+
+### Fixed
+- The Activity tab's unread-count badge could overlap the "Activity" label text for higher counts instead of sitting next to it
+- After completing an Organize, the "Select a folder to get started" hero was shown again at the same time as the results, pushing the actual results below the fold and making it easy to miss that Organize had finished without scrolling down
+
+---
+
 ## [3.26.4] - 2026-07-28
 
 ### Fixed
