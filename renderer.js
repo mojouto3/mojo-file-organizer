@@ -224,7 +224,7 @@ async function organize() {
   lucide.createIcons();
   document.getElementById('movedCount').textContent = `${result.moved.length} moved`;
   document.getElementById('previewCard').classList.add('hidden');
-  document.getElementById('organizeEmptyState')?.classList.remove('hidden');
+  document.getElementById('organizeEmptyState')?.classList.add('hidden');
   document.getElementById('resultsCard').classList.remove('hidden');
   btn.disabled = false;
   if (result.errors.length) showToast(`${result.errors.length} error(s)`);
