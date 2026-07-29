@@ -369,7 +369,7 @@
         <button class="history-type-chip type-watcher" data-type="watcher" onclick="setHistoryTypeFilter('watcher')">Watcher</button>
       </div>
       <div class="empty-state hidden" id="historyEmpty">
-        <i data-lucide="inbox"></i>
+        <div class="empty-state-icon" style="background:rgba(61,219,61,0.12)"><i data-lucide="inbox" style="color:var(--green)"></i></div>
         <p data-i18n="noHistory">No history yet.</p>
         <span class="empty-state-hint" data-i18n="noHistoryHint">Organize a folder to see your sessions here.</span>
       </div>
@@ -380,7 +380,7 @@
     <div id="activityStatsView" style="display:none">
       <div class="stats-grid" id="statsGrid"></div>
       <div class="empty-state hidden" id="statsEmpty">
-        <i data-lucide="bar-chart-2"></i>
+        <div class="empty-state-icon" style="background:rgba(96,165,250,0.12)"><i data-lucide="bar-chart-2" style="color:#60a5fa"></i></div>
         <p data-i18n="noStats">No data yet.</p>
         <span class="empty-state-hint" data-i18n="noStatsHint">Your statistics will appear here after your first organize session.</span>
       </div>
@@ -431,7 +431,7 @@
     </div>
   </div>
   <div class="empty-state" id="dupEmpty">
-    <i data-lucide="check-circle"></i>
+    <div class="empty-state-icon" style="background:rgba(61,219,61,0.12)"><i data-lucide="check-circle" style="color:var(--green)"></i></div>
     <p data-i18n="noDuplicates">No duplicates found!</p>
     <span class="empty-state-hint" data-i18n="noDuplicatesHint">Select a folder and run a scan to check for duplicate files.</span>
   </div>
@@ -513,7 +513,7 @@
       </div>
       <div class="cleanup-sections" id="cleanupSections"></div>
       <div class="empty-state hidden" id="cleanupEmpty">
-        <i data-lucide="folder-search"></i>
+        <div class="empty-state-icon" style="background:rgba(251,191,36,0.12)"><i data-lucide="folder-search" style="color:#fbbf24"></i></div>
         <p>No scan run yet.</p>
         <span class="empty-state-hint">Select a folder and click Scan Folder to find files that can be cleaned up.</span>
       </div>
@@ -524,7 +524,7 @@
       </div>
     </div>
     <div class="empty-state" id="cleanupPreScan">
-      <i data-lucide="folder-search"></i>
+      <div class="empty-state-icon" style="background:rgba(251,191,36,0.12)"><i data-lucide="folder-search" style="color:#fbbf24"></i></div>
       <p>No scan run yet.</p>
       <span class="empty-state-hint">Select a folder and click Scan Folder to find files that can be cleaned up.</span>
     </div>
@@ -616,7 +616,7 @@
     <div class="watcher-log" id="watcherLog"></div>
   </div>
   <div class="empty-state" id="watcherEmpty">
-    <i data-lucide="eye-off"></i>
+    <div class="empty-state-icon" style="background:rgba(251,191,36,0.12)"><i data-lucide="eye-off" style="color:#fbbf24"></i></div>
     <p data-i18n="noWatcherEvents">No activity yet.</p>
     <span class="empty-state-hint" data-i18n="noWatcherEventsHint">Files organized by the watcher will appear here.</span>
   </div>
