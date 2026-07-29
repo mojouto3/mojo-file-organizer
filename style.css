@@ -135,6 +135,13 @@ body {
   user-select: none;
 }
 
+/* ── Keyboard focus ring (on-brand, keyboard-only via :focus-visible) ── */
+:focus-visible {
+  outline: 2px solid var(--accent, var(--green));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ── Titlebar ── */
 .titlebar {
   display: flex;
@@ -228,6 +235,9 @@ body {
 .settings-nav-item.active i { color: var(--accent, var(--green)); }
 .settings-nav-separator { height: 1px; background: var(--border); margin: 4px 6px; }
 .settings-content { flex: 1; overflow-y: auto; padding: 14px; min-width: 0; }
+.settings-content::-webkit-scrollbar { width: 4px; }
+.settings-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; transition: background 0.15s; }
+.settings-content::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 .settings-section { display: block; }
 .settings-section.hidden { display: none; }
 .settings-section-title {
@@ -251,7 +261,8 @@ body {
   flex-direction: column; gap: 12px;
 }
 .page::-webkit-scrollbar { width: 4px; }
-.page::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.page::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; transition: background 0.15s; }
+.page::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 .hidden { display: none !important; }
 
 /* ── Cards ── */
@@ -391,6 +402,9 @@ input[type="text"]:focus { border-color: #444; }
 
 /* ── Match list (Smart Group preview) ── */
 .match-list { display: flex; flex-direction: column; gap: 4px; max-height: 200px; overflow-y: auto; }
+.match-list::-webkit-scrollbar { width: 4px; }
+.match-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; transition: background 0.15s; }
+.match-list::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 .match-item {
   display: flex; align-items: center; gap: 10px;
   padding: 6px 10px; background: var(--surface2);
@@ -1633,7 +1647,8 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   padding: 8px 20px;
 }
 .preview-modal-body::-webkit-scrollbar { width: 4px; }
-.preview-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.preview-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; transition: background 0.15s; }
+.preview-modal-body::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 .preview-section { margin-bottom: 12px; }
 .preview-section-label {
   font-size: 11px; font-weight: 600; color: var(--accent, var(--green));
