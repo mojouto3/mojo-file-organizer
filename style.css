@@ -41,7 +41,15 @@
 .home-stats-row { display: flex; border-top: 0.5px solid var(--border); }
 .home-stat { flex: 1; padding: 8px 12px; text-align: center; border-right: 0.5px solid var(--border); }
 .home-stat:last-child { border-right: none; }
-.home-stat-num { font-size: 17px; font-weight: 600; color: var(--text); }
+.home-stat-num {
+  font-size: 17px; font-weight: 600;
+  background: linear-gradient(180deg, var(--text) 0%, var(--text-mid) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.home-stat-num-accent {
+  background: linear-gradient(180deg, #c4b5fd 0%, var(--accent, #a78bfa) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
 .home-stat-label { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
 
 .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
@@ -195,13 +203,12 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .tab-badge {
-  position: absolute; top: 6px; right: 6px;
   background: var(--green); color: #000;
   font-size: 9px; font-weight: 700;
   min-width: 14px; height: 14px;
   border-radius: 7px; padding: 0 4px;
   display: flex; align-items: center; justify-content: center;
-  line-height: 1;
+  line-height: 1; flex-shrink: 0;
 }
 
 /* ── Pages ── */
@@ -220,6 +227,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
 }
 .card-header {
   display: flex; align-items: center; gap: 8px;
@@ -265,9 +273,9 @@ input[type="text"]:focus { border-color: #444; }
   background: var(--surface2); color: var(--text-mid);
   border: 1px solid var(--border);
 }
-.btn-outline:hover { color: var(--text); border-color: #444; }
+.btn-outline:hover { color: var(--text); border-color: #444; transform: translateY(-1px); }
 .btn-green { background: var(--green); color: #111; font-weight: 700; }
-.btn-green:hover { background: var(--green-hover); }
+.btn-green:hover { background: var(--green-hover); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(61,219,61,0.35); }
 .btn-outline.active { background: var(--green); color: #111; font-weight: 700; border-color: var(--green); }
 .btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
 .btn-danger-outline:hover { background: var(--danger); color: #fff; }
@@ -962,6 +970,9 @@ input[type="text"]:focus { border-color: #444; }
   border-color: var(--border);
 }
 
+[data-theme="light"] .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+}
 [data-theme="light"] .card:hover { border-color: #d5d5d0; }
 
 [data-theme="light"] .cat-card,
@@ -1211,6 +1222,7 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 }
 .recent-folder-chip:hover {
   background: var(--green-dim); border-color: var(--green); color: var(--green);
+  transform: translateY(-1px) scale(1.03);
 }
 
 /* ── Drag and Drop ── */
@@ -1341,11 +1353,14 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 /* ── Confirm modal ── */
 .confirm-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
 }
 .confirm-modal {
-  background: var(--surface); border: 1px solid var(--border);
+  background: rgba(26,26,26,0.82);
+  backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: var(--radius); padding: 24px;
   width: 320px; max-width: 90vw;
   display: flex; flex-direction: column; align-items: center; gap: 14px;
@@ -1355,6 +1370,10 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 @keyframes confirmIn {
   from { opacity: 0; transform: scale(0.94) translateY(6px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
+}
+[data-theme="light"] .confirm-modal {
+  background: rgba(255,255,255,0.82);
+  border-color: rgba(0,0,0,0.06);
 }
 .confirm-icon {
   width: 40px; height: 40px; border-radius: 50%;
@@ -1445,7 +1464,8 @@ input[type="checkbox"]:active { transform: scale(0.85); }
 /* ── Onboarding ── */
 .ob-overlay {
   position: fixed; inset: 0; z-index: 2000;
-  background: rgba(0,0,0,0.65);
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
   animation: obOverlayIn 0.2s ease;
 }
@@ -1454,12 +1474,17 @@ input[type="checkbox"]:active { transform: scale(0.85); }
   to { opacity: 1; }
 }
 .ob-modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: rgba(26,26,26,0.85);
+  backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: calc(var(--radius) + 4px);
   width: 480px; max-width: calc(100vw - 32px);
   overflow: hidden;
   animation: obModalIn 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+[data-theme="light"] .ob-modal {
+  background: rgba(255,255,255,0.85);
+  border-color: rgba(0,0,0,0.06);
 }
 @keyframes obModalIn {
   from { opacity: 0; transform: scale(0.96) translateY(8px); }

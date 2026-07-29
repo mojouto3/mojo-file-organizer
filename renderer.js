@@ -539,9 +539,9 @@ async function loadHome() {
     </button>
     ${sparklineHTML}
     <div class="home-stats-row">
-      <div class="home-stat"><div class="home-stat-num">${totalFiles.toLocaleString()}</div><div class="home-stat-label">Files organized</div></div>
-      <div class="home-stat"><div class="home-stat-num">${totalSessions}</div><div class="home-stat-label">Sessions</div></div>
-      <div class="home-stat"><div class="home-stat-num" style="color:var(--accent,#a78bfa)">${totalRulesFiles.toLocaleString()}</div><div class="home-stat-label">Via rules</div></div>
+      <div class="home-stat"><div class="home-stat-num count-up" data-target="${totalFiles}">0</div><div class="home-stat-label">Files organized</div></div>
+      <div class="home-stat"><div class="home-stat-num count-up" data-target="${totalSessions}">0</div><div class="home-stat-label">Sessions</div></div>
+      <div class="home-stat"><div class="home-stat-num home-stat-num-accent count-up" data-target="${totalRulesFiles}">0</div><div class="home-stat-label">Via rules</div></div>
     </div>
   </div>`;
 
@@ -615,6 +615,24 @@ async function loadHome() {
 
   container.innerHTML = html;
   lucide.createIcons();
+  animateCountUp();
+}
+
+function animateCountUp() {
+  document.querySelectorAll('.count-up').forEach(el => {
+    const target = parseInt(el.dataset.target, 10) || 0;
+    if (target === 0) { el.textContent = '0'; return; }
+    const duration = 700;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = Math.round(target * eased);
+      el.textContent = current.toLocaleString();
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
 }
 
 function timeAgo(ts) {
