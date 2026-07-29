@@ -289,7 +289,15 @@ body {
   margin-bottom: 12px;
 }
 .card-icon { width: 16px; height: 16px; color: var(--text-dim); flex-shrink: 0; }
-.card-icon.green { color: var(--green); }
+.card-icon.green {
+  color: var(--green);
+  animation: successPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes successPop {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
 .card-title { font-size: 13px; font-weight: 600; }
 .card-desc { font-size: 11px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
 
