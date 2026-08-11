@@ -4,6 +4,8 @@ import TitleBar from './components/TitleBar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ComingSoon from './views/ComingSoon.jsx';
 import Home from './views/Home.jsx';
+import Organize from './views/Organize.jsx';
+import ToastHost from './components/ToastHost.jsx';
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -18,7 +20,8 @@ const VIEW_LABELS = {
 };
 
 const VIEWS = {
-  home: Home
+  home: Home,
+  organize: Organize
 };
 
 export default function App() {
@@ -45,6 +48,7 @@ export default function App() {
           </AnimatePresence>
         </main>
       </div>
+      <ToastHost />
     </div>
   );
 }
