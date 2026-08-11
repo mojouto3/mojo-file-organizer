@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { FolderCog, Minus, Square, X } from 'lucide-react';
+import { Minus, Square, X } from 'lucide-react';
+import appIcon from '../../../assets/icon.png';
 
 export default function TitleBar() {
   const [version, setVersion] = useState('');
@@ -11,7 +12,7 @@ export default function TitleBar() {
   return (
     <div className="drag-region flex h-9 shrink-0 items-center justify-between border-b border-mfo-border bg-mfo-surface pl-3">
       <div className="flex items-center gap-2">
-        <FolderCog size={16} className="text-mfo-green" />
+        <img src={appIcon} alt="" className="h-4 w-4" />
         <span className="text-xs font-medium text-mfo-text">Mojo File Organizer</span>
         {version && (
           <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] text-mfo-green">
