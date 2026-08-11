@@ -13,6 +13,7 @@ contextBridge.exposeInMainWorld('api', {
   addSession:      (s)      => ipcRenderer.invoke('add-session', s),
   clearLog:        ()       => ipcRenderer.invoke('clear-log'),
   deleteSession:   (id)     => ipcRenderer.invoke('delete-session', id),
+  updateSessionNote: (opts) => ipcRenderer.invoke('update-session-note', opts),
   getStats:        ()       => ipcRenderer.invoke('get-stats'),
   getCategories:   ()       => ipcRenderer.invoke('get-categories'),
   saveCategories:  (c)      => ipcRenderer.invoke('save-categories', c),
