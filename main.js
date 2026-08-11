@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, Notification } = require('electron');
 const path  = require('path');
+const isDev = !app.isPackaged;
 const fs    = require('fs');
 const fsp   = fs.promises;
 const os    = require('os');
@@ -428,7 +429,12 @@ function createWindow() {
     show: !startHidden
   });
 
-  mainWindow.loadFile('index.html');
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, 'dist', 'renderer', 'index.html'));
+  }
 
   // Frameless window has no default menu bar, so the usual DevTools
   // accelerator isn't reliably wired up - bind it explicitly.
