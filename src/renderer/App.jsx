@@ -7,6 +7,7 @@ import Home from './views/Home.jsx';
 import Organize from './views/Organize.jsx';
 import Duplicates from './views/Duplicates.jsx';
 import Cleanup from './views/Cleanup.jsx';
+import Activity from './views/Activity.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 
@@ -26,7 +27,8 @@ const VIEWS = {
   home: Home,
   organize: Organize,
   duplicates: Duplicates,
-  cleanup: Cleanup
+  cleanup: Cleanup,
+  activity: Activity
 };
 
 export default function App() {
