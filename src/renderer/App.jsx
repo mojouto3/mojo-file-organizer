@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import TitleBar from './components/TitleBar.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ComingSoon from './views/ComingSoon.jsx';
+import Home from './views/Home.jsx';
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -16,8 +17,13 @@ const VIEW_LABELS = {
   settings: 'Settings'
 };
 
+const VIEWS = {
+  home: Home
+};
+
 export default function App() {
   const [activeView, setActiveView] = useState('home');
+  const ActiveView = VIEWS[activeView];
 
   return (
     <div className="flex h-screen w-screen flex-col bg-mfo-bg text-mfo-text">
@@ -34,7 +40,7 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
-              <ComingSoon label={VIEW_LABELS[activeView]} />
+              {ActiveView ? <ActiveView onNavigate={setActiveView} /> : <ComingSoon label={VIEW_LABELS[activeView]} />}
             </motion.div>
           </AnimatePresence>
         </main>
