@@ -5,7 +5,9 @@ import Sidebar from './components/Sidebar.jsx';
 import ComingSoon from './views/ComingSoon.jsx';
 import Home from './views/Home.jsx';
 import Organize from './views/Organize.jsx';
+import Duplicates from './views/Duplicates.jsx';
 import ToastHost from './components/ToastHost.jsx';
+import ConfirmHost from './components/ConfirmHost.jsx';
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -21,7 +23,8 @@ const VIEW_LABELS = {
 
 const VIEWS = {
   home: Home,
-  organize: Organize
+  organize: Organize,
+  duplicates: Duplicates
 };
 
 export default function App() {
@@ -49,6 +52,7 @@ export default function App() {
         </main>
       </div>
       <ToastHost />
+      <ConfirmHost />
     </div>
   );
 }
