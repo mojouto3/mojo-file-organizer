@@ -6,6 +6,7 @@ import ComingSoon from './views/ComingSoon.jsx';
 import Home from './views/Home.jsx';
 import Organize from './views/Organize.jsx';
 import Duplicates from './views/Duplicates.jsx';
+import Cleanup from './views/Cleanup.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 
@@ -24,7 +25,8 @@ const VIEW_LABELS = {
 const VIEWS = {
   home: Home,
   organize: Organize,
-  duplicates: Duplicates
+  duplicates: Duplicates,
+  cleanup: Cleanup
 };
 
 export default function App() {
