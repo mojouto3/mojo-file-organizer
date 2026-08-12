@@ -9,6 +9,7 @@ import Duplicates from './views/Duplicates.jsx';
 import Cleanup from './views/Cleanup.jsx';
 import Activity from './views/Activity.jsx';
 import SmartGroup from './views/SmartGroup.jsx';
+import Rules from './views/Rules.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 
@@ -30,7 +31,8 @@ const VIEWS = {
   duplicates: Duplicates,
   cleanup: Cleanup,
   activity: Activity,
-  'smart-group': SmartGroup
+  'smart-group': SmartGroup,
+  rules: Rules
 };
 
 export default function App() {
