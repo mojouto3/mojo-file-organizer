@@ -8,6 +8,7 @@ import Organize from './views/Organize.jsx';
 import Duplicates from './views/Duplicates.jsx';
 import Cleanup from './views/Cleanup.jsx';
 import Activity from './views/Activity.jsx';
+import SmartGroup from './views/SmartGroup.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 
@@ -28,7 +29,8 @@ const VIEWS = {
   organize: Organize,
   duplicates: Duplicates,
   cleanup: Cleanup,
-  activity: Activity
+  activity: Activity,
+  'smart-group': SmartGroup
 };
 
 export default function App() {
