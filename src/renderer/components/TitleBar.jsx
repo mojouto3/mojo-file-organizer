@@ -1,13 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Minus, Square, X } from 'lucide-react';
 import appIcon from '../../../assets/icon.png';
+import { showToast } from '../lib/toast.js';
 
 export default function TitleBar() {
   const [version, setVersion] = useState('');
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     window.api?.getAppVersion?.().then(setVersion);
   }, []);
+
+  const checkForUpdates = async () => {
+    if (checking) return;
+    setChecking(true);
+    showToast('Checking for updates...');
+    const r = await window.api.checkForUpdates();
+    setChecking(false);
+    if (!r.ok) { showToast('Update check failed'); return; }
+    if (r.updateAvailable) showToast(`Update available: v${r.latestVersion}`);
+    else showToast('You are up to date');
+  };
 
   return (
     <div className="drag-region flex h-9 shrink-0 items-center justify-between border-b border-mfo-border bg-mfo-surface pl-3">
@@ -15,9 +28,13 @@ export default function TitleBar() {
         <img src={appIcon} alt="" className="h-4 w-4" />
         <span className="text-xs font-medium text-mfo-text">Mojo File Organizer</span>
         {version && (
-          <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] text-mfo-green">
+          <button
+            onClick={checkForUpdates}
+            className="no-drag rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] text-mfo-green transition-colors hover:bg-mfo-green/20"
+            title="Check for updates"
+          >
             v{version}
-          </span>
+          </button>
         )}
       </div>
       <div className="no-drag flex h-full">

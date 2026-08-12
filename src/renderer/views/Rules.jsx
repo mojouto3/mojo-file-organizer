@@ -79,7 +79,7 @@ function RecycleBinCard() {
   const [info, setInfo] = useState(null);
 
   const load = () => window.api.getRecycleBinSize().then((r) => setInfo(r.ok ? r : { size: 0, count: 0 }));
-  useEffect(load, []);
+  useEffect(() => { load(); }, []);
 
   const empty = async () => {
     const ok = await confirm(`Empty the Recycle Bin (${formatSize(info?.size || 0)})?`, { confirmLabel: 'Empty' });
