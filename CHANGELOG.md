@@ -4,6 +4,23 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [4.0.0] - 2026-08-12
+
+### Changed
+- Full rewrite of the app's interface on React, Tailwind, and Framer Motion, replacing the previous plain HTML/CSS/JS renderer. Every tab (Home, Organize, Duplicates, Cleanup, Activity, Smart Group, Rules, Watcher, Settings) keeps the same features and flows, with a glassier, more animated look: an ambient background glow that follows your chosen accent color, cards that fade and rise in as you switch tabs, and a smoother sidebar.
+- The file-organizing logic itself, and everything it reads and writes (settings, categories, rules, history, bookmarks), is unchanged.
+
+### Fixed
+- Several buttons that quietly did nothing because their wiring was missing a step: the Recycle Bin's "Open" button, Rules' schedule Enable/Disable and export/import, notes on Activity sessions, and the Notifications log
+- The Organize > Schedule tab didn't show your saved schedule until you'd visited Settings at least once in the session
+- Duplicates' Undo always re-scanned in "by content" mode even if you'd been scanning "by name"
+- Cleanup's preview list left out duplicate app versions even though they were included in the actual cleanup
+- Editing a rule with 2 or more conditions in the Rule Editor could silently reset every condition after the first back to its default on save
+- Your chosen accent color never actually survived an app restart
+- The packaged, installable app failed to start (a build configuration issue, not something you'd have hit in the previous release)
+
+---
+
 ## [3.26.5] - 2026-07-29
 
 ### Added

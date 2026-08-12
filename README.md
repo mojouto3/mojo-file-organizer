@@ -332,7 +332,7 @@ Right-click the tray icon to organize without opening the app.
 git clone https://github.com/mojouto3/mojo-file-organizer.git
 cd mojo-file-organizer
 npm install
-npm start
+npm run dev
 ```
 
 ### Build installer
@@ -352,10 +352,11 @@ mojo-file-organizer/
 ├── assets/icon.ico       # MFO app icon
 ├── main.js               # Electron main process
 ├── preload.js            # Secure bridge between main and renderer
-├── renderer.js           # UI logic
-├── index.html            # App layout and tabs
-├── style.css             # Dark/light themes and components
-├── translations.js       # UI strings for EN, GR, DE, ES, RU
+├── src/renderer/         # React + Tailwind + Framer Motion UI
+│   ├── views/             # One file per tab
+│   ├── components/        # Shared UI pieces (Card, Button, Modal, ...)
+│   └── lib/                # Small helpers (toast, confirm, formatting)
+├── vite.config.mjs       # Renderer build config
 └── package.json          # Config and build settings
 ```
 
