@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import TitleBar from './components/TitleBar.jsx';
 import Sidebar from './components/Sidebar.jsx';
@@ -11,9 +11,11 @@ import Activity from './views/Activity.jsx';
 import SmartGroup from './views/SmartGroup.jsx';
 import Rules from './views/Rules.jsx';
 import Watcher from './views/Watcher.jsx';
+import Settings from './views/Settings.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 import WatcherListener from './components/WatcherListener.jsx';
+import { applyTheme, applyAccent } from './lib/theme.js';
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -35,12 +37,20 @@ const VIEWS = {
   activity: Activity,
   'smart-group': SmartGroup,
   rules: Rules,
-  watcher: Watcher
+  watcher: Watcher,
+  settings: Settings
 };
 
 export default function App() {
   const [activeView, setActiveView] = useState('home');
   const ActiveView = VIEWS[activeView];
+
+  useEffect(() => {
+    window.api.getSettings().then((s) => {
+      if (s.theme) applyTheme(s.theme);
+      if (s.accentColor) applyAccent(s.accentColor);
+    });
+  }, []);
 
   return (
     <div className="flex h-screen w-screen flex-col bg-mfo-bg text-mfo-text">
