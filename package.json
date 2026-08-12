@@ -21,10 +21,8 @@
   },
   "dependencies": {
     "electron-updater": "^6.3.9",
-    "i18next": "^25.6.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-i18next": "^16.3.0",
     "lucide-react": "^1.28.0"
   },
   "devDependencies": {
@@ -47,6 +45,16 @@
   "build": {
     "appId": "com.mojomultimedia.mojo-file-organizer",
     "productName": "Mojo File Organizer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "dist/renderer/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
     "publish": {
       "provider": "github",
       "owner": "mojouto3",
