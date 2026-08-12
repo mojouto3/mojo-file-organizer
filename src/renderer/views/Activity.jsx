@@ -7,6 +7,7 @@ import {
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import SegmentedControl from '../components/SegmentedControl.jsx';
+import Checkbox from '../components/Checkbox.jsx';
 import { basename } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
@@ -287,10 +288,10 @@ function SessionsView() {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <label className="flex items-center gap-1.5 text-[11px] text-mfo-text-dim">
-            <input type="checkbox" checked={compact} onChange={(e) => setCompact(e.target.checked)} />
+          <div onClick={() => setCompact((v) => !v)} className="flex cursor-pointer select-none items-center gap-1.5 text-[11px] text-mfo-text-dim">
+            <Checkbox checked={compact} onChange={setCompact} />
             Compact
-          </label>
+          </div>
           <Button variant="outline" onClick={clearAll} className="px-2.5 py-1 text-[11px]"><Trash2 size={12} />Clear all</Button>
         </div>
       </div>

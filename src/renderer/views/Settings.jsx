@@ -62,15 +62,15 @@ function SectionCard({ title, children }) {
 
 function Toggle({ checked, onChange, label }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between py-1.5">
+    <div onClick={() => onChange(!checked)} className="flex cursor-pointer select-none items-center justify-between py-1.5">
       <span className="text-[12.5px] text-mfo-text">{label}</span>
       <button
-        onClick={() => onChange(!checked)}
+        onClick={(e) => { e.stopPropagation(); onChange(!checked); }}
         className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-mfo-green' : 'bg-mfo-surface2'}`}
       >
         <span className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
       </button>
-    </label>
+    </div>
   );
 }
 
