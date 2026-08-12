@@ -8,6 +8,7 @@ import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
+import { openOnboarding } from '../lib/onboarding.js';
 import { applyTheme, applyAccent } from '../lib/theme.js';
 
 const NAV_SECTIONS = [
@@ -543,7 +544,7 @@ function AboutSection() {
       </SectionCard>
       <SectionCard title="Welcome guide">
         <p className="mb-2.5 text-[11.5px] text-mfo-text-dim">Replay the onboarding tour.</p>
-        <Button variant="outline" onClick={() => showToast('Onboarding tour coming soon')}>Show guide</Button>
+        <Button variant="outline" onClick={openOnboarding}>Show guide</Button>
       </SectionCard>
     </div>
   );

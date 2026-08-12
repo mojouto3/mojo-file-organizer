@@ -15,7 +15,13 @@ import Settings from './views/Settings.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 import WatcherListener from './components/WatcherListener.jsx';
+import OnboardingOverlay from './components/OnboardingOverlay.jsx';
+import ShortcutsModal from './components/ShortcutsModal.jsx';
+import UpdateBanner from './components/UpdateBanner.jsx';
 import { applyTheme, applyAccent } from './lib/theme.js';
+import { subscribeOnboarding } from './lib/onboarding.js';
+
+const VIEW_ORDER = ['home', 'organize', 'duplicates', 'cleanup', 'activity', 'smart-group', 'rules', 'watcher', 'settings'];
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -43,18 +49,39 @@ const VIEWS = {
 
 export default function App() {
   const [activeView, setActiveView] = useState('home');
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const ActiveView = VIEWS[activeView];
 
   useEffect(() => {
     window.api.getSettings().then((s) => {
       if (s.theme) applyTheme(s.theme);
       if (s.accentColor) applyAccent(s.accentColor);
+      if (!s.onboardingComplete) setOnboardingOpen(true);
     });
+    return subscribeOnboarding(() => setOnboardingOpen(true));
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+      if (e.ctrlKey && !e.shiftKey && !e.altKey && /^[1-9]$/.test(e.key)) {
+        e.preventDefault();
+        setActiveView(VIEW_ORDER[Number(e.key) - 1]);
+        return;
+      }
+      if (typing) return;
+      if (e.key === '?') { setShortcutsOpen((v) => !v); return; }
+      if (e.key === 'Escape') { setShortcutsOpen(false); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
   return (
     <div className="flex h-screen w-screen flex-col bg-mfo-bg text-mfo-text">
-      <TitleBar />
+      <TitleBar onShowShortcuts={() => setShortcutsOpen(true)} />
+      <UpdateBanner />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar activeView={activeView} onNavigate={setActiveView} />
         <main className="flex-1 overflow-y-auto p-5">
@@ -75,6 +102,8 @@ export default function App() {
       <ToastHost />
       <ConfirmHost />
       <WatcherListener />
+      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <OnboardingOverlay open={onboardingOpen} onComplete={() => setOnboardingOpen(false)} />
     </div>
   );
 }

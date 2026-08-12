@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Minus, Square, X } from 'lucide-react';
+import { HelpCircle, Minus, Square, X } from 'lucide-react';
 import appIcon from '../../../assets/icon.png';
 import { showToast } from '../lib/toast.js';
 
-export default function TitleBar() {
+export default function TitleBar({ onShowShortcuts }) {
   const [version, setVersion] = useState('');
   const [checking, setChecking] = useState(false);
 
@@ -37,7 +37,14 @@ export default function TitleBar() {
           </button>
         )}
       </div>
-      <div className="no-drag flex h-full">
+      <div className="no-drag flex h-full items-center">
+        <button
+          onClick={onShowShortcuts}
+          title="Keyboard shortcuts"
+          className="mr-1.5 flex h-6 w-6 items-center justify-center rounded-full text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
+        >
+          <HelpCircle size={14} />
+        </button>
         <button
           onClick={() => window.api?.minimize?.()}
           className="flex h-full w-11 items-center justify-center text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
