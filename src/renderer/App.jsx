@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import TitleBar from './components/TitleBar.jsx';
+import AmbientBackground from './components/AmbientBackground.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ComingSoon from './views/ComingSoon.jsx';
 import Home from './views/Home.jsx';
@@ -80,6 +81,7 @@ export default function App() {
 
   return (
     <div className="flex h-screen w-screen flex-col bg-mfo-bg text-mfo-text">
+      <AmbientBackground />
       <TitleBar onShowShortcuts={() => setShortcutsOpen(true)} />
       <UpdateBanner />
       <div className="flex flex-1 overflow-hidden">

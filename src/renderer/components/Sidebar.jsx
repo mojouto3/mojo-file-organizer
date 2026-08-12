@@ -65,7 +65,7 @@ export default function Sidebar({ activeView, onNavigate }) {
     <motion.aside
       animate={{ width: collapsed ? 72 : 200 }}
       transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-      className="flex h-full shrink-0 flex-col overflow-hidden border-r border-mfo-border bg-mfo-surface/80 backdrop-blur-sm"
+      className="flex h-full shrink-0 flex-col overflow-hidden border-r border-mfo-border bg-mfo-surface/50 backdrop-blur-xl"
     >
       <nav className="flex flex-1 flex-col gap-1 px-3 pt-4">
         {NAV_ITEMS.map((item) => (
