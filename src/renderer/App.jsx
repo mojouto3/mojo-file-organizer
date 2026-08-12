@@ -10,8 +10,10 @@ import Cleanup from './views/Cleanup.jsx';
 import Activity from './views/Activity.jsx';
 import SmartGroup from './views/SmartGroup.jsx';
 import Rules from './views/Rules.jsx';
+import Watcher from './views/Watcher.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
+import WatcherListener from './components/WatcherListener.jsx';
 
 const VIEW_LABELS = {
   home: 'Home',
@@ -32,7 +34,8 @@ const VIEWS = {
   cleanup: Cleanup,
   activity: Activity,
   'smart-group': SmartGroup,
-  rules: Rules
+  rules: Rules,
+  watcher: Watcher
 };
 
 export default function App() {
@@ -61,6 +64,7 @@ export default function App() {
       </div>
       <ToastHost />
       <ConfirmHost />
+      <WatcherListener />
     </div>
   );
 }
