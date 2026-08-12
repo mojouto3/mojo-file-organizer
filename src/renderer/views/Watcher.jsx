@@ -3,6 +3,7 @@ import { Eye, EyeOff, Play, Square, Trash2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import FolderPicker from '../components/FolderPicker.jsx';
+import Checkbox from '../components/Checkbox.jsx';
 import { getWatcherEvents, subscribeWatcherEvents, clearWatcherEvents } from '../lib/watcherStore.js';
 import { showToast } from '../lib/toast.js';
 
@@ -55,10 +56,13 @@ export default function Watcher() {
           ) : (
             <Button variant="outline" onClick={handleStop}><Square size={14} />Stop</Button>
           )}
-          <label className="ml-auto flex items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
-            <input type="checkbox" checked={useRules} onChange={(e) => setUseRules(e.target.checked)} disabled={active} />
+          <div
+            onClick={() => !active && setUseRules((v) => !v)}
+            className={`ml-auto flex select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim ${active ? '' : 'cursor-pointer'}`}
+          >
+            <Checkbox checked={useRules} onChange={setUseRules} disabled={active} />
             Also run Rules
-          </label>
+          </div>
         </div>
       </Card>
 

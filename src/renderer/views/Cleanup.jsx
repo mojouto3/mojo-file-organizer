@@ -9,6 +9,7 @@ import SegmentedControl from '../components/SegmentedControl.jsx';
 import FolderPicker from '../components/FolderPicker.jsx';
 import Treemap from '../components/Treemap.jsx';
 import Modal from '../components/Modal.jsx';
+import Checkbox from '../components/Checkbox.jsx';
 import { formatSize } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
@@ -161,10 +162,10 @@ function ScanSubView() {
           <Treemap sections={sections.map((s) => ({ id: s.id, label: SECTION_META[s.id].label, size: s.size }))} totalSize={totalSize} />
 
           <div className="mt-3 flex items-center justify-between border-t border-mfo-border pt-3">
-            <label className="flex items-center gap-2 text-[12.5px] text-mfo-text">
-              <input type="checkbox" checked={allPrimaryChecked} onChange={(e) => toggleSelectAll(e.target.checked)} />
+            <div onClick={() => toggleSelectAll(!allPrimaryChecked)} className="flex cursor-pointer select-none items-center gap-2 text-[12.5px] text-mfo-text">
+              <Checkbox checked={allPrimaryChecked} onChange={toggleSelectAll} />
               Select all
-            </label>
+            </div>
             <span className="text-[11px] text-mfo-text-dim">{formatSize(selectedSize)} selected</span>
           </div>
 
@@ -181,7 +182,7 @@ function ScanSubView() {
                   onClick={() => toggleSection(s.id)}
                   className="flex cursor-pointer items-center gap-2.5 py-2.5"
                 >
-                  <input type="checkbox" checked={!!checked[s.id]} onChange={() => toggleSection(s.id)} onClick={(e) => e.stopPropagation()} />
+                  <Checkbox checked={!!checked[s.id]} onChange={() => toggleSection(s.id)} />
                   <Icon size={15} className="text-mfo-text-dim" />
                   <span className="flex-1 text-[12.5px] text-mfo-text">{meta.label}</span>
                   <span className="text-[11px] text-mfo-text-dim">{count} {s.id === 'emptyFolders' ? 'folders' : 'files'}</span>
@@ -193,7 +194,7 @@ function ScanSubView() {
             {dupApps.length > 0 && (
               <div id="cleanup-section-dupApps" className="py-2.5">
                 <div onClick={() => toggleSection('dupApps')} className="flex cursor-pointer items-center gap-2.5">
-                  <input type="checkbox" checked={!!checked.dupApps} onChange={() => toggleSection('dupApps')} onClick={(e) => e.stopPropagation()} />
+                  <Checkbox checked={!!checked.dupApps} onChange={() => toggleSection('dupApps')} />
                   <Layers size={15} className="text-mfo-text-dim" />
                   <div className="flex-1">
                     <p className="text-[12.5px] text-mfo-text">Duplicate app versions</p>
@@ -340,10 +341,10 @@ function ScheduleSubView() {
 
       <div className="flex flex-wrap gap-1.5">
         {Object.entries(SECTION_META).filter(([id]) => id !== 'duplicates').map(([id, meta]) => (
-          <label key={id} className="flex items-center gap-1.5 rounded-md border border-mfo-border px-2.5 py-1 text-xs text-mfo-text">
-            <input type="checkbox" checked={!!sections[id]} onChange={() => toggleSection(id)} />
+          <div key={id} onClick={() => toggleSection(id)} className="flex cursor-pointer select-none items-center gap-1.5 rounded-md border border-mfo-border px-2.5 py-1 text-xs text-mfo-text">
+            <Checkbox checked={!!sections[id]} onChange={() => toggleSection(id)} />
             {meta.label}
-          </label>
+          </div>
         ))}
       </div>
 

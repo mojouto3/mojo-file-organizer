@@ -10,6 +10,7 @@ import SegmentedControl from '../components/SegmentedControl.jsx';
 import FolderPicker from '../components/FolderPicker.jsx';
 import BatchFolderList from '../components/BatchFolderList.jsx';
 import RuleEditorModal from '../components/RuleEditorModal.jsx';
+import Checkbox from '../components/Checkbox.jsx';
 import { formatSize, basename } from '../lib/format.js';
 import { summarizeRule } from '../lib/ruleFields.js';
 import { showToast } from '../lib/toast.js';
@@ -284,14 +285,14 @@ function RunSubView({ rules }) {
       <Card className="flex flex-wrap items-center justify-between gap-2 p-3.5">
         <span className="text-[13px] font-medium text-mfo-text">Run rules</span>
         <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
-            <input type="checkbox" checked={multiMode} onChange={(e) => setMultiMode(e.target.checked)} />
+          <div onClick={() => setMultiMode((v) => !v)} className="flex cursor-pointer select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
+            <Checkbox checked={multiMode} onChange={setMultiMode} />
             Multi-folder
-          </label>
-          <label className="flex items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
-            <input type="checkbox" checked={dryRun} onChange={toggleDryRun} />
+          </div>
+          <div onClick={toggleDryRun} className="flex cursor-pointer select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
+            <Checkbox checked={dryRun} onChange={toggleDryRun} />
             Dry-run
-          </label>
+          </div>
         </div>
       </Card>
 
