@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
 const STATUS_STYLE = {
@@ -7,8 +8,9 @@ const STATUS_STYLE = {
 };
 
 export default function BatchFolderList({ folders, statuses = {}, onRemove }) {
+  const { t } = useTranslation();
   if (folders.length === 0) {
-    return <p className="px-1 py-2 text-[11px] text-mfo-text-dim">No folders added yet.</p>;
+    return <p className="px-1 py-2 text-[11px] text-mfo-text-dim">{t('batchFolderList.noFoldersYet')}</p>;
   }
 
   return (
@@ -24,7 +26,7 @@ export default function BatchFolderList({ folders, statuses = {}, onRemove }) {
           <button
             onClick={() => onRemove(i)}
             className="shrink-0 text-mfo-text-dim hover:text-mfo-danger"
-            aria-label="Remove folder"
+            aria-label={t('batchFolderList.removeFolder')}
           >
             <X size={13} />
           </button>

@@ -16,75 +16,70 @@ const LANGUAGES = [
   { value: 'ru', label: 'Русский' }
 ];
 
+const THEME_LABEL_KEYS = { dark: 'settings.themeDark', light: 'settings.themeLight' };
+
 const STEPS = [
   {
-    icon: Home, title: 'Welcome to MFO',
-    desc: 'Your modern file organizer for Windows. Let’s take a quick tour so you can get the most out of it.',
+    icon: Home, titleKey: 'onboarding.s1Title', descKey: 'onboarding.s1Desc',
     features: [
-      { icon: Home, title: 'Home dashboard', sub: 'A live overview of your folders' },
-      { icon: Zap, title: 'One-click organize', sub: 'Sort a folder in a single click' },
-      { icon: Undo2, title: 'Undo anytime', sub: 'Every action can be reversed' }
+      { icon: Home, titleKey: 'onboarding.s1f1Title', subKey: 'onboarding.s1f1Sub' },
+      { icon: Zap, titleKey: 'onboarding.s1f2Title', subKey: 'onboarding.s1f2Sub' },
+      { icon: Undo2, titleKey: 'onboarding.s1f3Title', subKey: 'onboarding.s1f3Sub' }
     ]
   },
   {
-    icon: Settings2, title: 'Powerful tools',
-    desc: 'Beyond basic organizing, MFO comes packed with tools for every situation.',
+    icon: Settings2, titleKey: 'onboarding.s2Title', descKey: 'onboarding.s2Desc',
     features: [
-      { icon: Copy, title: 'Duplicate finder', sub: 'By content or by name' },
-      { icon: Trash2, title: 'Cleanup tab', sub: 'Installers, junk, old files' },
-      { icon: History, title: 'Activity tab', sub: 'Full history of every run' }
+      { icon: Copy, titleKey: 'onboarding.s2f1Title', subKey: 'onboarding.s2f1Sub' },
+      { icon: Trash2, titleKey: 'onboarding.s2f2Title', subKey: 'onboarding.s2f2Sub' },
+      { icon: History, titleKey: 'onboarding.s2f3Title', subKey: 'onboarding.s2f3Sub' }
     ]
   },
   {
-    icon: SlidersHorizontal, title: 'File Rules Engine',
-    desc: 'Automate file actions with custom rules, move, delete, or rename files based on any condition.',
+    icon: SlidersHorizontal, titleKey: 'onboarding.s3Title', descKey: 'onboarding.s3Desc',
     features: [
-      { icon: LayoutTemplate, title: 'Preset rules and templates', sub: '6 presets, 4 rule-set templates' },
-      { icon: Wand2, title: 'Custom rule builder', sub: 'Name, extension, age, date, size, content' },
-      { icon: Eye, title: 'Preview and dry-run', sub: 'See what would happen first' }
+      { icon: LayoutTemplate, titleKey: 'onboarding.s3f1Title', subKey: 'onboarding.s3f1Sub' },
+      { icon: Wand2, titleKey: 'onboarding.s3f2Title', subKey: 'onboarding.s3f2Sub' },
+      { icon: Eye, titleKey: 'onboarding.s3f3Title', subKey: 'onboarding.s3f3Sub' }
     ]
   },
   {
-    icon: Layers, title: 'Fully customizable',
-    desc: 'MFO adapts to your workflow, not the other way around.',
+    icon: Layers, titleKey: 'onboarding.s4Title', descKey: 'onboarding.s4Desc',
     features: [
-      { icon: Layers, title: 'Custom categories', sub: 'Your own extension groups' },
-      { icon: ShieldOff, title: 'Ignore list', sub: 'Skip files and folders you choose' },
-      { icon: Pencil, title: 'Rename rules', sub: 'Prefixes, casing, cleanup' }
+      { icon: Layers, titleKey: 'onboarding.s4f1Title', subKey: 'onboarding.s4f1Sub' },
+      { icon: ShieldOff, titleKey: 'onboarding.s4f2Title', subKey: 'onboarding.s4f2Sub' },
+      { icon: Pencil, titleKey: 'onboarding.s4f3Title', subKey: 'onboarding.s4f3Sub' }
     ]
   },
   {
-    icon: Sparkles, title: 'Smart features',
-    desc: 'MFO learns from your habits and helps you stay organized automatically.',
+    icon: Sparkles, titleKey: 'onboarding.s5Title', descKey: 'onboarding.s5Desc',
     features: [
-      { icon: Home, title: 'Home dashboard', sub: 'Trends and quick actions' },
-      { icon: Package, title: 'Duplicate app versions', sub: 'Finds old installer versions' },
-      { icon: RefreshCw, title: 'Auto-updater', sub: 'Stay on the latest release' }
+      { icon: Home, titleKey: 'onboarding.s5f1Title', subKey: 'onboarding.s5f1Sub' },
+      { icon: Package, titleKey: 'onboarding.s5f2Title', subKey: 'onboarding.s5f2Sub' },
+      { icon: RefreshCw, titleKey: 'onboarding.s5f3Title', subKey: 'onboarding.s5f3Sub' }
     ]
   },
   {
-    icon: Keyboard, title: 'Built for power users',
-    desc: 'Work faster with keyboard shortcuts and Windows Explorer integration.',
+    icon: Keyboard, titleKey: 'onboarding.s6Title', descKey: 'onboarding.s6Desc',
     features: [
-      { icon: Keyboard, title: 'Keyboard shortcuts', sub: 'Ctrl+1-9 to jump between tabs' },
-      { icon: FolderCog, title: 'Explorer context menu', sub: 'Organize right-click in Explorer' },
-      { icon: HelpCircle, title: 'Shortcuts help', sub: 'Press ? anytime' }
+      { icon: Keyboard, titleKey: 'onboarding.s6f1Title', subKey: 'onboarding.s6f1Sub' },
+      { icon: FolderCog, titleKey: 'onboarding.s6f2Title', subKey: 'onboarding.s6f2Sub' },
+      { icon: HelpCircle, titleKey: 'onboarding.s6f3Title', subKey: 'onboarding.s6f3Sub' }
     ]
   },
   {
-    icon: History, title: 'Track everything',
-    desc: 'Every action is logged so you always know what happened, and can undo it.',
+    icon: History, titleKey: 'onboarding.s7Title', descKey: 'onboarding.s7Desc',
     features: [
-      { icon: History, title: 'Session history', sub: 'Search, filter, export' },
-      { icon: BarChart3, title: 'Statistics', sub: 'Files organized over time' },
-      { icon: Eye, title: 'File preview', sub: 'Hover a file in history' }
+      { icon: History, titleKey: 'onboarding.s7f1Title', subKey: 'onboarding.s7f1Sub' },
+      { icon: BarChart3, titleKey: 'onboarding.s7f2Title', subKey: 'onboarding.s7f2Sub' },
+      { icon: Eye, titleKey: 'onboarding.s7f3Title', subKey: 'onboarding.s7f3Sub' }
     ]
   },
-  { icon: Sparkles, title: 'Make it yours', desc: 'Choose your language and theme before you start.', pickers: true }
+  { icon: Sparkles, titleKey: 'onboarding.s8Title', descKey: 'onboarding.s8Desc', pickers: true }
 ];
 
 export default function OnboardingOverlay({ open, onComplete }) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [step, setStep] = useState(0);
   const [theme, setThemeState] = useState('dark');
   const [language, setLanguage] = useState('en');
@@ -102,7 +97,7 @@ export default function OnboardingOverlay({ open, onComplete }) {
     onComplete();
   };
 
-  const setTheme = (t) => { setThemeState(t); applyTheme(t); };
+  const setTheme = (theme) => { setThemeState(theme); applyTheme(theme); };
   const current = STEPS[step];
   const StepIcon = current.icon;
 
@@ -133,19 +128,19 @@ export default function OnboardingOverlay({ open, onComplete }) {
               <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-mfo-green/10">
                 <StepIcon size={20} className="text-mfo-green" />
               </div>
-              <p className="text-[16px] font-semibold text-mfo-text">{current.title}</p>
-              <p className="mt-1 text-[12.5px] text-mfo-text-dim">{current.desc}</p>
+              <p className="text-[16px] font-semibold text-mfo-text">{t(current.titleKey)}</p>
+              <p className="mt-1 text-[12.5px] text-mfo-text-dim">{t(current.descKey)}</p>
 
               {current.features && (
                 <div className="mt-4 flex flex-col gap-2.5">
                   {current.features.map((f) => (
-                    <div key={f.title} className="flex items-center gap-3">
+                    <div key={f.titleKey} className="flex items-center gap-3">
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-mfo-surface2">
                         <f.icon size={15} className="text-mfo-text-dim" />
                       </div>
                       <div>
-                        <p className="text-[12.5px] text-mfo-text">{f.title}</p>
-                        <p className="text-[11px] text-mfo-text-dim">{f.sub}</p>
+                        <p className="text-[12.5px] text-mfo-text">{t(f.titleKey)}</p>
+                        <p className="text-[11px] text-mfo-text-dim">{t(f.subKey)}</p>
                       </div>
                     </div>
                   ))}
@@ -155,23 +150,23 @@ export default function OnboardingOverlay({ open, onComplete }) {
               {current.pickers && (
                 <div className="mt-4 flex flex-col gap-3">
                   <div>
-                    <p className="mb-1.5 text-[11px] text-mfo-text-dim">Theme</p>
+                    <p className="mb-1.5 text-[11px] text-mfo-text-dim">{t('settings.theme')}</p>
                     <div className="flex gap-2">
-                      {['dark', 'light'].map((t) => (
+                      {['dark', 'light'].map((themeOption) => (
                         <button
-                          key={t}
-                          onClick={() => setTheme(t)}
-                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-                            theme === t ? 'border-mfo-green bg-mfo-green/10 text-mfo-green' : 'border-mfo-border text-mfo-text-dim'
+                          key={themeOption}
+                          onClick={() => setTheme(themeOption)}
+                          className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            theme === themeOption ? 'border-mfo-green bg-mfo-green/10 text-mfo-green' : 'border-mfo-border text-mfo-text-dim'
                           }`}
                         >
-                          {t}
+                          {t(THEME_LABEL_KEYS[themeOption])}
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <p className="mb-1.5 text-[11px] text-mfo-text-dim">Language</p>
+                    <p className="mb-1.5 text-[11px] text-mfo-text-dim">{t('settings.languageTitle')}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {LANGUAGES.map((l) => (
                         <button
@@ -193,20 +188,20 @@ export default function OnboardingOverlay({ open, onComplete }) {
         </div>
 
         <div className="flex items-center justify-between border-t border-mfo-border px-5 py-3">
-          <button onClick={finish} className="text-[12px] text-mfo-text-dim hover:text-mfo-text">Skip</button>
+          <button onClick={finish} className="text-[12px] text-mfo-text-dim hover:text-mfo-text">{t('onboarding.skip')}</button>
           <div className="flex gap-2">
             {step > 0 && (
               <button onClick={() => setStep((s) => s - 1)} className="rounded-lg border border-mfo-border px-3.5 py-1.5 text-xs text-mfo-text hover:bg-mfo-surface2">
-                Back
+                {t('common.back')}
               </button>
             )}
             {step < STEPS.length - 1 ? (
               <button onClick={() => setStep((s) => s + 1)} className="rounded-lg bg-mfo-green px-3.5 py-1.5 text-xs font-medium text-black hover:bg-mfo-green-hover">
-                Next
+                {t('common.next')}
               </button>
             ) : (
               <button onClick={finish} className="rounded-lg bg-mfo-green px-3.5 py-1.5 text-xs font-medium text-black hover:bg-mfo-green-hover">
-                Let's go
+                {t('onboarding.letsGo')}
               </button>
             )}
           </div>
