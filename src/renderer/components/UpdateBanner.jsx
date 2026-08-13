@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Sparkles, X } from 'lucide-react';
 
 export default function UpdateBanner() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [latestVersion, setLatestVersion] = useState('');
   const [releaseUrl, setReleaseUrl] = useState('');
@@ -40,7 +42,9 @@ export default function UpdateBanner() {
     else window.api.openReleasePage(releaseUrl);
   };
 
-  const actionLabel = downloaded ? 'Restart to update' : downloading ? 'Downloading...' : fromAutoUpdater ? 'Download update' : 'View release';
+  const actionLabel = downloaded
+    ? t('updateBanner.restartToUpdate')
+    : downloading ? t('updateBanner.downloading') : fromAutoUpdater ? t('updateBanner.downloadUpdate') : t('updateBanner.viewRelease');
 
   return (
     <AnimatePresence>
@@ -52,7 +56,7 @@ export default function UpdateBanner() {
       >
         <Sparkles size={15} className="shrink-0" />
         <span className="text-[12.5px] font-medium">
-          {latestVersion ? `A new version (v${latestVersion}) is available!` : 'A new version is available!'}
+          {latestVersion ? t('updateBanner.newVersionAvailableWithVersion', { version: latestVersion }) : t('updateBanner.newVersionAvailable')}
         </span>
         {downloading && (
           <div className="h-1.5 w-32 shrink-0 overflow-hidden rounded-full bg-black/15">
@@ -66,7 +70,7 @@ export default function UpdateBanner() {
         >
           {actionLabel}
         </button>
-        <button onClick={() => setVisible(false)} className="ml-auto shrink-0 text-black/70 hover:text-black" aria-label="Dismiss">
+        <button onClick={() => setVisible(false)} className="ml-auto shrink-0 text-black/70 hover:text-black" aria-label={t('updateBanner.dismiss')}>
           <X size={14} />
         </button>
       </motion.div>

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { TriangleAlert } from 'lucide-react';
 import { subscribeConfirm } from '../lib/confirm.js';
 
 export default function ConfirmHost() {
+  const { t } = useTranslation();
   const [request, setRequest] = useState(null);
 
   useEffect(() => subscribeConfirm(setRequest), []);
@@ -41,7 +43,7 @@ export default function ConfirmHost() {
                 onClick={() => resolve(false)}
                 className="rounded-lg border border-mfo-border px-3.5 py-1.5 text-xs text-mfo-text transition-colors hover:bg-mfo-surface2"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <motion.button
                 whileHover={{ scale: 1.03 }}
@@ -49,7 +51,7 @@ export default function ConfirmHost() {
                 onClick={() => resolve(true)}
                 className="rounded-lg border border-mfo-danger/40 bg-mfo-danger/15 px-3.5 py-1.5 text-xs font-medium text-mfo-danger transition-colors hover:bg-mfo-danger/25"
               >
-                {request.confirmLabel || 'Confirm'}
+                {request.confirmLabel || t('common.confirm')}
               </motion.button>
             </div>
           </motion.div>

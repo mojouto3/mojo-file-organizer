@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { formatSize } from '../lib/format.js';
 
 const GRADIENTS = [
@@ -11,6 +12,7 @@ const GRADIENTS = [
 ];
 
 export default function Treemap({ sections, totalSize }) {
+  const { t } = useTranslation();
   const [hover, setHover] = useState(null);
   const sized = sections.filter((s) => s.size > 0);
   if (!sized.length) return null;
@@ -20,7 +22,7 @@ export default function Treemap({ sections, totalSize }) {
       {hover && (
         <div className="absolute left-1/2 top-2 z-10 -translate-x-1/2 rounded-lg border border-mfo-border bg-mfo-surface px-3 py-1.5 text-center shadow-lg">
           <p className="text-[12px] font-medium text-mfo-text">{hover.label}</p>
-          <p className="text-[11px] text-mfo-text-dim">{formatSize(hover.size)}, {hover.pct}% of total</p>
+          <p className="text-[11px] text-mfo-text-dim">{t('treemap.ofTotal', { size: formatSize(hover.size), pct: hover.pct })}</p>
         </div>
       )}
       <div className="flex h-[140px] gap-[3px]">

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { HelpCircle, Minus, Square, X } from 'lucide-react';
 import appIcon from '../../../assets/icon.png';
 import { showToast } from '../lib/toast.js';
 
 export default function TitleBar({ onShowShortcuts }) {
+  const { t } = useTranslation();
   const [version, setVersion] = useState('');
   const [checking, setChecking] = useState(false);
 
@@ -14,12 +16,12 @@ export default function TitleBar({ onShowShortcuts }) {
   const checkForUpdates = async () => {
     if (checking) return;
     setChecking(true);
-    showToast('Checking for updates...');
+    showToast(t('settings.checkingForUpdates'));
     const r = await window.api.checkForUpdates();
     setChecking(false);
-    if (!r.ok) { showToast('Update check failed'); return; }
-    if (r.updateAvailable) showToast(`Update available: v${r.latestVersion}`);
-    else showToast('You are up to date');
+    if (!r.ok) { showToast(t('settings.updateCheckFailed')); return; }
+    if (r.updateAvailable) showToast(t('settings.updateAvailable', { version: r.latestVersion }));
+    else showToast(t('settings.upToDate'));
   };
 
   return (
@@ -31,7 +33,7 @@ export default function TitleBar({ onShowShortcuts }) {
           <button
             onClick={checkForUpdates}
             className="no-drag rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] text-mfo-green transition-colors hover:bg-mfo-green/20"
-            title="Check for updates"
+            title={t('settings.checkForUpdates')}
           >
             v{version}
           </button>
@@ -40,7 +42,7 @@ export default function TitleBar({ onShowShortcuts }) {
       <div className="no-drag flex h-full items-center">
         <button
           onClick={onShowShortcuts}
-          title="Keyboard shortcuts"
+          title={t('shortcuts.title')}
           className="mr-1.5 flex h-6 w-6 items-center justify-center rounded-full text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
         >
           <HelpCircle size={14} />
