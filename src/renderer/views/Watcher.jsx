@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Eye, EyeOff, Play, Square, Trash2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
@@ -8,6 +9,7 @@ import { getWatcherEvents, subscribeWatcherEvents, clearWatcherEvents } from '..
 import { showToast } from '../lib/toast.js';
 
 export default function Watcher() {
+  const { t } = useTranslation();
   const [folder, setFolder] = useState(null);
   const [active, setActive] = useState(false);
   const [useRules, setUseRules] = useState(false);
@@ -22,16 +24,16 @@ export default function Watcher() {
   }, []);
 
   const handleStart = async () => {
-    if (!folder) { showToast('Select a folder first!'); return; }
+    if (!folder) { showToast(t('common.selectFolderFirst')); return; }
     const r = await window.api.startWatcher({ folderPath: folder, useRules });
-    if (r.ok) { setActive(true); showToast('Watching for new files...'); }
-    else showToast(r.error || 'Failed to start watcher');
+    if (r.ok) { setActive(true); showToast(t('watcher.startedToast')); }
+    else showToast(r.error || t('watcher.startFailed'));
   };
 
   const handleStop = async () => {
     await window.api.stopWatcher();
     setActive(false);
-    showToast('Watcher stopped');
+    showToast(t('watcher.stoppedToast'));
   };
 
   return (
@@ -39,29 +41,29 @@ export default function Watcher() {
       <Card className="p-3.5">
         <div className="mb-1 flex items-center gap-2">
           <Eye size={15} className="text-mfo-green" />
-          <span className="text-[13px] font-medium text-mfo-text">File watcher</span>
+          <span className="text-[13px] font-medium text-mfo-text">{t('watcher.title')}</span>
           {active && (
-            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] font-medium text-mfo-green">Active</span>
+            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10px] font-medium text-mfo-green">{t('watcher.active')}</span>
           )}
         </div>
         <p className="mb-3 text-[11.5px] text-mfo-text-dim">
-          Monitor a folder in real-time. New files are automatically organized as soon as they arrive.
+          {t('watcher.desc')}
         </p>
 
         <FolderPicker value={folder} onPick={setFolder} />
 
         <div className="mt-3 flex items-center gap-3">
           {!active ? (
-            <Button onClick={handleStart}><Play size={14} />Start watching</Button>
+            <Button onClick={handleStart}><Play size={14} />{t('watcher.start')}</Button>
           ) : (
-            <Button variant="outline" onClick={handleStop}><Square size={14} />Stop</Button>
+            <Button variant="outline" onClick={handleStop}><Square size={14} />{t('watcher.stop')}</Button>
           )}
           <div
             onClick={() => !active && setUseRules((v) => !v)}
             className={`ml-auto flex select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim ${active ? '' : 'cursor-pointer'}`}
           >
             <Checkbox checked={useRules} onChange={setUseRules} disabled={active} />
-            Also run Rules
+            {t('watcher.alsoRunRules')}
           </div>
         </div>
       </Card>
@@ -69,15 +71,15 @@ export default function Watcher() {
       {events.length === 0 ? (
         <Card className="flex flex-col items-center gap-2 px-6 py-14 text-center">
           <EyeOff size={28} className="text-mfo-text-dim" />
-          <p className="text-sm font-medium text-mfo-text">No activity yet.</p>
-          <p className="text-xs text-mfo-text-dim">Files organized by the watcher will appear here.</p>
+          <p className="text-sm font-medium text-mfo-text">{t('watcher.emptyTitle')}</p>
+          <p className="text-xs text-mfo-text-dim">{t('watcher.emptyHint')}</p>
         </Card>
       ) : (
         <Card className="overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
-            <span className="text-[13px] font-medium text-mfo-text">Activity log</span>
-            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">{events.length} events</span>
-            <Button variant="outline" onClick={clearWatcherEvents} className="ml-auto px-2.5 py-1 text-[11px]"><Trash2 size={12} />Clear</Button>
+            <span className="text-[13px] font-medium text-mfo-text">{t('watcher.activityLog')}</span>
+            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">{events.length} {t('watcher.events')}</span>
+            <Button variant="outline" onClick={clearWatcherEvents} className="ml-auto px-2.5 py-1 text-[11px]"><Trash2 size={12} />{t('common.clearAll')}</Button>
           </div>
           <div className="max-h-96 overflow-y-auto">
             {events.map((e, i) => (

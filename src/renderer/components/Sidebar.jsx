@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Home,
@@ -15,14 +16,14 @@ import {
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Home', icon: Home },
-  { id: 'organize', label: 'Organize', icon: Folder },
-  { id: 'duplicates', label: 'Duplicates', icon: Copy },
-  { id: 'cleanup', label: 'Cleanup', icon: Trash2 },
-  { id: 'activity', label: 'Activity', icon: History },
-  { id: 'smart-group', label: 'Smart Group', icon: Layers },
-  { id: 'rules', label: 'Rules', icon: ListChecks },
-  { id: 'watcher', label: 'Watcher', icon: Eye }
+  { id: 'home', labelKey: 'nav.home', icon: Home },
+  { id: 'organize', labelKey: 'nav.organize', icon: Folder },
+  { id: 'duplicates', labelKey: 'nav.duplicates', icon: Copy },
+  { id: 'cleanup', labelKey: 'nav.cleanup', icon: Trash2 },
+  { id: 'activity', labelKey: 'nav.activity', icon: History },
+  { id: 'smart-group', labelKey: 'nav.smartGroup', icon: Layers },
+  { id: 'rules', labelKey: 'nav.rules', icon: ListChecks },
+  { id: 'watcher', labelKey: 'nav.watcher', icon: Eye }
 ];
 
 function NavButton({ isActive, icon: Icon, label, collapsed, onClick }) {
@@ -59,6 +60,7 @@ function NavButton({ isActive, icon: Icon, label, collapsed, onClick }) {
 }
 
 export default function Sidebar({ activeView, onNavigate }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -73,7 +75,7 @@ export default function Sidebar({ activeView, onNavigate }) {
             key={item.id}
             isActive={activeView === item.id}
             icon={item.icon}
-            label={item.label}
+            label={t(item.labelKey)}
             collapsed={collapsed}
             onClick={() => onNavigate(item.id)}
           />
@@ -84,7 +86,7 @@ export default function Sidebar({ activeView, onNavigate }) {
         <NavButton
           isActive={activeView === 'settings'}
           icon={Settings}
-          label="Settings"
+          label={t('nav.settings')}
           collapsed={collapsed}
           onClick={() => onNavigate('settings')}
         />
@@ -95,7 +97,7 @@ export default function Sidebar({ activeView, onNavigate }) {
           }`}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-          {!collapsed && <span className="whitespace-nowrap">Collapse</span>}
+          {!collapsed && <span className="whitespace-nowrap">{t('nav.collapse')}</span>}
         </button>
       </div>
     </motion.aside>

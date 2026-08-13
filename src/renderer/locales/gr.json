@@ -1,0 +1,53 @@
+{
+  "common": {
+    "browse": "Browse",
+    "downloads": "Downloads",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "clearAll": "Clear all",
+    "export": "Export",
+    "import": "Import",
+    "reset": "Reset",
+    "undo": "Undo",
+    "preview": "Preview",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "add": "Add",
+    "remove": "Remove",
+    "edit": "Edit",
+    "enable": "Enable",
+    "disable": "Disable",
+    "recent": "Recent:",
+    "selectFolderFirst": "Select a folder first!"
+  },
+  "nav": {
+    "home": "Home",
+    "organize": "Organize",
+    "duplicates": "Duplicates",
+    "cleanup": "Cleanup",
+    "activity": "Activity",
+    "smartGroup": "Smart Group",
+    "rules": "Rules",
+    "watcher": "Watcher",
+    "settings": "Settings",
+    "collapse": "Collapse"
+  },
+  "watcher": {
+    "title": "File watcher",
+    "active": "Active",
+    "desc": "Monitor a folder in real-time. New files are automatically organized as soon as they arrive.",
+    "start": "Start watching",
+    "stop": "Stop",
+    "alsoRunRules": "Also run Rules",
+    "emptyTitle": "No activity yet.",
+    "emptyHint": "Files organized by the watcher will appear here.",
+    "activityLog": "Activity log",
+    "events": "events",
+    "startedToast": "Watching for new files...",
+    "stoppedToast": "Watcher stopped",
+    "startFailed": "Failed to start watcher"
+  }
+}
