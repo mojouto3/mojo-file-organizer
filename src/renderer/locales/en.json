@@ -228,5 +228,18 @@
     "actionMove": "move",
     "actionDelete": "delete",
     "actionRename": "rename"
+  },
+  "smartGroup": {
+    "alreadyExists": "Already exists!",
+    "groupAdded": "\"{{name}}\" added",
+    "groupRemoved": "\"{{name}}\" removed",
+    "addGroupFirst": "Add at least one group first!",
+    "noMatchingFiles": "No matching files found!",
+    "groups": "Groups",
+    "namePlaceholder": "e.g. Work, Personal, Downloads...",
+    "removeGroup": "Remove group",
+    "organizing": "Organizing...",
+    "groupsExported": "Groups exported",
+    "groupsImported": "{{count}} groups imported"
   }
 }
