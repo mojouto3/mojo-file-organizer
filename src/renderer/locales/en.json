@@ -129,5 +129,23 @@
     "batchError": "error",
     "noFoldersAdded": "No folders added",
     "doneFilesOrganized": "Done! {{count}} files organized"
+  },
+  "duplicates": {
+    "selectFolder": "Select folder",
+    "scanByContent": "Scan by content",
+    "scanByName": "Scan by name",
+    "scanning": "Scanning...",
+    "noneFound": "No duplicates found!",
+    "noneFoundHint": "Select a folder and run a scan to check for duplicate files.",
+    "found": "Duplicate files found",
+    "groupsFiles": "{{groups}} groups, {{files}} files",
+    "deleteSelected": "Delete selected",
+    "duplicateFilesEach_one": "{{count}} duplicate file, {{size}} each",
+    "duplicateFilesEach_other": "{{count}} duplicate files, {{size}} each",
+    "keep": "Keep",
+    "newest": "newest",
+    "selectFilesToDelete": "Select files to delete!",
+    "confirmDelete": "Delete {{count}} file(s)?",
+    "filesDeleted": "{{count}} file(s) deleted"
   }
 }
