@@ -4,6 +4,17 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [4.1.0] - 2026-08-13
+
+### Added
+- Full multi-language support: English, Greek, German, Spanish, and Russian. Switch languages anytime in Settings > General, or during the onboarding tour. Every tab, dialog, and toast is translated.
+
+### Fixed
+- Native-looking checkboxes across Cleanup, Rules, Watcher, Activity, and Settings replaced with a themed component matching the rest of the UI; clicking a checkbox's label text now toggles it instead of just selecting text.
+
+### Changed
+- Removed an unused, stray Windows manifest file left over from an unrelated project.
+
 ## [4.0.0] - 2026-08-12
 
 ### Changed
