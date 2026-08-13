@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Archive, ArrowRight, Calendar, CalendarCheck, CalendarX, Check, CheckCircle2, Circle, Code2,
   Download, Eye, FileText, FolderOpen, FolderPlus, GripVertical, Image, List,
@@ -19,48 +20,49 @@ import { confirm } from '../lib/confirm.js';
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
 const PRESET_RULES = [
-  { id: 'preset-1', name: 'Delete old installers', desc: 'Installers older than 6 months, to Recycle Bin', icon: Package,
+  { id: 'preset-1', nameKey: 'rules.preset1Name', descKey: 'rules.preset1Desc', icon: Package,
     conditions: [{ field: 'age', op: 'gt', value: 180, unit: 'days' }, { field: 'extension', value: 'exe' }], logic: 'AND', action: { type: 'delete' } },
-  { id: 'preset-2', name: 'Clean temp files', desc: '.tmp .log .cache .bak files, to Recycle Bin', icon: Trash2,
+  { id: 'preset-2', nameKey: 'rules.preset2Name', descKey: 'rules.preset2Desc', icon: Trash2,
     conditions: [{ field: 'extension', value: 'tmp' }], logic: 'OR', action: { type: 'delete' } },
-  { id: 'preset-3', name: 'Archive large videos', desc: 'Videos larger than 500MB, to Videos folder', icon: Video,
+  { id: 'preset-3', nameKey: 'rules.preset3Name', descKey: 'rules.preset3Desc', icon: Video,
     conditions: [{ field: 'size', op: 'gt', value: 500, unit: 'MB' }, { field: 'extension', value: 'mp4' }], logic: 'AND', action: { type: 'move', dest: '' } },
-  { id: 'preset-4', name: 'Organize old downloads', desc: 'Files older than 3 months, to Archive folder', icon: Archive,
+  { id: 'preset-4', nameKey: 'rules.preset4Name', descKey: 'rules.preset4Desc', icon: Archive,
     conditions: [{ field: 'age', op: 'gt', value: 90, unit: 'days' }], logic: 'AND', action: { type: 'move', dest: '' } },
-  { id: 'preset-5', name: 'Remove old backup files', desc: 'Files with "backup" in name older than 30 days, to Recycle Bin', icon: Shield,
+  { id: 'preset-5', nameKey: 'rules.preset5Name', descKey: 'rules.preset5Desc', icon: Shield,
     conditions: [{ field: 'name', op: 'contains', value: 'backup' }, { field: 'age', op: 'gt', value: 30, unit: 'days' }], logic: 'AND', action: { type: 'delete' } },
-  { id: 'preset-6', name: 'Archive old documents', desc: 'PDFs older than 1 year, to Archive folder', icon: FileText,
+  { id: 'preset-6', nameKey: 'rules.preset6Name', descKey: 'rules.preset6Desc', icon: FileText,
     conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }, { field: 'extension', value: 'pdf' }], logic: 'AND', action: { type: 'move', dest: '' } }
 ];
 
 const RULE_TEMPLATES = [
-  { id: 'tpl-downloads', name: 'Downloads Cleanup', icon: Download, desc: 'Auto-clean old installers, temp files and archive large downloads', rules: [
+  { id: 'tpl-downloads', nameKey: 'rules.tplDownloadsName', icon: Download, descKey: 'rules.tplDownloadsDesc', rules: [
     { name: 'Delete old installers', conditions: [{ field: 'age', op: 'gt', value: 180, unit: 'days' }, { field: 'extension', value: 'exe' }], logic: 'AND', action: { type: 'delete' }, enabled: true },
     { name: 'Clean temp files', conditions: [{ field: 'extension', value: 'tmp' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
     { name: 'Archive old downloads', conditions: [{ field: 'age', op: 'gt', value: 90, unit: 'days' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true }
   ] },
-  { id: 'tpl-dev', name: 'Developer Workspace', icon: Code2, desc: 'Clean build artifacts, logs and old backup files', rules: [
+  { id: 'tpl-dev', nameKey: 'rules.tplDevName', icon: Code2, descKey: 'rules.tplDevDesc', rules: [
     { name: 'Delete log files', conditions: [{ field: 'extension', value: 'log' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
     { name: 'Delete temp files', conditions: [{ field: 'extension', value: 'tmp' }], logic: 'OR', action: { type: 'delete' }, enabled: true },
     { name: 'Remove old backups', conditions: [{ field: 'name', op: 'contains', value: 'backup' }, { field: 'age', op: 'gt', value: 30, unit: 'days' }], logic: 'AND', action: { type: 'delete' }, enabled: true }
   ] },
-  { id: 'tpl-photo', name: 'Photo Organizer', icon: Image, desc: 'Move large photos and old screenshots to dedicated folders', rules: [
+  { id: 'tpl-photo', nameKey: 'rules.tplPhotoName', icon: Image, descKey: 'rules.tplPhotoDesc', rules: [
     { name: 'Archive large photos', conditions: [{ field: 'size', op: 'gt', value: 5, unit: 'MB' }, { field: 'extension', value: 'jpg' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
     { name: 'Move screenshots', conditions: [{ field: 'name', op: 'starts', value: 'Screenshot' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true }
   ] },
-  { id: 'tpl-archiver', name: 'Old Files Archiver', icon: Archive, desc: 'Move documents and files older than 1 year to an archive folder', rules: [
+  { id: 'tpl-archiver', nameKey: 'rules.tplArchiverName', icon: Archive, descKey: 'rules.tplArchiverDesc', rules: [
     { name: 'Archive old documents', conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }, { field: 'extension', value: 'pdf' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true },
     { name: 'Archive old files', conditions: [{ field: 'age', op: 'gt', value: 365, unit: 'days' }], logic: 'AND', action: { type: 'move', dest: '' }, enabled: true }
   ] }
 ];
 
-function actionText(r) {
-  if (r.action === 'delete') return 'Delete';
-  if (r.action === 'rename') return `Rename to ${r.newName || ''}`;
-  return `Move to ${r.dest ? basename(r.dest) : '?'}`;
+function actionText(t, r) {
+  if (r.action === 'delete') return t('common.delete');
+  if (r.action === 'rename') return t('rules.renameTo', { name: r.newName || '' });
+  return t('rules.moveTo', { name: r.dest ? basename(r.dest) : '?' });
 }
 
 function ResultRow({ r, isPreview }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2.5 border-b border-mfo-border px-3.5 py-1.5 last:border-0">
       {isPreview
@@ -68,8 +70,8 @@ function ResultRow({ r, isPreview }) {
         : r.ok ? <Check size={13} className="shrink-0 text-mfo-green" /> : <X size={13} className="shrink-0 text-mfo-danger" />}
       <span className="min-w-0 flex-1 truncate text-[12px] text-mfo-text" title={r.file}>{r.file}</span>
       <ArrowRight size={11} className="shrink-0 text-mfo-text-dim" />
-      <span className="shrink-0 text-[11px] text-mfo-text-dim">{actionText(r)}</span>
-      {r.conflict && <span className="shrink-0 text-[10px] text-amber-400">conflict</span>}
+      <span className="shrink-0 text-[11px] text-mfo-text-dim">{actionText(t, r)}</span>
+      {r.conflict && <span className="shrink-0 text-[10px] text-amber-400">{t('rules.conflict')}</span>}
       {r.rule && <span className="shrink-0 rounded bg-mfo-surface2 px-1.5 py-0.5 text-[10px] text-mfo-text-dim">{r.rule}</span>}
       {r.error && <span className="shrink-0 text-[10px] text-mfo-danger">{r.error}</span>}
     </div>
@@ -77,16 +79,17 @@ function ResultRow({ r, isPreview }) {
 }
 
 function RecycleBinCard() {
+  const { t } = useTranslation();
   const [info, setInfo] = useState(null);
 
   const load = () => window.api.getRecycleBinSize().then((r) => setInfo(r.ok ? r : { size: 0, count: 0 }));
   useEffect(() => { load(); }, []);
 
   const empty = async () => {
-    const ok = await confirm(`Empty the Recycle Bin (${formatSize(info?.size || 0)})?`, { confirmLabel: 'Empty' });
+    const ok = await confirm(t('rules.recycleBinEmptyConfirm', { size: formatSize(info?.size || 0) }), { confirmLabel: t('rules.empty') });
     if (!ok) return;
     const r = await window.api.emptyRecycleBin();
-    showToast(r.ok ? 'Recycle Bin emptied' : 'Failed to empty Recycle Bin');
+    showToast(r.ok ? t('rules.recycleBinEmptied') : t('rules.recycleBinEmptyFailed'));
     load();
   };
 
@@ -97,20 +100,21 @@ function RecycleBinCard() {
     <Card className="p-3.5">
       <div className="mb-1 flex items-center gap-2">
         <Trash2 size={15} className="text-mfo-green" />
-        <span className="text-[13px] font-medium text-mfo-text">Recycle bin</span>
+        <span className="text-[13px] font-medium text-mfo-text">{t('rules.recycleBin')}</span>
       </div>
       <p className="mb-2.5 text-[11.5px] text-mfo-text-dim">
-        {isEmpty ? 'Recycle Bin is empty.' : `${formatSize(info.size)}, ${info.count} item(s)`}
+        {isEmpty ? t('rules.recycleBinEmpty') : t('rules.recycleBinInfo', { size: formatSize(info.size), count: info.count })}
       </p>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={() => window.api.openRecycleBin()} className="px-2.5 py-1 text-[11px]">Open</Button>
-        <Button variant="danger" onClick={empty} disabled={isEmpty} className="px-2.5 py-1 text-[11px]">Empty</Button>
+        <Button variant="outline" onClick={() => window.api.openRecycleBin()} className="px-2.5 py-1 text-[11px]">{t('rules.open')}</Button>
+        <Button variant="danger" onClick={empty} disabled={isEmpty} className="px-2.5 py-1 text-[11px]">{t('rules.empty')}</Button>
       </div>
     </Card>
   );
 }
 
 function ScheduleCard() {
+  const { t } = useTranslation();
   const [folder, setFolder] = useState(null);
   const [days, setDays] = useState([]);
   const [time, setTime] = useState('10:00');
@@ -129,13 +133,13 @@ function ScheduleCard() {
   const toggleDay = (day) => setDays((d) => (d.includes(day) ? d.filter((x) => x !== day) : [...d, day]));
 
   const enable = async () => {
-    if (!days.length) { showToast('Select at least one day!'); return; }
-    if (!folder) { showToast('Select a folder first!'); return; }
+    if (!days.length) { showToast(t('organize.selectDayFirst')); return; }
+    if (!folder) { showToast(t('common.selectFolderFirst')); return; }
     const settings = await window.api.getSettings();
     settings.rulesSchedule = { ...settings.rulesSchedule, enabled: true, days, time, folder };
     await window.api.saveSettings(settings);
     const result = await window.api.scheduleRules({ days, time, folder });
-    setMsg(result.ok ? { ok: true, text: 'Scheduled' } : { ok: false, text: 'Failed, try running as Administrator' });
+    setMsg(result.ok ? { ok: true, text: t('rules.scheduledPlain') } : { ok: false, text: t('organize.scheduleFailed') });
   };
 
   const disable = async () => {
@@ -143,25 +147,25 @@ function ScheduleCard() {
     const settings = await window.api.getSettings();
     settings.rulesSchedule = { ...settings.rulesSchedule, enabled: false };
     window.api.saveSettings(settings);
-    setMsg({ ok: true, text: 'Auto-run disabled' });
+    setMsg({ ok: true, text: t('organize.autoRunDisabled') });
   };
 
   return (
     <Card className="p-3.5">
       <div className="mb-2.5 flex items-center gap-2">
         <Calendar size={15} className="text-mfo-green" />
-        <span className="text-[13px] font-medium text-mfo-text">Scheduled rules run</span>
+        <span className="text-[13px] font-medium text-mfo-text">{t('rules.scheduledRulesRun')}</span>
       </div>
 
       <div className="flex items-center gap-1.5 rounded-lg border border-mfo-border px-2 py-1.5">
         <input
           readOnly
           value={folder || ''}
-          placeholder="Select folder to auto-run rules on..."
+          placeholder={t('rules.autoRunPlaceholder')}
           className="min-w-0 flex-1 bg-transparent px-1 text-[13px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
         />
         <button onClick={pickFolder} className="flex items-center gap-1 rounded-md border border-mfo-border px-2 py-1 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text">
-          <FolderOpen size={13} />Browse
+          <FolderOpen size={13} />{t('common.browse')}
         </button>
       </div>
 
@@ -187,8 +191,8 @@ function ScheduleCard() {
       />
 
       <div className="mt-3 flex gap-2">
-        <Button onClick={enable}><CalendarCheck size={14} />Enable</Button>
-        <Button variant="outline" onClick={disable}><CalendarX size={14} />Disable</Button>
+        <Button onClick={enable}><CalendarCheck size={14} />{t('common.enable')}</Button>
+        <Button variant="outline" onClick={disable}><CalendarX size={14} />{t('common.disable')}</Button>
       </div>
 
       {msg && (
@@ -201,6 +205,7 @@ function ScheduleCard() {
 }
 
 function RunSubView({ rules }) {
+  const { t } = useTranslation();
   const [multiMode, setMultiMode] = useState(false);
   const [dryRun, setDryRun] = useState(false);
   const [folder, setFolder] = useState(null);
@@ -219,14 +224,14 @@ function RunSubView({ rules }) {
     const next = !dryRun;
     setDryRun(next);
     window.api.getSettings().then((s) => { s.rulesDryRun = next; window.api.saveSettings(s); });
-    showToast(`Dry-run mode ${next ? 'enabled' : 'disabled'}`);
+    showToast(next ? t('rules.dryRunEnabled') : t('rules.dryRunDisabled'));
   };
 
   const enabledRules = rules.filter((r) => r.enabled);
 
   const doPreview = async () => {
-    if (!folder) { showToast('Select a folder first!'); return; }
-    if (!enabledRules.length) { showToast('No active rules'); return; }
+    if (!folder) { showToast(t('common.selectFolderFirst')); return; }
+    if (!enabledRules.length) { showToast(t('rules.noActiveRules')); return; }
     const res = await window.api.previewRules({ folderPath: folder, rules: enabledRules });
     setPreviewResults(res.results || []);
     setRunResults(null);
@@ -235,8 +240,8 @@ function RunSubView({ rules }) {
   };
 
   const executeRun = async () => {
-    if (!folder) { showToast('Select a folder first!'); return; }
-    if (!enabledRules.length) { showToast('No active rules'); return; }
+    if (!folder) { showToast(t('common.selectFolderFirst')); return; }
+    if (!enabledRules.length) { showToast(t('rules.noActiveRules')); return; }
     setRunning(true);
     const res = await window.api.runRules({ folderPath: folder, rules: enabledRules });
     setRunning(false);
@@ -255,16 +260,16 @@ function RunSubView({ rules }) {
   };
 
   const runBatch = async () => {
-    if (!batchFolders.length) { showToast('No folders added'); return; }
-    if (!enabledRules.length) { showToast('No active rules'); return; }
+    if (!batchFolders.length) { showToast(t('organize.noFoldersAdded')); return; }
+    if (!enabledRules.length) { showToast(t('rules.noActiveRules')); return; }
     for (let i = 0; i < batchFolders.length; i++) {
-      setBatchStatuses((s) => ({ ...s, [i]: { type: 'active', text: 'Running...' } }));
+      setBatchStatuses((s) => ({ ...s, [i]: { type: 'active', text: t('rules.running') } }));
       try {
         const res = await window.api.runRules({ folderPath: batchFolders[i], rules: enabledRules });
         const count = res.results?.filter((r) => r.ok).length || 0;
-        setBatchStatuses((s) => ({ ...s, [i]: { type: 'done', text: `${count} files` } }));
+        setBatchStatuses((s) => ({ ...s, [i]: { type: 'done', text: t('organize.file', { count }) } }));
       } catch {
-        setBatchStatuses((s) => ({ ...s, [i]: { type: 'error', text: 'Error' } }));
+        setBatchStatuses((s) => ({ ...s, [i]: { type: 'error', text: t('rules.error') } }));
       }
       window.api.addRecentFolder(batchFolders[i]);
     }
@@ -273,7 +278,7 @@ function RunSubView({ rules }) {
   const handleUndo = async () => {
     if (!lastMoves.length) return;
     const r = await window.api.undo(lastMoves);
-    showToast(`Restored ${r.restored.length} file(s)`);
+    showToast(t('organize.restoredFiles', { count: r.restored.length }));
     setLastMoves([]);
     setRunResults(null);
   };
@@ -283,15 +288,15 @@ function RunSubView({ rules }) {
   return (
     <div className="flex flex-col gap-3">
       <Card className="flex flex-wrap items-center justify-between gap-2 p-3.5">
-        <span className="text-[13px] font-medium text-mfo-text">Run rules</span>
+        <span className="text-[13px] font-medium text-mfo-text">{t('rules.runRules')}</span>
         <div className="flex items-center gap-3">
           <div onClick={() => setMultiMode((v) => !v)} className="flex cursor-pointer select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
             <Checkbox checked={multiMode} onChange={setMultiMode} />
-            Multi-folder
+            {t('rules.multiFolder')}
           </div>
           <div onClick={toggleDryRun} className="flex cursor-pointer select-none items-center gap-1.5 text-[11.5px] text-mfo-text-dim">
             <Checkbox checked={dryRun} onChange={toggleDryRun} />
-            Dry-run
+            {t('rules.dryRun')}
           </div>
         </div>
       </Card>
@@ -307,7 +312,7 @@ function RunSubView({ rules }) {
               onClick={() => window.api.pickFolder().then((f) => f && addBatchFolder(f))}
               className="flex items-center gap-1.5 rounded-md border border-mfo-border px-2.5 py-1.5 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"
             >
-              <FolderPlus size={14} />Add folder
+              <FolderPlus size={14} />{t('organize.addFolder')}
             </button>
           </div>
           <BatchFolderList folders={batchFolders} statuses={batchStatuses} onRemove={(i) => setBatchFolders((f) => f.filter((_, idx) => idx !== i))} />
@@ -315,18 +320,18 @@ function RunSubView({ rules }) {
       )}
 
       <div className="flex gap-2">
-        <Button variant="outline" onClick={doPreview}><Eye size={14} />Preview</Button>
+        <Button variant="outline" onClick={doPreview}><Eye size={14} />{t('common.preview')}</Button>
         <Button onClick={handleRunClick} disabled={running}>
-          <Zap size={14} />{multiMode ? 'Run all' : running ? 'Running...' : 'Run rules'}
+          <Zap size={14} />{multiMode ? t('home.runAll') : running ? t('rules.running') : t('rules.runRules')}
         </Button>
       </div>
 
       {(previewResults || runResults) && (
         <Card className="overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
-            <span className="text-[13px] font-medium text-mfo-text">{runResults ? 'Results' : 'Preview'}</span>
+            <span className="text-[13px] font-medium text-mfo-text">{runResults ? t('rules.results') : t('common.preview')}</span>
             <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">
-              {(runResults || previewResults).length} files
+              {t('organize.file', { count: (runResults || previewResults).length })}
             </span>
           </div>
           <div className="max-h-80 overflow-y-auto">
@@ -334,13 +339,13 @@ function RunSubView({ rules }) {
           </div>
           {awaitingConfirm && (
             <div className="flex gap-2 border-t border-mfo-border p-3.5">
-              <Button onClick={executeRun}>Confirm & execute</Button>
-              <Button variant="outline" onClick={() => { setAwaitingConfirm(false); setPreviewResults(null); }}>Cancel</Button>
+              <Button onClick={executeRun}>{t('rules.confirmExecute')}</Button>
+              <Button variant="outline" onClick={() => { setAwaitingConfirm(false); setPreviewResults(null); }}>{t('common.cancel')}</Button>
             </div>
           )}
           {runResults && lastMoves.length > 0 && (
             <div className="flex gap-2 border-t border-mfo-border p-3.5">
-              <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />Undo</Button>
+              <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />{t('common.undo')}</Button>
             </div>
           )}
         </Card>
@@ -353,6 +358,7 @@ function RunSubView({ rules }) {
 }
 
 function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTemplates }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const dragIdRef = useRef(null);
   const filtered = rules.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
@@ -373,10 +379,10 @@ function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTempla
     return (
       <Card className="flex flex-col items-center gap-3 px-6 py-14 text-center">
         <List size={28} className="text-mfo-text-dim" />
-        <p className="text-sm font-medium text-mfo-text">No rules yet</p>
+        <p className="text-sm font-medium text-mfo-text">{t('rules.noRulesYet')}</p>
         <div className="flex gap-2">
-          <Button onClick={() => onEdit(null)}><Plus size={14} />Add rule</Button>
-          <Button variant="outline" onClick={goTemplates}>Browse templates</Button>
+          <Button onClick={() => onEdit(null)}><Plus size={14} />{t('rules.addRule')}</Button>
+          <Button variant="outline" onClick={goTemplates}>{t('rules.browseTemplates')}</Button>
         </div>
       </Card>
     );
@@ -390,7 +396,7 @@ function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTempla
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search rules..."
+            placeholder={t('rules.searchRules')}
             className="flex-1 bg-transparent text-[12.5px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
           />
         </div>
@@ -409,15 +415,15 @@ function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTempla
             <GripVertical size={14} className="shrink-0 cursor-grab text-mfo-text-dim" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[12.5px] font-medium text-mfo-text">{r.name}</p>
-              <p className="truncate text-[10.5px] text-mfo-text-dim">{summarizeRule(r)}</p>
+              <p className="truncate text-[10.5px] text-mfo-text-dim">{summarizeRule(t, r)}</p>
             </div>
-            <button onClick={() => onToggle(r.id)} className="shrink-0 text-mfo-text-dim hover:text-mfo-green" aria-label="Toggle enabled">
+            <button onClick={() => onToggle(r.id)} className="shrink-0 text-mfo-text-dim hover:text-mfo-green" aria-label={t('rules.toggleEnabled')}>
               {r.enabled ? <CheckCircle2 size={16} className="text-mfo-green" /> : <Circle size={16} />}
             </button>
-            <button onClick={() => onEdit(r)} className="shrink-0 rounded p-1 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text" aria-label="Edit">
+            <button onClick={() => onEdit(r)} className="shrink-0 rounded p-1 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text" aria-label={t('common.edit')}>
               <Pencil size={14} />
             </button>
-            <button onClick={() => onDelete(r.id)} className="shrink-0 rounded p-1 text-mfo-text-dim hover:bg-mfo-danger/10 hover:text-mfo-danger" aria-label="Delete">
+            <button onClick={() => onDelete(r.id)} className="shrink-0 rounded p-1 text-mfo-text-dim hover:bg-mfo-danger/10 hover:text-mfo-danger" aria-label={t('common.delete')}>
               <Trash2 size={14} />
             </button>
           </Card>
@@ -428,10 +434,11 @@ function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTempla
 }
 
 function TemplatesSubView({ rules, onAddPreset, onImportTemplate }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="mb-2 text-[12.5px] font-medium text-mfo-text">Preset rules</p>
+        <p className="mb-2 text-[12.5px] font-medium text-mfo-text">{t('rules.presetRules')}</p>
         <div className="grid grid-cols-2 gap-2.5">
           {PRESET_RULES.map((p) => {
             const Icon = p.icon;
@@ -440,11 +447,11 @@ function TemplatesSubView({ rules, onAddPreset, onImportTemplate }) {
               <Card key={p.id} className="flex items-start gap-2.5 p-3">
                 <Icon size={18} className="mt-0.5 shrink-0 text-mfo-green" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-medium text-mfo-text">{p.name}</p>
-                  <p className="text-[10.5px] text-mfo-text-dim">{p.desc}</p>
+                  <p className="text-[12.5px] font-medium text-mfo-text">{t(p.nameKey)}</p>
+                  <p className="text-[10.5px] text-mfo-text-dim">{t(p.descKey)}</p>
                 </div>
                 <Button variant={added ? 'outline' : 'primary'} onClick={() => onAddPreset(p)} className="shrink-0 px-2.5 py-1 text-[11px]">
-                  {added ? 'Remove' : 'Add'}
+                  {added ? t('common.remove') : t('common.add')}
                 </Button>
               </Card>
             );
@@ -453,19 +460,19 @@ function TemplatesSubView({ rules, onAddPreset, onImportTemplate }) {
       </div>
 
       <div>
-        <p className="mb-2 text-[12.5px] font-medium text-mfo-text">Rule templates</p>
+        <p className="mb-2 text-[12.5px] font-medium text-mfo-text">{t('rules.ruleTemplates')}</p>
         <div className="grid grid-cols-2 gap-2.5">
-          {RULE_TEMPLATES.map((t) => {
-            const Icon = t.icon;
+          {RULE_TEMPLATES.map((tpl) => {
+            const Icon = tpl.icon;
             return (
-              <Card key={t.id} className="flex items-start gap-2.5 p-3">
+              <Card key={tpl.id} className="flex items-start gap-2.5 p-3">
                 <Icon size={18} className="mt-0.5 shrink-0 text-mfo-green" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-[12.5px] font-medium text-mfo-text">{t.name}</p>
-                  <p className="text-[10.5px] text-mfo-text-dim">{t.desc}</p>
-                  <p className="mt-0.5 text-[10px] text-mfo-text-dim">{t.rules.length} rules</p>
+                  <p className="text-[12.5px] font-medium text-mfo-text">{t(tpl.nameKey)}</p>
+                  <p className="text-[10.5px] text-mfo-text-dim">{t(tpl.descKey)}</p>
+                  <p className="mt-0.5 text-[10px] text-mfo-text-dim">{t('rules.rule', { count: tpl.rules.length })}</p>
                 </div>
-                <Button variant="outline" onClick={() => onImportTemplate(t)} className="shrink-0 px-2.5 py-1 text-[11px]">Import</Button>
+                <Button variant="outline" onClick={() => onImportTemplate(tpl)} className="shrink-0 px-2.5 py-1 text-[11px]">{t('common.import')}</Button>
               </Card>
             );
           })}
@@ -476,6 +483,7 @@ function TemplatesSubView({ rules, onAddPreset, onImportTemplate }) {
 }
 
 export default function Rules() {
+  const { t } = useTranslation();
   const [subView, setSubView] = useState('run');
   const [rules, setRules] = useState([]);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -491,11 +499,11 @@ export default function Rules() {
     const next = editingRule ? rules.map((r) => (r.id === rule.id ? rule : r)) : [...rules, rule];
     persist(next);
     setEditorOpen(false);
-    showToast(`Rule "${rule.name}" saved`);
+    showToast(t('rules.ruleSaved', { name: rule.name }));
   };
 
   const deleteRule = async (id) => {
-    const ok = await confirm('Delete this rule?', { confirmLabel: 'Delete' });
+    const ok = await confirm(t('rules.deleteRuleConfirm'), { confirmLabel: t('common.delete') });
     if (!ok) return;
     persist(rules.filter((r) => r.id !== id));
   };
@@ -506,13 +514,13 @@ export default function Rules() {
   const handleExport = async () => {
     const r = await window.api.exportRules();
     if (r.cancelled) return;
-    showToast(r.ok ? 'Rules exported' : `${r.error}`);
+    showToast(r.ok ? t('rules.rulesExported') : `${r.error}`);
   };
 
   const handleImport = async () => {
     const r = await window.api.importRules();
     if (r.cancelled) return;
-    if (r.ok) { window.api.getRules().then(setRules); showToast(`${r.added} rules imported`); }
+    if (r.ok) { window.api.getRules().then(setRules); showToast(t('rules.rulesImported', { count: r.added })); }
     else showToast(`${r.error}`);
   };
 
@@ -527,15 +535,15 @@ export default function Rules() {
       if (!dest) return;
       action = { ...action, dest };
     }
-    persist([...rules, { id: Date.now(), presetId: preset.id, name: preset.name, conditions: preset.conditions, logic: preset.logic, action, enabled: true }]);
+    persist([...rules, { id: Date.now(), presetId: preset.id, name: t(preset.nameKey), conditions: preset.conditions, logic: preset.logic, action, enabled: true }]);
   };
 
   const importTemplate = (template) => {
     const existing = new Set(rules.map((r) => r.name.toLowerCase()));
     const newRules = template.rules.filter((r) => !existing.has(r.name.toLowerCase())).map((r) => ({ ...r, id: Date.now() + Math.random() }));
-    if (!newRules.length) { showToast('All rules from this template already exist'); return; }
+    if (!newRules.length) { showToast(t('rules.allTemplateRulesExist')); return; }
     persist([...rules, ...newRules]);
-    showToast(`${newRules.length} rule(s) imported from "${template.name}"`);
+    showToast(t('rules.templateImported', { count: newRules.length, name: t(template.nameKey) }));
   };
 
   return (
@@ -546,19 +554,19 @@ export default function Rules() {
           value={subView}
           onChange={setSubView}
           options={[
-            { value: 'run', label: 'Run', icon: Play },
-            { value: 'myrules', label: 'My rules', icon: List },
-            { value: 'templates', label: 'Templates', icon: LayoutTemplate }
+            { value: 'run', label: t('rules.tabRun'), icon: Play },
+            { value: 'myrules', label: t('rules.tabMyRules'), icon: List },
+            { value: 'templates', label: t('rules.tabTemplates'), icon: LayoutTemplate }
           ]}
         />
         <div className="flex items-center gap-1">
-          <button onClick={() => bulkToggle(true)} title="Enable all" className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-green"><CheckCircle2 size={15} /></button>
-          <button onClick={() => bulkToggle(false)} title="Disable all" className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Circle size={15} /></button>
+          <button onClick={() => bulkToggle(true)} title={t('rules.enableAll')} className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-green"><CheckCircle2 size={15} /></button>
+          <button onClick={() => bulkToggle(false)} title={t('rules.disableAll')} className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Circle size={15} /></button>
           <div className="mx-1 h-4 w-px bg-mfo-border" />
-          <button onClick={handleExport} title="Export" className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Download size={15} /></button>
-          <button onClick={handleImport} title="Import" className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Upload size={15} /></button>
+          <button onClick={handleExport} title={t('common.export')} className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Download size={15} /></button>
+          <button onClick={handleImport} title={t('common.import')} className="rounded p-1.5 text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"><Upload size={15} /></button>
           <div className="mx-1 h-4 w-px bg-mfo-border" />
-          <Button onClick={() => openEditor(null)} className="px-2.5 py-1.5 text-[12px]"><Plus size={13} />Add rule</Button>
+          <Button onClick={() => openEditor(null)} className="px-2.5 py-1.5 text-[12px]"><Plus size={13} />{t('rules.addRule')}</Button>
         </div>
       </Card>
 

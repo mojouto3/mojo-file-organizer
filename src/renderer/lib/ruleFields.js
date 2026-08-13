@@ -1,30 +1,30 @@
 export const FIELD_OPTIONS = [
-  { value: 'name', label: 'Name' },
-  { value: 'extension', label: 'Extension' },
-  { value: 'age', label: 'Age' },
-  { value: 'date_range', label: 'Date range' },
-  { value: 'size', label: 'Size' },
-  { value: 'content', label: 'Content' }
+  { value: 'name', labelKey: 'rules.fieldName' },
+  { value: 'extension', labelKey: 'rules.fieldExtension' },
+  { value: 'age', labelKey: 'rules.fieldAge' },
+  { value: 'date_range', labelKey: 'rules.fieldDateRange' },
+  { value: 'size', labelKey: 'rules.fieldSize' },
+  { value: 'content', labelKey: 'rules.fieldContent' }
 ];
 
 export const OPS_BY_FIELD = {
   name: [
-    { value: 'contains', label: 'contains' },
-    { value: 'not_contains', label: 'does not contain' },
-    { value: 'starts', label: 'starts with' },
-    { value: 'ends', label: 'ends with' }
+    { value: 'contains', labelKey: 'rules.opContains' },
+    { value: 'not_contains', labelKey: 'rules.opNotContains' },
+    { value: 'starts', labelKey: 'rules.opStarts' },
+    { value: 'ends', labelKey: 'rules.opEnds' }
   ],
   age: [
-    { value: 'gt', label: 'older than' },
-    { value: 'lt', label: 'newer than' }
+    { value: 'gt', labelKey: 'rules.opOlderThan' },
+    { value: 'lt', labelKey: 'rules.opNewerThan' }
   ],
   size: [
-    { value: 'gt', label: 'larger than' },
-    { value: 'lt', label: 'smaller than' }
+    { value: 'gt', labelKey: 'rules.opLargerThan' },
+    { value: 'lt', labelKey: 'rules.opSmallerThan' }
   ],
   content: [
-    { value: 'contains', label: 'contains' },
-    { value: 'not_contains', label: 'does not contain' }
+    { value: 'contains', labelKey: 'rules.opContains' },
+    { value: 'not_contains', labelKey: 'rules.opNotContains' }
   ]
 };
 
@@ -36,40 +36,40 @@ export function defaultCondition(field = 'name') {
   return { field, op: 'contains', value: '' };
 }
 
-export function summarizeCondition(c) {
+export function summarizeCondition(t, c) {
   switch (c.field) {
     case 'name': {
-      const op = OPS_BY_FIELD.name.find((o) => o.value === c.op)?.label || c.op;
-      return `name ${op} "${c.value}"`;
+      const op = OPS_BY_FIELD.name.find((o) => o.value === c.op);
+      return t('rules.summaryName', { op: op ? t(op.labelKey) : c.op, value: c.value });
     }
     case 'extension':
-      return `extension is ${c.value}`;
+      return t('rules.summaryExtension', { value: c.value });
     case 'age': {
-      const op = c.op === 'lt' ? 'newer than' : 'older than';
-      return `${op} ${c.value} ${c.unit}`;
+      const op = t(c.op === 'lt' ? 'rules.opNewerThan' : 'rules.opOlderThan');
+      return t('rules.summaryAge', { op, value: c.value, unit: c.unit });
     }
     case 'date_range':
-      return `dated ${c.valueFrom || '...'} to ${c.valueTo || '...'}`;
+      return t('rules.summaryDateRange', { from: c.valueFrom || '...', to: c.valueTo || '...' });
     case 'size': {
-      const op = c.op === 'lt' ? 'smaller than' : 'larger than';
-      return `${op} ${c.value} ${c.unit}`;
+      const op = t(c.op === 'lt' ? 'rules.opSmallerThan' : 'rules.opLargerThan');
+      return t('rules.summarySize', { op, value: c.value, unit: c.unit });
     }
     case 'content': {
-      const op = c.op === 'not_contains' ? 'does not contain' : 'contains';
-      return `content ${op} "${c.value}"`;
+      const op = t(c.op === 'not_contains' ? 'rules.opNotContains' : 'rules.opContains');
+      return t('rules.summaryContent', { op, value: c.value });
     }
     default:
       return '';
   }
 }
 
-export function summarizeRule(rule) {
-  const joiner = rule.logic === 'OR' ? ' OR ' : ' AND ';
-  const conditions = (rule.conditions || []).map(summarizeCondition).join(joiner);
+export function summarizeRule(t, rule) {
+  const joiner = rule.logic === 'OR' ? ` ${t('rules.logicOr')} ` : ` ${t('rules.logicAnd')} `;
+  const conditions = (rule.conditions || []).map((c) => summarizeCondition(t, c)).join(joiner);
   const action = rule.action?.type === 'move'
-    ? `Move to ${rule.action.dest || '(no folder set)'}`
+    ? t('rules.moveTo', { name: rule.action.dest || t('rules.noFolderSet') })
     : rule.action?.type === 'delete'
-      ? 'Delete'
-      : 'Rename';
-  return `IF ${conditions} → ${action}`;
+      ? t('common.delete')
+      : t('rules.rename');
+  return `${t('rules.summaryIf')} ${conditions} → ${action}`;
 }
