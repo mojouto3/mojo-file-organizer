@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Activity, ChevronRight, Eye, RefreshCw, SlidersHorizontal, TriangleAlert, Trash2, Zap } from 'lucide-react';
 import Card from '../components/Card.jsx';
@@ -7,7 +8,7 @@ import { basename, timeAgo } from '../lib/format.js';
 
 const WELL_KNOWN_FOLDERS = ['Downloads', 'Desktop', 'Documents', 'Pictures', 'Music'];
 
-const TYPE_LABEL = { rules: 'Rules', watcher: 'Watcher', cleanup: 'Cleanup' };
+const TYPE_LABEL_KEYS = { rules: 'nav.rules', watcher: 'nav.watcher', cleanup: 'nav.cleanup' };
 const TYPE_COLOR = {
   organize: 'bg-mfo-green/10 text-mfo-green',
   rules: 'bg-blue-500/10 text-blue-400',
@@ -50,6 +51,7 @@ function findCleanupReminder(sessions) {
 }
 
 function Sparkline({ weeklyTrend }) {
+  const { t } = useTranslation();
   if (!weeklyTrend.some((v) => v > 0)) return null;
   const max = Math.max(...weeklyTrend, 1);
   const w = 90, h = 24;
@@ -61,7 +63,7 @@ function Sparkline({ weeklyTrend }) {
 
   return (
     <div className="flex items-center gap-2.5 border-t border-mfo-border px-3.5 py-2">
-      <span className="shrink-0 text-[10px] text-mfo-text-dim">Last 8 weeks</span>
+      <span className="shrink-0 text-[10px] text-mfo-text-dim">{t('home.last8Weeks')}</span>
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
         <polyline points={points} fill="none" stroke="#3ddb3d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
@@ -73,6 +75,7 @@ function Sparkline({ weeklyTrend }) {
 }
 
 export default function Home({ onNavigate }) {
+  const { t } = useTranslation();
   const [state, setState] = useState(null);
 
   const load = () => {
@@ -111,7 +114,7 @@ export default function Home({ onNavigate }) {
   const reminder = findCleanupReminder(sessions);
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greeting = hour < 12 ? t('home.greetingMorning') : hour < 18 ? t('home.greetingAfternoon') : t('home.greetingEvening');
   const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
@@ -127,12 +130,12 @@ export default function Home({ onNavigate }) {
       >
         <div>
           <p className="text-base font-medium text-mfo-text">{greeting}{username ? `, ${username}` : ''}</p>
-          <p className="mt-0.5 text-xs text-mfo-text-dim">{dateStr}, here is your overview.</p>
+          <p className="mt-0.5 text-xs text-mfo-text-dim">{dateStr}, {t('home.overview')}</p>
         </div>
         <button
           onClick={load}
           className="rounded-lg p-2 text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
-          aria-label="Refresh"
+          aria-label={t('home.refresh')}
         >
           <RefreshCw size={15} />
         </button>
@@ -148,16 +151,16 @@ export default function Home({ onNavigate }) {
           <div className="flex-1">
             <p className="text-xs font-medium text-mfo-text">
               {basename(reminder.folder)} {reminder.neverCleaned
-                ? 'has never been cleaned'
-                : `hasn't been cleaned in ${reminder.days > 60 ? Math.floor(reminder.days / 30) + ' months' : reminder.days + ' days'}`}
+                ? t('home.reminderNeverCleaned')
+                : t('home.reminderNotCleanedIn', { time: reminder.days > 60 ? t('home.reminderMonths', { count: Math.floor(reminder.days / 30) }) : t('home.reminderDays', { count: reminder.days }) })}
             </p>
-            <p className="text-[11px] text-mfo-text-dim">Run a scan to find temp files, installers and empty folders.</p>
+            <p className="text-[11px] text-mfo-text-dim">{t('home.reminderHint')}</p>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onNavigate('cleanup'); }}
             className="flex shrink-0 items-center gap-1 rounded-lg border border-mfo-border px-2.5 py-1 text-xs text-mfo-text transition-colors hover:bg-mfo-surface2"
           >
-            <Trash2 size={12} />Clean now
+            <Trash2 size={12} />{t('home.cleanNow')}
           </button>
         </motion.div>
       )}
@@ -166,32 +169,32 @@ export default function Home({ onNavigate }) {
         <Card className="cursor-pointer overflow-hidden" onClick={() => onNavigate('organize')}>
           <div className="p-3.5">
             <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold tracking-wide text-mfo-green">
-              <Zap size={11} />QUICK ORGANIZE
+              <Zap size={11} />{t('home.quickOrganize')}
             </div>
-            <p className="text-[15px] font-semibold text-mfo-text">{basename(quickOrganizeFolder) || 'No folder selected'}</p>
+            <p className="text-[15px] font-semibold text-mfo-text">{basename(quickOrganizeFolder) || t('home.noFolderSelected')}</p>
             <p className="text-[11px] text-mfo-text-dim">
-              {lastOrganizeSession ? `Last organized ${timeAgo(lastOrganizeSession.timestamp)}` : 'Not organized yet'}
+              {lastOrganizeSession ? t('home.lastOrganized', { time: timeAgo(lastOrganizeSession.timestamp) }) : t('home.notOrganizedYet')}
             </p>
             <button
               onClick={(e) => { e.stopPropagation(); onNavigate('organize'); }}
               className="mt-2.5 flex items-center gap-1.5 rounded-lg bg-mfo-green px-3.5 py-1.5 text-[12.5px] font-medium text-black transition-colors hover:bg-mfo-green-hover"
             >
-              <Zap size={13} />Organize now
+              <Zap size={13} />{t('home.organizeNow')}
             </button>
           </div>
           <Sparkline weeklyTrend={stats.weeklyTrend || []} />
           <div className="flex border-t border-mfo-border">
             <div className="flex-1 border-r border-mfo-border py-2 text-center">
               <CountUp value={stats.totalFiles || 0} className="text-base font-semibold text-mfo-text" />
-              <p className="mt-0.5 text-[10px] text-mfo-text-dim">Files organized</p>
+              <p className="mt-0.5 text-[10px] text-mfo-text-dim">{t('home.filesOrganized')}</p>
             </div>
             <div className="flex-1 border-r border-mfo-border py-2 text-center">
               <CountUp value={stats.totalSessions || 0} className="text-base font-semibold text-mfo-text" />
-              <p className="mt-0.5 text-[10px] text-mfo-text-dim">Sessions</p>
+              <p className="mt-0.5 text-[10px] text-mfo-text-dim">{t('home.sessions')}</p>
             </div>
             <div className="flex-1 py-2 text-center">
               <CountUp value={stats.rulesStats?.total || 0} className="text-base font-semibold text-mfo-green" />
-              <p className="mt-0.5 text-[10px] text-mfo-text-dim">Via rules</p>
+              <p className="mt-0.5 text-[10px] text-mfo-text-dim">{t('home.viaRules')}</p>
             </div>
           </div>
         </Card>
@@ -202,16 +205,16 @@ export default function Home({ onNavigate }) {
           <Card className="cursor-pointer overflow-hidden" onClick={() => onNavigate('rules')}>
             <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2">
               <SlidersHorizontal size={13} className="text-mfo-text-dim" />
-              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">RULES</span>
+              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">{t('home.rules')}</span>
               <span
                 onClick={(e) => { e.stopPropagation(); onNavigate('rules'); }}
                 className="flex items-center gap-0.5 text-[11px] text-mfo-text-dim hover:text-mfo-green"
               >
-                Run all<ChevronRight size={11} />
+                {t('home.runAll')}<ChevronRight size={11} />
               </span>
             </div>
             {enabledRules.length === 0 && !disabledRule && (
-              <p className="px-3.5 py-2 text-[11px] text-mfo-text-dim">No rules configured</p>
+              <p className="px-3.5 py-2 text-[11px] text-mfo-text-dim">{t('home.noRulesConfigured')}</p>
             )}
             {enabledRules.slice(0, 3).map((r) => {
               const rSession = sessions.find((s) => s.type === 'rules' && s.results?.some((res) => res.rule === r.name));
@@ -227,7 +230,7 @@ export default function Home({ onNavigate }) {
               <div className="flex items-center gap-2 px-3.5 py-1.5">
                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-mfo-border" />
                 <span className="flex-1 truncate text-[11px] text-mfo-text-dim">{disabledRule.name}</span>
-                <span className="shrink-0 text-[10px] text-mfo-text-dim">Disabled</span>
+                <span className="shrink-0 text-[10px] text-mfo-text-dim">{t('home.disabled')}</span>
               </div>
             )}
           </Card>
@@ -237,18 +240,18 @@ export default function Home({ onNavigate }) {
           <Card className="cursor-pointer overflow-hidden" onClick={() => onNavigate('watcher')}>
             <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2">
               <Eye size={13} className="text-mfo-text-dim" />
-              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">WATCHER</span>
-              <span className="flex items-center gap-0.5 text-[11px] text-mfo-text-dim">View<ChevronRight size={11} /></span>
+              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">{t('home.watcher')}</span>
+              <span className="flex items-center gap-0.5 text-[11px] text-mfo-text-dim">{t('home.view')}<ChevronRight size={11} /></span>
             </div>
             <div className="px-3.5 py-2.5">
               <div className="mb-1 flex items-center gap-2">
                 <span
                   className={`h-2 w-2 shrink-0 rounded-full ${watcherStatus.active ? 'bg-mfo-green shadow-[0_0_6px_#3ddb3d]' : 'bg-mfo-border'}`}
                 />
-                <span className="text-xs font-medium text-mfo-text">{watcherStatus.active ? 'Active' : 'Inactive'}</span>
+                <span className="text-xs font-medium text-mfo-text">{watcherStatus.active ? t('watcher.active') : t('home.inactive')}</span>
               </div>
               <p className="truncate text-[11px] text-mfo-text-dim">
-                {watcherStatus.active && watcherStatus.folder ? watcherStatus.folder : 'Not monitoring'}
+                {watcherStatus.active && watcherStatus.folder ? watcherStatus.folder : t('home.notMonitoring')}
               </p>
             </div>
           </Card>
@@ -260,16 +263,16 @@ export default function Home({ onNavigate }) {
           <Card className="cursor-pointer overflow-hidden" onClick={() => onNavigate('activity')}>
             <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2">
               <Activity size={13} className="text-mfo-text-dim" />
-              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">RECENT ACTIVITY</span>
-              <span className="flex items-center gap-0.5 text-[11px] text-mfo-text-dim">View all<ChevronRight size={11} /></span>
+              <span className="flex-1 text-[10px] font-semibold tracking-wide text-mfo-text-dim">{t('home.recentActivity')}</span>
+              <span className="flex items-center gap-0.5 text-[11px] text-mfo-text-dim">{t('home.viewAll')}<ChevronRight size={11} /></span>
             </div>
             {recentSessions.map((s) => (
               <div key={s.id} className="flex items-center gap-2.5 border-b border-mfo-border px-3.5 py-2 last:border-0 hover:bg-mfo-surface2">
                 <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${TYPE_COLOR[s.type] || TYPE_COLOR.organize}`}>
-                  {TYPE_LABEL[s.type] || 'Organize'}
+                  {TYPE_LABEL_KEYS[s.type] ? t(TYPE_LABEL_KEYS[s.type]) : t('nav.organize')}
                 </span>
                 <span className="flex-1 truncate text-[11px] text-mfo-text">{basename(s.folder)}</span>
-                <span className="shrink-0 text-[10px] text-mfo-text-dim">{sessionFileCount(s)} files, {timeAgo(s.timestamp)}</span>
+                <span className="shrink-0 text-[10px] text-mfo-text-dim">{t('home.filesTimeAgo', { count: sessionFileCount(s), time: timeAgo(s.timestamp) })}</span>
               </div>
             ))}
           </Card>
