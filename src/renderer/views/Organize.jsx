@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import {
   Activity, Archive, Calendar, CalendarCheck, CalendarX, CheckCircle2, Code, Download,
@@ -29,6 +30,7 @@ function groupByCategory(items) {
 }
 
 function CategoryCard({ category, items, mode }) {
+  const { t } = useTranslation();
   const Icon = getCatIcon(category);
   return (
     <div className="glass-card rounded-xl p-3">
@@ -36,7 +38,7 @@ function CategoryCard({ category, items, mode }) {
         <Icon size={15} className="text-mfo-green" />
         <span className="text-[12.5px] font-medium text-mfo-text">{category}</span>
         <span className="ml-auto text-[11px] text-mfo-text-dim">
-          {items.length} {items.length === 1 ? 'file' : 'files'}
+          {t('organize.file', { count: items.length })}
         </span>
       </div>
       {mode === 'preview' ? (
@@ -45,17 +47,18 @@ function CategoryCard({ category, items, mode }) {
             <p key={f.name} className="truncate text-[11px] text-mfo-text-dim">{f.name}</p>
           ))}
           {!items.showAll && items.length > 3 && (
-            <p className="text-[11px] text-mfo-text-dim">+{items.length - 3} more</p>
+            <p className="text-[11px] text-mfo-text-dim">{t('organize.moreFiles', { count: items.length - 3 })}</p>
           )}
         </div>
       ) : (
-        <p className="text-[11px] text-mfo-text-dim">{items.length} file{items.length !== 1 ? 's' : ''} moved</p>
+        <p className="text-[11px] text-mfo-text-dim">{t('organize.fileMoved', { count: items.length })}</p>
       )}
     </div>
   );
 }
 
 function OrganizeSubView({ onNavigate }) {
+  const { t } = useTranslation();
   const [currentFolder, setCurrentFolder] = useState(null);
   const [previewFiles, setPreviewFiles] = useState([]);
   const [search, setSearch] = useState('');
@@ -68,7 +71,7 @@ function OrganizeSubView({ onNavigate }) {
 
   const loadPreview = async (folder) => {
     const files = await window.api.preview(folder);
-    if (!files.length) { showToast('No sortable files found!'); return; }
+    if (!files.length) { showToast(t('organize.noSortableFiles')); return; }
     setPreviewFiles(files);
     setSearch('');
     setPhase('preview');
@@ -102,14 +105,14 @@ function OrganizeSubView({ onNavigate }) {
     setLastMoves(result.moved);
     setMovedFiles(result.moved);
     setPhase('results');
-    if (result.errors?.length) showToast(`${result.errors.length} error(s)`);
+    if (result.errors?.length) showToast(t('organize.errorCount', { count: result.errors.length }));
   };
 
   const handleUndo = async () => {
-    if (!lastMoves.length) { showToast('Nothing to undo'); return; }
+    if (!lastMoves.length) { showToast(t('organize.nothingToUndo')); return; }
     const r = await window.api.undo(lastMoves);
     setLastMoves([]);
-    showToast(`Restored ${r.restored.length} file(s)`);
+    showToast(t('organize.restoredFiles', { count: r.restored.length }));
     reset();
   };
 
@@ -125,7 +128,7 @@ function OrganizeSubView({ onNavigate }) {
       <Card className="p-3.5">
         <FolderPicker value={currentFolder} onPick={handleSetFolder} />
         <Button onClick={handleOrganize} disabled={!currentFolder} className="mt-3">
-          <Zap size={14} />Organize all
+          <Zap size={14} />{t('organize.organizeAll')}
         </Button>
       </Card>
 
@@ -134,8 +137,8 @@ function OrganizeSubView({ onNavigate }) {
           <button onClick={() => window.api.pickFolder().then((f) => f && handleSetFolder(f))}>
             <FolderOpen size={32} className="text-mfo-text-dim" />
           </button>
-          <p className="text-sm font-medium text-mfo-text">Select a folder to get started</p>
-          <p className="text-xs text-mfo-text-dim">Choose any folder and MFO will preview what will be organized.</p>
+          <p className="text-sm font-medium text-mfo-text">{t('organize.selectFolderTitle')}</p>
+          <p className="text-xs text-mfo-text-dim">{t('organize.selectFolderHint')}</p>
         </Card>
       )}
 
@@ -146,17 +149,17 @@ function OrganizeSubView({ onNavigate }) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search files in preview..."
+              placeholder={t('organize.searchPlaceholder')}
               className="flex-1 bg-transparent text-[12.5px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
             />
             <span className="shrink-0 text-[11px] text-mfo-text-dim">
-              {search ? `${filteredFiles.length} of ${previewFiles.length} files` : `${previewFiles.length} files`}
+              {search ? t('organize.filesOfTotal', { count: filteredFiles.length, total: previewFiles.length }) : t('organize.file', { count: previewFiles.length })}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-2.5 p-3.5">
             {Object.keys(previewGroups).length === 0 ? (
-              <p className="col-span-2 py-4 text-center text-[12px] text-mfo-text-dim">No files match "{search}"</p>
+              <p className="col-span-2 py-4 text-center text-[12px] text-mfo-text-dim">{t('organize.noFilesMatch', { term: search })}</p>
             ) : (
               Object.entries(previewGroups).map(([cat, items]) => (
                 <CategoryCard key={cat} category={cat} items={items} mode="preview" />
@@ -177,8 +180,8 @@ function OrganizeSubView({ onNavigate }) {
           )}
 
           <div className="flex gap-2 border-t border-mfo-border p-3.5">
-            <Button onClick={handleOrganize} disabled={organizing}><Zap size={14} />Organize now</Button>
-            <Button variant="outline" onClick={reset}>Cancel</Button>
+            <Button onClick={handleOrganize} disabled={organizing}><Zap size={14} />{t('organize.organizeNow')}</Button>
+            <Button variant="outline" onClick={reset}>{t('common.cancel')}</Button>
           </div>
         </Card>
       )}
@@ -187,8 +190,8 @@ function OrganizeSubView({ onNavigate }) {
         <Card className="overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
             <CheckCircle2 size={15} className="text-mfo-green" />
-            <span className="text-[13px] font-medium text-mfo-text">Done!</span>
-            <span className="ml-auto text-[11px] text-mfo-text-dim">{movedFiles.length} moved</span>
+            <span className="text-[13px] font-medium text-mfo-text">{t('organize.done')}</span>
+            <span className="ml-auto text-[11px] text-mfo-text-dim">{t('organize.moved', { count: movedFiles.length })}</span>
           </div>
           <div className="grid grid-cols-2 gap-2.5 p-3.5">
             {Object.entries(resultGroups).map(([cat, items]) => (
@@ -196,9 +199,9 @@ function OrganizeSubView({ onNavigate }) {
             ))}
           </div>
           <div className="flex gap-2 border-t border-mfo-border p-3.5">
-            <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />Undo</Button>
-            <Button variant="outline" onClick={() => onNavigate('activity')}><Activity size={14} />View history</Button>
-            <Button variant="primary" onClick={reset}>Organize another</Button>
+            <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />{t('common.undo')}</Button>
+            <Button variant="outline" onClick={() => onNavigate('activity')}><Activity size={14} />{t('organize.viewHistory')}</Button>
+            <Button variant="primary" onClick={reset}>{t('organize.organizeAnother')}</Button>
           </div>
         </Card>
       )}
@@ -207,6 +210,7 @@ function OrganizeSubView({ onNavigate }) {
 }
 
 function ScheduleSubView() {
+  const { t } = useTranslation();
   const [folder, setFolder] = useState(null);
   const [days, setDays] = useState([]);
   const [time, setTime] = useState('09:00');
@@ -232,15 +236,15 @@ function ScheduleSubView() {
   const toggleDay = (day) => setDays((d) => (d.includes(day) ? d.filter((x) => x !== day) : [...d, day]));
 
   const enable = async () => {
-    if (!days.length) { showToast('Select at least one day!'); return; }
-    if (!folder) { showToast('Select a folder first!'); return; }
+    if (!days.length) { showToast(t('organize.selectDayFirst')); return; }
+    if (!folder) { showToast(t('common.selectFolderFirst')); return; }
     const settings = await window.api.getSettings();
     settings.schedule = { ...settings.schedule, enabled: true, days, time, folder };
     await window.api.saveSettings(settings);
     const result = await window.api.schedule({ days, time, folder });
     setMsg(result.ok
-      ? { ok: true, text: `Scheduled, ${days.join(', ')} at ${time}` }
-      : { ok: false, text: 'Failed, try running as Administrator' });
+      ? { ok: true, text: t('organize.scheduled', { days: days.join(', '), time }) }
+      : { ok: false, text: t('organize.scheduleFailed') });
   };
 
   const disable = async () => {
@@ -248,29 +252,29 @@ function ScheduleSubView() {
     const settings = await window.api.getSettings();
     settings.schedule = { ...settings.schedule, enabled: false };
     window.api.saveSettings(settings);
-    setMsg({ ok: true, text: 'Auto-run disabled' });
+    setMsg({ ok: true, text: t('organize.autoRunDisabled') });
   };
 
   return (
     <Card className="p-3.5">
       <div className="mb-1 flex items-center gap-2">
         <Calendar size={15} className="text-mfo-green" />
-        <span className="text-[13px] font-medium text-mfo-text">Auto-schedule</span>
+        <span className="text-[13px] font-medium text-mfo-text">{t('organize.autoSchedule')}</span>
       </div>
-      <p className="mb-3 text-[11.5px] text-mfo-text-dim">Organize this folder automatically on selected days and time.</p>
+      <p className="mb-3 text-[11.5px] text-mfo-text-dim">{t('organize.autoScheduleDesc')}</p>
 
       <div className="flex items-center gap-1.5 rounded-lg border border-mfo-border px-2 py-1.5">
         <input
           readOnly
           value={folder || ''}
-          placeholder="Select folder to auto-organize..."
+          placeholder={t('organize.selectAutoOrganizeFolder')}
           className="min-w-0 flex-1 bg-transparent px-1 text-[13px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
         />
         <button
           onClick={pickFolder}
           className="flex items-center gap-1 rounded-md border border-mfo-border px-2 py-1 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"
         >
-          <FolderOpen size={13} />Browse
+          <FolderOpen size={13} />{t('common.browse')}
         </button>
       </div>
 
@@ -296,8 +300,8 @@ function ScheduleSubView() {
       />
 
       <div className="mt-3 flex gap-2">
-        <Button onClick={enable}><CalendarCheck size={14} />Enable</Button>
-        <Button variant="outline" onClick={disable}><CalendarX size={14} />Disable</Button>
+        <Button onClick={enable}><CalendarCheck size={14} />{t('common.enable')}</Button>
+        <Button variant="outline" onClick={disable}><CalendarX size={14} />{t('common.disable')}</Button>
       </div>
 
       {msg && (
@@ -310,13 +314,14 @@ function ScheduleSubView() {
 }
 
 function BatchSubView() {
+  const { t } = useTranslation();
   const [folders, setFolders] = useState([]);
   const [statuses, setStatuses] = useState({});
   const [overallStatus, setOverallStatus] = useState('');
   const [running, setRunning] = useState(false);
 
   const addFolder = (folder) => {
-    if (folders.includes(folder)) { showToast('Folder already in list'); return; }
+    if (folders.includes(folder)) { showToast(t('organize.folderAlreadyInList')); return; }
     setFolders((f) => [...f, folder]);
   };
 
@@ -325,23 +330,23 @@ function BatchSubView() {
   const removeFolder = (idx) => setFolders((f) => f.filter((_, i) => i !== idx));
 
   const organizeBatch = async () => {
-    if (!folders.length) { showToast('No folders added'); return; }
+    if (!folders.length) { showToast(t('organize.noFoldersAdded')); return; }
     setRunning(true);
     let total = 0;
     for (let i = 0; i < folders.length; i++) {
-      setOverallStatus(`Organizing ${i + 1}/${folders.length}...`);
+      setOverallStatus(t('organize.organizingProgress', { current: i + 1, total: folders.length }));
       setStatuses((s) => ({ ...s, [i]: { type: 'active', text: '...' } }));
       try {
         const result = await window.api.organize(folders[i]);
         const moved = result.moved?.length || 0;
         total += moved;
-        setStatuses((s) => ({ ...s, [i]: { type: 'done', text: `✓ ${moved} moved` } }));
+        setStatuses((s) => ({ ...s, [i]: { type: 'done', text: `✓ ${t('organize.fileMoved', { count: moved })}` } }));
       } catch {
-        setStatuses((s) => ({ ...s, [i]: { type: 'error', text: '✗ error' } }));
+        setStatuses((s) => ({ ...s, [i]: { type: 'error', text: `✗ ${t('organize.batchError')}` } }));
       }
     }
-    setOverallStatus(`✓ Done! ${total} files organized`);
-    showToast(`✓ ${total} files organized`);
+    setOverallStatus(`✓ ${t('organize.doneFilesOrganized', { count: total })}`);
+    showToast(`✓ ${t('organize.doneFilesOrganized', { count: total })}`);
     setRunning(false);
     setFolders([]);
     setStatuses({});
@@ -354,20 +359,20 @@ function BatchSubView() {
           onClick={pickFolder}
           className="flex items-center gap-1.5 rounded-md border border-mfo-border px-2.5 py-1.5 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"
         >
-          <FolderPlus size={14} />Add folder
+          <FolderPlus size={14} />{t('organize.addFolder')}
         </button>
         <button
           onClick={addDownloads}
           className="flex items-center gap-1.5 rounded-md border border-mfo-border px-2.5 py-1.5 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text"
         >
-          <Download size={14} />Downloads
+          <Download size={14} />{t('common.downloads')}
         </button>
       </div>
 
       <BatchFolderList folders={folders} statuses={statuses} onRemove={removeFolder} />
 
       <div className="mt-3 flex items-center gap-3">
-        <Button onClick={organizeBatch} disabled={running}><Zap size={14} />Organize all</Button>
+        <Button onClick={organizeBatch} disabled={running}><Zap size={14} />{t('organize.organizeAll')}</Button>
         {overallStatus && <span className="text-[12px] text-mfo-text-dim">{overallStatus}</span>}
       </div>
     </Card>
@@ -375,6 +380,7 @@ function BatchSubView() {
 }
 
 export default function Organize({ onNavigate }) {
+  const { t } = useTranslation();
   const [subView, setSubView] = useState('organize');
 
   return (
@@ -384,9 +390,9 @@ export default function Organize({ onNavigate }) {
         value={subView}
         onChange={setSubView}
         options={[
-          { value: 'organize', label: 'Organize', icon: FolderOpen },
-          { value: 'schedule', label: 'Schedule', icon: Calendar },
-          { value: 'batch', label: 'Batch', icon: Layers }
+          { value: 'organize', label: t('organize.tabOrganize'), icon: FolderOpen },
+          { value: 'schedule', label: t('organize.tabSchedule'), icon: Calendar },
+          { value: 'batch', label: t('organize.tabBatch'), icon: Layers }
         ]}
       />
       {subView === 'organize' && <OrganizeSubView onNavigate={onNavigate} />}
