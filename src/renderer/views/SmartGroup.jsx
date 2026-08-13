@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ArrowRight, CheckCircle2, Download, FolderSearch, Layers, Plus, Undo2, Upload, X
 } from 'lucide-react';
@@ -14,6 +15,7 @@ function groupByGroup(items) {
 }
 
 export default function SmartGroup() {
+  const { t } = useTranslation();
   const [folder, setFolder] = useState(null);
   const [groups, setGroups] = useState([]);
   const [nameInput, setNameInput] = useState('');
@@ -28,12 +30,12 @@ export default function SmartGroup() {
   const addGroup = () => {
     const name = nameInput.trim();
     if (!name) return;
-    if (groups.some((g) => g.name.toLowerCase() === name.toLowerCase())) { showToast('Already exists!'); return; }
+    if (groups.some((g) => g.name.toLowerCase() === name.toLowerCase())) { showToast(t('smartGroup.alreadyExists')); return; }
     const next = [...groups, { name }];
     setGroups(next);
     window.api.saveGroups(next);
     setNameInput('');
-    showToast(`"${name}" added`);
+    showToast(t('smartGroup.groupAdded', { name }));
   };
 
   const removeGroup = (i) => {
@@ -41,13 +43,13 @@ export default function SmartGroup() {
     const next = groups.filter((_, idx) => idx !== i);
     setGroups(next);
     window.api.saveGroups(next);
-    showToast(`"${removed.name}" removed`);
+    showToast(t('smartGroup.groupRemoved', { name: removed.name }));
   };
 
   const runPreview = async (targetFolder) => {
-    if (groups.length === 0) { showToast('Add at least one group first!'); return; }
+    if (groups.length === 0) { showToast(t('smartGroup.addGroupFirst')); return; }
     const files = await window.api.previewGroups(targetFolder);
-    if (!files.length) { showToast('No matching files found!'); return; }
+    if (!files.length) { showToast(t('smartGroup.noMatchingFiles')); return; }
     setPreviewFiles(files);
     setPhase('preview');
   };
@@ -71,19 +73,19 @@ export default function SmartGroup() {
     setLastMoves(result.moved);
     setMovedFiles(result.moved);
     setPhase('results');
-    if (result.errors?.length) showToast(`${result.errors.length} error(s)`);
+    if (result.errors?.length) showToast(t('organize.errorCount', { count: result.errors.length }));
   };
 
   const handleUndo = async () => {
     const r = await window.api.undo(lastMoves);
-    showToast(`Restored ${r.restored.length} file(s)`);
+    showToast(t('organize.restoredFiles', { count: r.restored.length }));
     reset();
   };
 
   const handleExport = async () => {
     const result = await window.api.exportGroups();
     if (result.cancelled) return;
-    showToast(result.ok ? 'Groups exported' : `${result.error}`);
+    showToast(result.ok ? t('smartGroup.groupsExported') : `${result.error}`);
   };
 
   const handleImport = async () => {
@@ -91,7 +93,7 @@ export default function SmartGroup() {
     if (result.cancelled) return;
     if (result.ok) {
       window.api.getGroups().then(setGroups);
-      showToast(`${result.added} groups imported`);
+      showToast(t('smartGroup.groupsImported', { count: result.added }));
     } else {
       showToast(`${result.error}`);
     }
@@ -104,7 +106,7 @@ export default function SmartGroup() {
       <Card className="p-3.5">
         <div className="mb-2 flex items-center gap-2">
           <FolderSearch size={15} className="text-mfo-green" />
-          <span className="text-[13px] font-medium text-mfo-text">Select folder</span>
+          <span className="text-[13px] font-medium text-mfo-text">{t('duplicates.selectFolder')}</span>
         </div>
         <FolderPicker value={folder} onPick={handleSetFolder} />
       </Card>
@@ -113,12 +115,12 @@ export default function SmartGroup() {
         <div className="mb-2.5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers size={15} className="text-mfo-green" />
-            <span className="text-[13px] font-medium text-mfo-text">Groups</span>
+            <span className="text-[13px] font-medium text-mfo-text">{t('smartGroup.groups')}</span>
             <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">{groups.length}</span>
           </div>
           <div className="flex gap-1.5">
-            <Button variant="outline" onClick={handleExport} className="px-2.5 py-1 text-[11px]"><Download size={12} />Export</Button>
-            <Button variant="outline" onClick={handleImport} className="px-2.5 py-1 text-[11px]"><Upload size={12} />Import</Button>
+            <Button variant="outline" onClick={handleExport} className="px-2.5 py-1 text-[11px]"><Download size={12} />{t('common.export')}</Button>
+            <Button variant="outline" onClick={handleImport} className="px-2.5 py-1 text-[11px]"><Upload size={12} />{t('common.import')}</Button>
           </div>
         </div>
 
@@ -127,10 +129,10 @@ export default function SmartGroup() {
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addGroup()}
-            placeholder="e.g. Work, Personal, Downloads..."
+            placeholder={t('smartGroup.namePlaceholder')}
             className="flex-1 rounded-lg border border-mfo-border bg-transparent px-2.5 py-1.5 text-[12.5px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
           />
-          <Button onClick={addGroup} className="px-3"><Plus size={14} />Add</Button>
+          <Button onClick={addGroup} className="px-3"><Plus size={14} />{t('common.add')}</Button>
         </div>
 
         {groups.length > 0 && (
@@ -138,7 +140,7 @@ export default function SmartGroup() {
             {groups.map((g, i) => (
               <span key={g.name} className="flex items-center gap-1.5 rounded-full border border-mfo-border px-2.5 py-1 text-[11.5px] text-mfo-text">
                 {g.name}
-                <button onClick={() => removeGroup(i)} className="text-mfo-text-dim hover:text-mfo-danger" aria-label="Remove group">
+                <button onClick={() => removeGroup(i)} className="text-mfo-text-dim hover:text-mfo-danger" aria-label={t('smartGroup.removeGroup')}>
                   <X size={11} />
                 </button>
               </span>
@@ -150,8 +152,8 @@ export default function SmartGroup() {
       {phase === 'preview' && (
         <Card className="overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
-            <span className="text-[13px] font-medium text-mfo-text">Preview</span>
-            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">{previewFiles.length} files</span>
+            <span className="text-[13px] font-medium text-mfo-text">{t('common.preview')}</span>
+            <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">{t('organize.file', { count: previewFiles.length })}</span>
           </div>
           <div className="flex flex-col divide-y divide-mfo-border">
             {previewFiles.map((f) => (
@@ -163,8 +165,8 @@ export default function SmartGroup() {
             ))}
           </div>
           <div className="flex gap-2 border-t border-mfo-border p-3.5">
-            <Button onClick={handleOrganize} disabled={organizing}>{organizing ? 'Organizing...' : 'Organize now'}</Button>
-            <Button variant="outline" onClick={reset}>Cancel</Button>
+            <Button onClick={handleOrganize} disabled={organizing}>{organizing ? t('smartGroup.organizing') : t('organize.organizeNow')}</Button>
+            <Button variant="outline" onClick={reset}>{t('common.cancel')}</Button>
           </div>
         </Card>
       )}
@@ -173,8 +175,8 @@ export default function SmartGroup() {
         <Card className="overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
             <CheckCircle2 size={15} className="text-mfo-green" />
-            <span className="text-[13px] font-medium text-mfo-text">Done!</span>
-            <span className="ml-auto text-[11px] text-mfo-text-dim">{movedFiles.length} moved</span>
+            <span className="text-[13px] font-medium text-mfo-text">{t('organize.done')}</span>
+            <span className="ml-auto text-[11px] text-mfo-text-dim">{t('organize.moved', { count: movedFiles.length })}</span>
           </div>
           <div className="grid grid-cols-2 gap-2.5 p-3.5">
             {Object.entries(resultGroups).map(([group, items]) => (
@@ -182,15 +184,15 @@ export default function SmartGroup() {
                 <div className="mb-1.5 flex items-center gap-2">
                   <Layers size={15} className="text-mfo-green" />
                   <span className="text-[12.5px] font-medium text-mfo-text">{group}</span>
-                  <span className="ml-auto text-[11px] text-mfo-text-dim">{items.length} {items.length === 1 ? 'file' : 'files'}</span>
+                  <span className="ml-auto text-[11px] text-mfo-text-dim">{t('organize.file', { count: items.length })}</span>
                 </div>
-                <p className="text-[11px] text-mfo-text-dim">{items.length} file{items.length !== 1 ? 's' : ''} moved</p>
+                <p className="text-[11px] text-mfo-text-dim">{t('organize.fileMoved', { count: items.length })}</p>
               </div>
             ))}
           </div>
           <div className="flex gap-2 border-t border-mfo-border p-3.5">
-            <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />Undo</Button>
-            <Button variant="primary" onClick={reset}>Organize another</Button>
+            <Button variant="outline" onClick={handleUndo}><Undo2 size={14} />{t('common.undo')}</Button>
+            <Button variant="primary" onClick={reset}>{t('organize.organizeAnother')}</Button>
           </div>
         </Card>
       )}
