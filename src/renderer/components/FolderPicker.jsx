@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookmarkPlus, Download, FolderOpen, Star, X } from 'lucide-react';
 import { showToast } from '../lib/toast.js';
@@ -6,11 +7,13 @@ import { showToast } from '../lib/toast.js';
 export default function FolderPicker({
   value,
   onPick,
-  placeholder = 'Choose a folder...',
+  placeholder,
   showBookmarks = true,
   showRecent = true,
   dragDrop = true
 }) {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder || t('folderPicker.placeholder');
   const [bookmarks, setBookmarks] = useState([]);
   const [recentFolders, setRecentFolders] = useState([]);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -37,14 +40,14 @@ export default function FolderPicker({
   const handleDownloads = () => window.api.getDownloads().then((f) => f && pick(f));
 
   const handleBookmarkCurrent = () => {
-    if (!value) { showToast('Select a folder first!'); return; }
+    if (!value) { showToast(t('common.selectFolderFirst')); return; }
     window.api.addBookmark(value).then(setBookmarks);
-    showToast('Bookmark added!');
+    showToast(t('folderPicker.bookmarkAdded'));
   };
 
   const handleRemoveBookmark = (id) => {
     window.api.removeBookmark(id).then(setBookmarks);
-    showToast('Bookmark removed');
+    showToast(t('folderPicker.bookmarkRemoved'));
   };
 
   useEffect(() => {
@@ -84,20 +87,20 @@ export default function FolderPicker({
         <input
           readOnly
           value={value || ''}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           className="min-w-0 flex-1 bg-transparent px-1 text-[13px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
         />
         <button
           onClick={handleBrowse}
           className="flex items-center gap-1 rounded-md border border-mfo-border px-2 py-1 text-xs text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
         >
-          <FolderOpen size={13} />Browse
+          <FolderOpen size={13} />{t('common.browse')}
         </button>
         <button
           onClick={handleDownloads}
           className="flex items-center gap-1 rounded-md border border-mfo-border px-2 py-1 text-xs text-mfo-text-dim transition-colors hover:bg-mfo-surface2 hover:text-mfo-text"
         >
-          <Download size={13} />Downloads
+          <Download size={13} />{t('common.downloads')}
         </button>
         {showBookmarks && (
           <button
@@ -105,7 +108,7 @@ export default function FolderPicker({
             className={`rounded-md border p-1.5 transition-colors ${
               panelOpen ? 'border-mfo-green text-mfo-green' : 'border-mfo-border text-mfo-text-dim hover:text-mfo-text'
             }`}
-            aria-label="Bookmarks"
+            aria-label={t('folderPicker.bookmarks')}
           >
             <Star size={13} />
           </button>
@@ -114,7 +117,7 @@ export default function FolderPicker({
 
       {showRecent && recentFolders.length > 0 && (
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] text-mfo-text-dim">Recent:</span>
+          <span className="text-[10px] text-mfo-text-dim">{t('common.recent')}</span>
           {recentFolders.map((f) => (
             <button
               key={f.path}
@@ -142,11 +145,11 @@ export default function FolderPicker({
                 onClick={handleBookmarkCurrent}
                 className="flex items-center gap-1.5 rounded-md bg-mfo-green px-2.5 py-1 text-xs font-medium text-black hover:bg-mfo-green-hover"
               >
-                <BookmarkPlus size={13} />Bookmark current folder
+                <BookmarkPlus size={13} />{t('folderPicker.bookmarkCurrent')}
               </button>
             </div>
             {bookmarks.length === 0 ? (
-              <p className="px-3 pb-2.5 text-[11px] text-mfo-text-dim">No bookmarks yet.</p>
+              <p className="px-3 pb-2.5 text-[11px] text-mfo-text-dim">{t('folderPicker.noBookmarks')}</p>
             ) : (
               bookmarks.map((b) => (
                 <div
@@ -160,7 +163,7 @@ export default function FolderPicker({
                   <button
                     onClick={(e) => { e.stopPropagation(); handleRemoveBookmark(b.id); }}
                     className="shrink-0 text-mfo-text-dim hover:text-mfo-danger"
-                    aria-label="Remove bookmark"
+                    aria-label={t('folderPicker.removeBookmark')}
                   >
                     <X size={12} />
                   </button>

@@ -5,6 +5,7 @@ import {
   LayoutTemplate, Package, Pencil, RefreshCw, Settings2, ShieldOff, SlidersHorizontal,
   Sparkles, Trash2, Undo2, Wand2, Zap
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { applyTheme } from '../lib/theme.js';
 
 const LANGUAGES = [
@@ -83,6 +84,7 @@ const STEPS = [
 ];
 
 export default function OnboardingOverlay({ open, onComplete }) {
+  const { i18n } = useTranslation();
   const [step, setStep] = useState(0);
   const [theme, setThemeState] = useState('dark');
   const [language, setLanguage] = useState('en');
@@ -90,6 +92,7 @@ export default function OnboardingOverlay({ open, onComplete }) {
   if (!open) return null;
 
   const finish = () => {
+    i18n.changeLanguage(language);
     window.api.getSettings().then((s) => {
       s.onboardingComplete = true;
       s.theme = theme;

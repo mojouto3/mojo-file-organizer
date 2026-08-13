@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Archive, Bell, Code, Database, Download, FileText, Folder, FolderOpen,
   Image, Info, Layers, Music, Package, Palette, Pencil, Plus, RefreshCw, ShieldOff,
@@ -138,7 +139,16 @@ function AppearanceSection() {
   );
 }
 
+const LANGUAGES = [
+  { value: 'en', label: 'English' },
+  { value: 'gr', label: 'Ελληνικά' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' },
+  { value: 'ru', label: 'Русский' }
+];
+
 function GeneralSection() {
+  const { i18n } = useTranslation();
   const [settings, setSettings] = useState(null);
 
   const load = () => window.api.getSettings().then(setSettings);
@@ -148,6 +158,11 @@ function GeneralSection() {
     const next = { ...settings, ...patch };
     setSettings(next);
     window.api.saveSettings(next);
+  };
+
+  const setLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+    update({ language: lang });
   };
 
   const pickDefaultFolder = () => window.api.pickFolder().then((f) => f && update({ defaultFolder: f }));
@@ -173,6 +188,22 @@ function GeneralSection() {
 
   return (
     <div className="flex flex-col gap-3">
+      <SectionCard title="Language">
+        <div className="flex flex-wrap gap-1.5">
+          {LANGUAGES.map((l) => (
+            <button
+              key={l.value}
+              onClick={() => setLanguage(l.value)}
+              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                i18n.language === l.value ? 'border-mfo-green bg-mfo-green/10 text-mfo-green' : 'border-mfo-border text-mfo-text-dim hover:text-mfo-text'
+              }`}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </SectionCard>
+
       <SectionCard title="Default folder">
         <div className="flex items-center gap-1.5 rounded-lg border border-mfo-border px-2 py-1.5">
           <input readOnly value={settings.defaultFolder || ''} placeholder="No default folder set" className="min-w-0 flex-1 bg-transparent px-1 text-[13px] text-mfo-text outline-none placeholder:text-mfo-text-dim" />

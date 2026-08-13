@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import TitleBar from './components/TitleBar.jsx';
 import AmbientBackground from './components/AmbientBackground.jsx';
@@ -24,16 +25,16 @@ import { subscribeOnboarding } from './lib/onboarding.js';
 
 const VIEW_ORDER = ['home', 'organize', 'duplicates', 'cleanup', 'activity', 'smart-group', 'rules', 'watcher', 'settings'];
 
-const VIEW_LABELS = {
-  home: 'Home',
-  organize: 'Organize',
-  duplicates: 'Duplicates',
-  cleanup: 'Cleanup',
-  activity: 'Activity',
-  'smart-group': 'Smart Group',
-  rules: 'Rules',
-  watcher: 'Watcher',
-  settings: 'Settings'
+const VIEW_LABEL_KEYS = {
+  home: 'nav.home',
+  organize: 'nav.organize',
+  duplicates: 'nav.duplicates',
+  cleanup: 'nav.cleanup',
+  activity: 'nav.activity',
+  'smart-group': 'nav.smartGroup',
+  rules: 'nav.rules',
+  watcher: 'nav.watcher',
+  settings: 'nav.settings'
 };
 
 const VIEWS = {
@@ -49,6 +50,7 @@ const VIEWS = {
 };
 
 export default function App() {
+  const { t, i18n } = useTranslation();
   const [activeView, setActiveView] = useState('home');
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -58,9 +60,11 @@ export default function App() {
     window.api.getSettings().then((s) => {
       if (s.theme) applyTheme(s.theme);
       if (s.accentColor) applyAccent(s.accentColor);
+      if (s.language) i18n.changeLanguage(s.language);
       if (!s.onboardingComplete) setOnboardingOpen(true);
     });
     return subscribeOnboarding(() => setOnboardingOpen(true));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
-              {ActiveView ? <ActiveView onNavigate={setActiveView} /> : <ComingSoon label={VIEW_LABELS[activeView]} />}
+              {ActiveView ? <ActiveView onNavigate={setActiveView} /> : <ComingSoon label={t(VIEW_LABEL_KEYS[activeView])} />}
             </motion.div>
           </AnimatePresence>
         </main>
