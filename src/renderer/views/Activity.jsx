@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   ArrowRight, BarChart3, ChevronDown, Download, ExternalLink, FolderOpen,
   History, Pencil, Trash2, Undo2, X
@@ -265,8 +266,17 @@ function SessionsView() {
     return next;
   });
 
+  const listRef = useRef(null);
+  const virtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 44,
+    overscan: 8,
+    getItemKey: (index) => filtered[index].id
+  });
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         <input
           value={search}
@@ -309,16 +319,28 @@ function SessionsView() {
           <p className="text-xs text-mfo-text-dim">{t('activity.noHistoryHint')}</p>
         </Card>
       ) : (
-        <div className="flex flex-col gap-2">
-          {filtered.map((s) => (
-            <SessionCard
-              key={s.id}
-              session={s}
-              expanded={!compact && expanded.has(s.id)}
-              onToggle={() => !compact && toggleExpanded(s.id)}
-              onChanged={load}
-            />
-          ))}
+        <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto">
+          <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const s = filtered[virtualRow.index];
+              return (
+                <div
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={virtualizer.measureElement}
+                  className="pb-2"
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  <SessionCard
+                    session={s}
+                    expanded={!compact && expanded.has(s.id)}
+                    onToggle={() => !compact && toggleExpanded(s.id)}
+                    onChanged={load}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
@@ -441,7 +463,7 @@ export default function Activity() {
   const [subView, setSubView] = useState('sessions');
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex h-full flex-col gap-3">
       <SegmentedControl
         layoutId="activity-subview"
         value={subView}
@@ -451,7 +473,7 @@ export default function Activity() {
           { value: 'stats', label: t('activity.tabStats'), icon: BarChart3 }
         ]}
       />
-      {subView === 'sessions' ? <SessionsView /> : <StatsView />}
+      {subView === 'sessions' ? <SessionsView /> : <div className="min-h-0 flex-1 overflow-y-auto"><StatsView /></div>}
     </div>
   );
 }
