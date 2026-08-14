@@ -13,6 +13,7 @@ import FolderPicker from '../components/FolderPicker.jsx';
 import BatchFolderList from '../components/BatchFolderList.jsx';
 import { showToast } from '../lib/toast.js';
 import { getSettings, updateSettings } from '../lib/settingsStore.js';
+import { useDebouncedValue } from '../lib/useDebouncedValue.js';
 
 const CATEGORY_ICONS = {
   Images: Image, Videos: Video, Audio: Music, Documents: FileText,
@@ -117,11 +118,12 @@ function OrganizeSubView({ onNavigate }) {
     reset();
   };
 
-  const filteredFiles = search
-    ? previewFiles.filter((f) => f.name.toLowerCase().includes(search.toLowerCase()))
+  const debouncedSearch = useDebouncedValue(search);
+  const filteredFiles = debouncedSearch
+    ? previewFiles.filter((f) => f.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
     : previewFiles;
   const previewGroups = groupByCategory(filteredFiles);
-  if (search) Object.values(previewGroups).forEach((g) => { g.showAll = true; });
+  if (debouncedSearch) Object.values(previewGroups).forEach((g) => { g.showAll = true; });
   const resultGroups = groupByCategory(movedFiles);
 
   return (
@@ -154,7 +156,7 @@ function OrganizeSubView({ onNavigate }) {
               className="flex-1 bg-transparent text-[12.5px] text-mfo-text outline-none placeholder:text-mfo-text-dim"
             />
             <span className="shrink-0 text-[11px] text-mfo-text-dim">
-              {search ? t('organize.filesOfTotal', { count: filteredFiles.length, total: previewFiles.length }) : t('organize.file', { count: previewFiles.length })}
+              {debouncedSearch ? t('organize.filesOfTotal', { count: filteredFiles.length, total: previewFiles.length }) : t('organize.file', { count: previewFiles.length })}
             </span>
           </div>
 

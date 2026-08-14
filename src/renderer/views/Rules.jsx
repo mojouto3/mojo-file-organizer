@@ -17,6 +17,7 @@ import { summarizeRule } from '../lib/ruleFields.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
 import { getSettings, updateSettings } from '../lib/settingsStore.js';
+import { useDebouncedValue } from '../lib/useDebouncedValue.js';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -359,8 +360,9 @@ function RunSubView({ rules }) {
 function MyRulesSubView({ rules, onEdit, onDelete, onToggle, onReorder, goTemplates }) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebouncedValue(search);
   const dragIdRef = useRef(null);
-  const filtered = rules.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = rules.filter((r) => r.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
 
   const handleDrop = (targetId) => {
     const dragId = dragIdRef.current;
