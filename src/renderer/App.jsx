@@ -1,19 +1,12 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
+import { RefreshCw } from 'lucide-react';
 import TitleBar from './components/TitleBar.jsx';
 import AmbientBackground from './components/AmbientBackground.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import ComingSoon from './views/ComingSoon.jsx';
 import Home from './views/Home.jsx';
-import Organize from './views/Organize.jsx';
-import Duplicates from './views/Duplicates.jsx';
-import Cleanup from './views/Cleanup.jsx';
-import Activity from './views/Activity.jsx';
-import SmartGroup from './views/SmartGroup.jsx';
-import Rules from './views/Rules.jsx';
-import Watcher from './views/Watcher.jsx';
-import Settings from './views/Settings.jsx';
 import ToastHost from './components/ToastHost.jsx';
 import ConfirmHost from './components/ConfirmHost.jsx';
 import WatcherListener from './components/WatcherListener.jsx';
@@ -23,6 +16,23 @@ import UpdateBanner from './components/UpdateBanner.jsx';
 import { applyTheme, applyAccent } from './lib/theme.js';
 import { subscribeOnboarding } from './lib/onboarding.js';
 import { getSettings } from './lib/settingsStore.js';
+
+const Organize = lazy(() => import('./views/Organize.jsx'));
+const Duplicates = lazy(() => import('./views/Duplicates.jsx'));
+const Cleanup = lazy(() => import('./views/Cleanup.jsx'));
+const Activity = lazy(() => import('./views/Activity.jsx'));
+const SmartGroup = lazy(() => import('./views/SmartGroup.jsx'));
+const Rules = lazy(() => import('./views/Rules.jsx'));
+const Watcher = lazy(() => import('./views/Watcher.jsx'));
+const Settings = lazy(() => import('./views/Settings.jsx'));
+
+function ViewLoading() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <RefreshCw size={20} className="animate-spin text-mfo-text-dim" />
+    </div>
+  );
+}
 
 const VIEW_ORDER = ['home', 'organize', 'duplicates', 'cleanup', 'activity', 'smart-group', 'rules', 'watcher', 'settings'];
 
@@ -101,7 +111,11 @@ export default function App() {
               transition={{ duration: 0.15 }}
               className="h-full"
             >
-              {ActiveView ? <ActiveView onNavigate={setActiveView} /> : <ComingSoon label={t(VIEW_LABEL_KEYS[activeView])} />}
+              {ActiveView ? (
+                <Suspense fallback={<ViewLoading />}>
+                  <ActiveView onNavigate={setActiveView} />
+                </Suspense>
+              ) : <ComingSoon label={t(VIEW_LABEL_KEYS[activeView])} />}
             </motion.div>
           </AnimatePresence>
         </main>
