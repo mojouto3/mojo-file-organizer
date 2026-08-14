@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { applyTheme } from '../lib/theme.js';
+import { updateSettings } from '../lib/settingsStore.js';
 
 const LANGUAGES = [
   { value: 'en', label: 'English' },
@@ -88,12 +89,7 @@ export default function OnboardingOverlay({ open, onComplete }) {
 
   const finish = () => {
     i18n.changeLanguage(language);
-    window.api.getSettings().then((s) => {
-      s.onboardingComplete = true;
-      s.theme = theme;
-      s.language = language;
-      window.api.saveSettings(s);
-    });
+    updateSettings({ onboardingComplete: true, theme, language });
     onComplete();
   };
 

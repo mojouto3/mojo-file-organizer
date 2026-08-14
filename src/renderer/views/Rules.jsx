@@ -16,6 +16,7 @@ import { formatSize, basename } from '../lib/format.js';
 import { summarizeRule } from '../lib/ruleFields.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
+import { getSettings, updateSettings } from '../lib/settingsStore.js';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -121,7 +122,7 @@ function ScheduleCard() {
   const [msg, setMsg] = useState(null);
 
   useEffect(() => {
-    window.api.getSettings().then((settings) => {
+    getSettings().then((settings) => {
       const s = settings.rulesSchedule || {};
       setFolder(s.folder || null);
       setDays(s.days || []);
@@ -135,18 +136,16 @@ function ScheduleCard() {
   const enable = async () => {
     if (!days.length) { showToast(t('organize.selectDayFirst')); return; }
     if (!folder) { showToast(t('common.selectFolderFirst')); return; }
-    const settings = await window.api.getSettings();
-    settings.rulesSchedule = { ...settings.rulesSchedule, enabled: true, days, time, folder };
-    await window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ rulesSchedule: { ...settings.rulesSchedule, enabled: true, days, time, folder } });
     const result = await window.api.scheduleRules({ days, time, folder });
     setMsg(result.ok ? { ok: true, text: t('rules.scheduledPlain') } : { ok: false, text: t('organize.scheduleFailed') });
   };
 
   const disable = async () => {
     await window.api.unscheduleRules();
-    const settings = await window.api.getSettings();
-    settings.rulesSchedule = { ...settings.rulesSchedule, enabled: false };
-    window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ rulesSchedule: { ...settings.rulesSchedule, enabled: false } });
     setMsg({ ok: true, text: t('organize.autoRunDisabled') });
   };
 
@@ -218,12 +217,12 @@ function RunSubView({ rules }) {
   const [lastMoves, setLastMoves] = useState([]);
   const [showRecycleBin, setShowRecycleBin] = useState(false);
 
-  useEffect(() => { window.api.getSettings().then((s) => setDryRun(!!s.rulesDryRun)); }, []);
+  useEffect(() => { getSettings().then((s) => setDryRun(!!s.rulesDryRun)); }, []);
 
   const toggleDryRun = () => {
     const next = !dryRun;
     setDryRun(next);
-    window.api.getSettings().then((s) => { s.rulesDryRun = next; window.api.saveSettings(s); });
+    updateSettings({ rulesDryRun: next });
     showToast(next ? t('rules.dryRunEnabled') : t('rules.dryRunDisabled'));
   };
 

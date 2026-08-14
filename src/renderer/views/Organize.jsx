@@ -12,6 +12,7 @@ import SegmentedControl from '../components/SegmentedControl.jsx';
 import FolderPicker from '../components/FolderPicker.jsx';
 import BatchFolderList from '../components/BatchFolderList.jsx';
 import { showToast } from '../lib/toast.js';
+import { getSettings, updateSettings } from '../lib/settingsStore.js';
 
 const CATEGORY_ICONS = {
   Images: Image, Videos: Video, Audio: Music, Documents: FileText,
@@ -217,7 +218,7 @@ function ScheduleSubView() {
   const [msg, setMsg] = useState(null);
 
   useEffect(() => {
-    window.api.getSettings().then((settings) => {
+    getSettings().then((settings) => {
       const s = settings.schedule || {};
       setFolder(s.folder || null);
       setDays(s.days || []);
@@ -228,9 +229,8 @@ function ScheduleSubView() {
   const pickFolder = () => window.api.pickFolder().then(async (f) => {
     if (!f) return;
     setFolder(f);
-    const settings = await window.api.getSettings();
-    settings.schedule = { ...settings.schedule, folder: f };
-    window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ schedule: { ...settings.schedule, folder: f } });
   });
 
   const toggleDay = (day) => setDays((d) => (d.includes(day) ? d.filter((x) => x !== day) : [...d, day]));
@@ -238,9 +238,8 @@ function ScheduleSubView() {
   const enable = async () => {
     if (!days.length) { showToast(t('organize.selectDayFirst')); return; }
     if (!folder) { showToast(t('common.selectFolderFirst')); return; }
-    const settings = await window.api.getSettings();
-    settings.schedule = { ...settings.schedule, enabled: true, days, time, folder };
-    await window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ schedule: { ...settings.schedule, enabled: true, days, time, folder } });
     const result = await window.api.schedule({ days, time, folder });
     setMsg(result.ok
       ? { ok: true, text: t('organize.scheduled', { days: days.join(', '), time }) }
@@ -249,9 +248,8 @@ function ScheduleSubView() {
 
   const disable = async () => {
     await window.api.unschedule();
-    const settings = await window.api.getSettings();
-    settings.schedule = { ...settings.schedule, enabled: false };
-    window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ schedule: { ...settings.schedule, enabled: false } });
     setMsg({ ok: true, text: t('organize.autoRunDisabled') });
   };
 

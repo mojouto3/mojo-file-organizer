@@ -22,6 +22,7 @@ import ShortcutsModal from './components/ShortcutsModal.jsx';
 import UpdateBanner from './components/UpdateBanner.jsx';
 import { applyTheme, applyAccent } from './lib/theme.js';
 import { subscribeOnboarding } from './lib/onboarding.js';
+import { getSettings } from './lib/settingsStore.js';
 
 const VIEW_ORDER = ['home', 'organize', 'duplicates', 'cleanup', 'activity', 'smart-group', 'rules', 'watcher', 'settings'];
 
@@ -57,7 +58,7 @@ export default function App() {
   const ActiveView = VIEWS[activeView];
 
   useEffect(() => {
-    window.api.getSettings().then((s) => {
+    getSettings().then((s) => {
       if (s.theme) applyTheme(s.theme);
       if (s.accentColor) applyAccent(s.accentColor);
       if (s.language) i18n.changeLanguage(s.language);

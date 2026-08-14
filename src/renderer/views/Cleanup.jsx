@@ -14,6 +14,7 @@ import Checkbox from '../components/Checkbox.jsx';
 import { formatSize } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
+import { getSettings, updateSettings } from '../lib/settingsStore.js';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const AGE_PRESETS = [3, 6, 12];
@@ -298,7 +299,7 @@ function ScheduleSubView() {
   const [msg, setMsg] = useState(null);
 
   useEffect(() => {
-    window.api.getSettings().then((settings) => {
+    getSettings().then((settings) => {
       const s = settings.cleanupSchedule || {};
       setFolder(s.folder || null);
       setDays(s.days || []);
@@ -323,9 +324,8 @@ function ScheduleSubView() {
     if (!folder) { showToast(t('common.selectFolderFirst')); return; }
     const selected = Object.keys(sections).filter((id) => sections[id]);
     if (!selected.length) { showToast(t('cleanup.selectSectionFirst')); return; }
-    const settings = await window.api.getSettings();
-    settings.cleanupSchedule = { ...settings.cleanupSchedule, enabled: true, days, time, folder, sections: selected };
-    await window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ cleanupSchedule: { ...settings.cleanupSchedule, enabled: true, days, time, folder, sections: selected } });
     const result = await window.api.scheduleCleanup({ days, time, folder, sections: selected });
     setMsg(result.ok
       ? { ok: true, text: t('organize.scheduled', { days: days.join(', '), time }) }
@@ -334,9 +334,8 @@ function ScheduleSubView() {
 
   const disable = async () => {
     await window.api.unscheduleCleanup();
-    const settings = await window.api.getSettings();
-    settings.cleanupSchedule = { ...settings.cleanupSchedule, enabled: false };
-    window.api.saveSettings(settings);
+    const settings = await getSettings();
+    updateSettings({ cleanupSchedule: { ...settings.cleanupSchedule, enabled: false } });
     setMsg({ ok: true, text: t('organize.autoRunDisabled') });
   };
 
