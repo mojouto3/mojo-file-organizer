@@ -20,6 +20,7 @@
     "release:portable": "npm run build:renderer && electron-builder --win --x64 --config.win.target=portable --publish always"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.14.9",
     "electron-updater": "^6.3.9",
     "i18next": "^25.6.1",
     "lucide-react": "^1.28.0",

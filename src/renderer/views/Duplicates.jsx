@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Check, CheckCircle2, Copy, FolderSearch, Trash2, Undo2 } from 'lucide-react';
 import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
@@ -22,6 +23,14 @@ export default function Duplicates() {
   const [totals, setTotals] = useState({ totalGroups: 0, totalFiles: 0 });
   const [selected, setSelected] = useState(new Set());
   const [lastDeleted, setLastDeleted] = useState([]);
+
+  const listRef = useRef(null);
+  const virtualizer = useVirtualizer({
+    count: groups.length,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 120,
+    overscan: 5
+  });
 
   const runScan = async (scanMode) => {
     if (!folder) { showToast(t('common.selectFolderFirst')); return; }
@@ -66,7 +75,7 @@ export default function Duplicates() {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex h-full flex-col gap-3">
       <Card className="p-3.5">
         <div className="mb-2 flex items-center gap-2">
           <FolderSearch size={15} className="text-mfo-green" />
@@ -99,7 +108,7 @@ export default function Duplicates() {
       )}
 
       {!scanning && groups.length > 0 && (
-        <Card className="overflow-hidden">
+        <Card className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="flex items-center gap-2 border-b border-mfo-border px-3.5 py-2.5">
             <span className="text-[13px] font-medium text-mfo-text">{t('duplicates.found')}</span>
             <span className="rounded-full bg-mfo-green/10 px-2 py-0.5 text-[10.5px] font-medium text-mfo-green">
@@ -115,60 +124,69 @@ export default function Duplicates() {
             </Button>
           </div>
 
-          <div className="flex flex-col divide-y divide-mfo-border">
-            {groups.map((group, gi) => {
-              const keepIdx = keepIndex(group);
-              return (
-                <div key={gi} className="p-3.5">
-                  <div className="mb-2 flex items-center gap-1.5 text-[11px] text-mfo-text-dim">
-                    <Copy size={12} />
-                    {t('duplicates.duplicateFilesEach', { count: group.length, size: formatSize(group[0].size) })}
+          <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto">
+            <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const group = groups[virtualRow.index];
+                const keepIdx = keepIndex(group);
+                return (
+                  <div
+                    key={virtualRow.key}
+                    data-index={virtualRow.index}
+                    ref={virtualizer.measureElement}
+                    className="border-b border-mfo-border p-3.5"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', transform: `translateY(${virtualRow.start}px)` }}
+                  >
+                    <div className="mb-2 flex items-center gap-1.5 text-[11px] text-mfo-text-dim">
+                      <Copy size={12} />
+                      {t('duplicates.duplicateFilesEach', { count: group.length, size: formatSize(group[0].size) })}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      {group.map((f, fi) => {
+                        const isKeep = fi === keepIdx;
+                        const isSelected = selected.has(f.path);
+                        return (
+                          <div
+                            key={f.path}
+                            onClick={() => toggleSelect(f.path, isKeep)}
+                            className={`flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5 transition-colors ${
+                              isKeep
+                                ? 'border-mfo-border/60 cursor-default'
+                                : isSelected
+                                  ? 'cursor-pointer border-mfo-danger bg-mfo-danger/15'
+                                  : 'cursor-pointer border-mfo-border hover:border-mfo-danger/30 hover:bg-mfo-danger/5'
+                            }`}
+                          >
+                            {isKeep ? (
+                              <span className="shrink-0 rounded bg-mfo-green/10 px-1.5 py-0.5 text-[10px] font-medium uppercase text-mfo-green">
+                                {t('duplicates.keep')} <span className="text-mfo-text-dim normal-case">{t('duplicates.newest')}</span>
+                              </span>
+                            ) : (
+                              <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
+                                isSelected ? 'border-mfo-danger bg-mfo-danger' : 'border-mfo-border'
+                              }`}>
+                                {isSelected && <Check size={11} className="text-white" />}
+                              </span>
+                            )}
+                            <span className="min-w-0 flex-1 truncate text-[12px] text-mfo-text" title={f.name}>{f.name}</span>
+                            <span className="hidden max-w-[240px] truncate text-[10.5px] text-mfo-text-dim sm:block" title={f.path}>{f.path}</span>
+                            <span className="shrink-0 text-[10.5px] text-mfo-text-dim">{formatSize(f.size)}</span>
+                            {f.mtime && (
+                              <span className="shrink-0 text-[10.5px] text-mfo-text-dim">
+                                {new Date(f.mtime).toLocaleDateString()}
+                              </span>
+                            )}
+                            {!isKeep && isSelected && (
+                              <span className="shrink-0 text-[10px] font-medium uppercase text-mfo-danger">{t('common.delete')}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    {group.map((f, fi) => {
-                      const isKeep = fi === keepIdx;
-                      const isSelected = selected.has(f.path);
-                      return (
-                        <div
-                          key={f.path}
-                          onClick={() => toggleSelect(f.path, isKeep)}
-                          className={`flex items-center gap-2.5 rounded-lg border px-2.5 py-1.5 transition-colors ${
-                            isKeep
-                              ? 'border-mfo-border/60 cursor-default'
-                              : isSelected
-                                ? 'cursor-pointer border-mfo-danger bg-mfo-danger/15'
-                                : 'cursor-pointer border-mfo-border hover:border-mfo-danger/30 hover:bg-mfo-danger/5'
-                          }`}
-                        >
-                          {isKeep ? (
-                            <span className="shrink-0 rounded bg-mfo-green/10 px-1.5 py-0.5 text-[10px] font-medium uppercase text-mfo-green">
-                              {t('duplicates.keep')} <span className="text-mfo-text-dim normal-case">{t('duplicates.newest')}</span>
-                            </span>
-                          ) : (
-                            <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border ${
-                              isSelected ? 'border-mfo-danger bg-mfo-danger' : 'border-mfo-border'
-                            }`}>
-                              {isSelected && <Check size={11} className="text-white" />}
-                            </span>
-                          )}
-                          <span className="min-w-0 flex-1 truncate text-[12px] text-mfo-text" title={f.name}>{f.name}</span>
-                          <span className="hidden max-w-[240px] truncate text-[10.5px] text-mfo-text-dim sm:block" title={f.path}>{f.path}</span>
-                          <span className="shrink-0 text-[10.5px] text-mfo-text-dim">{formatSize(f.size)}</span>
-                          {f.mtime && (
-                            <span className="shrink-0 text-[10.5px] text-mfo-text-dim">
-                              {new Date(f.mtime).toLocaleDateString()}
-                            </span>
-                          )}
-                          {!isKeep && isSelected && (
-                            <span className="shrink-0 text-[10px] font-medium uppercase text-mfo-danger">{t('common.delete')}</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {lastDeleted.length > 0 && (
