@@ -1,9 +1,10 @@
 'use strict';
 
-// Basic ESLint setup for Mojo File Organizer.
-// main.js / preload.js run in Node (Electron main process). The renderer
-// (src/renderer/**) is a React + Vite app and isn't linted by this config
-// yet.
+// ESLint setup for Mojo File Organizer.
+// main.js / preload.js run in Node (Electron main process).
+// src/renderer/** is the React + Vite renderer, running in a browser context.
+
+const reactHooks = require('eslint-plugin-react-hooks');
 
 const nodeGlobals = {
   require: 'readonly',
@@ -19,6 +20,33 @@ const nodeGlobals = {
   setImmediate: 'readonly',
   clearTimeout: 'readonly',
   clearInterval: 'readonly',
+};
+
+const browserGlobals = {
+  window: 'readonly',
+  document: 'readonly',
+  navigator: 'readonly',
+  localStorage: 'readonly',
+  sessionStorage: 'readonly',
+  console: 'readonly',
+  setTimeout: 'readonly',
+  clearTimeout: 'readonly',
+  setInterval: 'readonly',
+  clearInterval: 'readonly',
+  requestAnimationFrame: 'readonly',
+  cancelAnimationFrame: 'readonly',
+  fetch: 'readonly',
+  URL: 'readonly',
+  Blob: 'readonly',
+  FormData: 'readonly',
+  Image: 'readonly',
+  MutationObserver: 'readonly',
+  ResizeObserver: 'readonly',
+  history: 'readonly',
+  location: 'readonly',
+  alert: 'readonly',
+  confirm: 'readonly',
+  structuredClone: 'readonly',
 };
 
 const commonRules = {
@@ -42,5 +70,20 @@ module.exports = [
       globals: nodeGlobals,
     },
     rules: commonRules,
+  },
+  {
+    files: ['src/renderer/**/*.{js,jsx}'],
+    plugins: { 'react-hooks': reactHooks },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+      globals: browserGlobals,
+    },
+    rules: {
+      ...commonRules,
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
   },
 ];

@@ -12,8 +12,8 @@
     "dev:electron": "wait-on http://localhost:5173 && electron .",
     "dev": "concurrently -k \"npm:dev:vite\" \"npm:dev:electron\"",
     "build:renderer": "vite build",
-    "lint": "eslint main.js preload.js",
-    "lint:fix": "eslint main.js preload.js --fix",
+    "lint": "eslint main.js preload.js src/renderer",
+    "lint:fix": "eslint main.js preload.js src/renderer --fix",
     "build": "npm run build:renderer && electron-builder --win --x64",
     "release": "npm run build:renderer && electron-builder --win --x64 --publish always",
     "build:portable": "npm run build:renderer && electron-builder --win --x64 --config.win.target=portable",
@@ -22,10 +22,10 @@
   "dependencies": {
     "electron-updater": "^6.3.9",
     "i18next": "^25.6.1",
+    "lucide-react": "^1.28.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-i18next": "^16.3.0",
-    "lucide-react": "^1.28.0"
+    "react-i18next": "^16.3.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -35,6 +35,7 @@
     "electron": "^42.3.2",
     "electron-builder": "^26.15.0",
     "eslint": "^10.7.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "framer-motion": "^12.43.0",
     "postcss": "^8.5.25",
     "tailwindcss": "^4.3.3",
@@ -63,7 +64,10 @@
       "repo": "mojo-file-organizer"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "assets/icon.ico"
     },
     "portable": {
