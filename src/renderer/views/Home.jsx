@@ -5,6 +5,7 @@ import { Activity, ChevronRight, Eye, RefreshCw, SlidersHorizontal, TriangleAler
 import Card from '../components/Card.jsx';
 import CountUp from '../components/CountUp.jsx';
 import { basename, timeAgo } from '../lib/format.js';
+import { getSettings } from '../lib/settingsStore.js';
 
 const WELL_KNOWN_FOLDERS = ['Downloads', 'Desktop', 'Documents', 'Pictures', 'Music'];
 
@@ -82,7 +83,7 @@ export default function Home({ onNavigate }) {
     setState(null);
     Promise.all([
       window.api.getLog(),
-      window.api.getSettings(),
+      getSettings(),
       window.api.getRules(),
       window.api.getStats(),
       window.api.getUsername().catch(() => ''),

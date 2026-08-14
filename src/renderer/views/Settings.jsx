@@ -11,6 +11,7 @@ import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
 import { openOnboarding } from '../lib/onboarding.js';
 import { applyTheme, applyAccent } from '../lib/theme.js';
+import { getSettings, subscribeSettings, updateSettings } from '../lib/settingsStore.js';
 
 const NAV_SECTIONS = [
   { id: 'appearance', labelKey: 'settings.navAppearance', icon: Palette },
@@ -83,7 +84,7 @@ function AppearanceSection() {
   const [accentColor, setAccentColorState] = useState('#3ddb3d');
 
   useEffect(() => {
-    window.api.getSettings().then((s) => {
+    getSettings().then((s) => {
       setThemeState(s.theme || 'dark');
       setAccentColorState(s.accentColor || '#3ddb3d');
     });
@@ -92,13 +93,13 @@ function AppearanceSection() {
   const setTheme = (theme) => {
     setThemeState(theme);
     applyTheme(theme);
-    window.api.getSettings().then((s) => { s.theme = theme; window.api.saveSettings(s); });
+    updateSettings({ theme });
   };
 
   const setAccentColor = (color) => {
     setAccentColorState(color);
     applyAccent(color);
-    window.api.getSettings().then((s) => { s.accentColor = color; window.api.saveSettings(s); });
+    updateSettings({ accentColor: color });
   };
 
   return (
@@ -154,14 +155,9 @@ function GeneralSection() {
   const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState(null);
 
-  const load = () => window.api.getSettings().then(setSettings);
-  useEffect(() => { load(); }, []);
+  useEffect(() => subscribeSettings(setSettings), []);
 
-  const update = (patch) => {
-    const next = { ...settings, ...patch };
-    setSettings(next);
-    window.api.saveSettings(next);
-  };
+  const update = (patch) => updateSettings(patch);
 
   const setLanguage = (lang) => {
     i18n.changeLanguage(lang);
