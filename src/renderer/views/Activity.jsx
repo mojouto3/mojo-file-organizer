@@ -12,6 +12,7 @@ import Checkbox from '../components/Checkbox.jsx';
 import { basename } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
+import { useDebouncedValue } from '../lib/useDebouncedValue.js';
 
 const TYPE_LABEL_KEYS = { organize: 'organize.tabOrganize', rules: 'nav.rules', watcher: 'nav.watcher', cleanup: 'nav.cleanup', 'smart-group': 'nav.smartGroup' };
 const ACTION_LABEL_KEYS = { move: 'activity.actionMove', delete: 'activity.actionDelete', rename: 'activity.actionRename' };
@@ -233,19 +234,20 @@ function SessionsView() {
     localStorage.setItem('historyCompact', compact);
   }, [compact]);
 
+  const debouncedSearch = useDebouncedValue(search);
   const filtered = useMemo(() => sessions.filter((s) => {
     const matchType = typeFilter === 'all'
       || s.type === typeFilter
       || (typeFilter === 'organize' && !s.type);
     if (!matchType) return false;
-    if (search) {
+    if (debouncedSearch) {
       const haystack = `${s.folder} ${(s.moved || []).map((m) => m.name).join(' ')}`.toLowerCase();
-      if (!haystack.includes(search.toLowerCase())) return false;
+      if (!haystack.includes(debouncedSearch.toLowerCase())) return false;
     }
     if (dateFrom && new Date(s.timestamp) < new Date(`${dateFrom}T00:00:00`)) return false;
     if (dateTo && new Date(s.timestamp) > new Date(`${dateTo}T23:59:59`)) return false;
     return true;
-  }), [sessions, search, dateFrom, dateTo, typeFilter]);
+  }), [sessions, debouncedSearch, dateFrom, dateTo, typeFilter]);
 
   const clearFilters = () => { setSearch(''); setDateFrom(''); setDateTo(''); setTypeFilter('all'); };
 
