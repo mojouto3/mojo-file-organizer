@@ -287,6 +287,7 @@
     "conflict": "conflict",
     "renameTo": "Rename to {{name}}",
     "moveTo": "Move to {{name}}",
+    "moveByDateTakenTo": "Move by date taken to {{name}}",
     "preset1Name": "Delete old installers",
     "preset1Desc": "Installers older than 6 months, to Recycle Bin",
     "preset2Name": "Clean temp files",
@@ -351,7 +352,9 @@
     "addCondition": "Add condition",
     "actionLabel": "Action",
     "actionMoveOption": "Move to folder",
+    "actionDateTakenOption": "Move by date taken",
     "destinationPlaceholder": "Destination folder...",
+    "dateTakenHint": "Sorts photos into Year/Month subfolders using the photo's EXIF date. Falls back to the file's modified date if it has no EXIF data.",
     "renameHint": "Uses current Rename Rules from Settings.",
     "deleteHint": "Files will be moved to the Recycle Bin.",
     "saveRule": "Save rule"

@@ -287,6 +287,7 @@
     "conflict": "Konflikt",
     "renameTo": "Umbenennen zu {{name}}",
     "moveTo": "Verschieben nach {{name}}",
+    "moveByDateTakenTo": "Nach Aufnahmedatum verschieben nach {{name}}",
     "preset1Name": "Alte Installer löschen",
     "preset1Desc": "Installer älter als 6 Monate, in den Papierkorb",
     "preset2Name": "Temporäre Dateien bereinigen",
@@ -351,7 +352,9 @@
     "addCondition": "Bedingung hinzufügen",
     "actionLabel": "Aktion",
     "actionMoveOption": "In Ordner verschieben",
+    "actionDateTakenOption": "Nach Aufnahmedatum verschieben",
     "destinationPlaceholder": "Zielordner...",
+    "dateTakenHint": "Sortiert Fotos anhand des EXIF-Aufnahmedatums in Jahr/Monat-Unterordner. Ohne EXIF-Daten wird das Änderungsdatum der Datei verwendet.",
     "renameHint": "Verwendet die aktuellen Umbenennungsregeln aus den Einstellungen.",
     "deleteHint": "Dateien werden in den Papierkorb verschoben.",
     "saveRule": "Regel speichern"

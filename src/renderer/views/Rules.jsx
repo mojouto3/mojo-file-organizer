@@ -60,6 +60,7 @@ const RULE_TEMPLATES = [
 function actionText(t, r) {
   if (r.action === 'delete') return t('common.delete');
   if (r.action === 'rename') return t('rules.renameTo', { name: r.newName || '' });
+  if (r.action === 'dateTaken') return t('rules.moveByDateTakenTo', { name: r.dest ? basename(r.dest) : '?' });
   return t('rules.moveTo', { name: r.dest ? basename(r.dest) : '?' });
 }
 

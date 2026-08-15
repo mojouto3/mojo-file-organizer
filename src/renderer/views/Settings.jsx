@@ -224,14 +224,14 @@ function GeneralSection() {
         <div className="flex items-center gap-2">
           <span className="w-10 text-[11.5px] text-mfo-text-dim">{t('settings.min')}</span>
           <input type="number" min={0} value={min.value} onChange={(e) => saveSizeFilter('min', Number(e.target.value), min.unit)} className="w-20 rounded-md border border-mfo-border bg-transparent px-2 py-1 text-[12px] text-mfo-text outline-none" />
-          <select value={min.unit} onChange={(e) => saveSizeFilter('min', min.value, e.target.value)} className="rounded-md border border-mfo-border bg-transparent px-2 py-1 text-[12px] text-mfo-text outline-none">
+          <select value={min.unit} onChange={(e) => saveSizeFilter('min', min.value, e.target.value)} className="rounded-md border border-mfo-border bg-mfo-surface2 px-2 py-1 text-[12px] text-mfo-text outline-none">
             <option value="KB">KB</option><option value="MB">MB</option>
           </select>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <span className="w-10 text-[11.5px] text-mfo-text-dim">{t('settings.max')}</span>
           <input type="number" min={0} value={max.value} onChange={(e) => saveSizeFilter('max', Number(e.target.value), max.unit)} className="w-20 rounded-md border border-mfo-border bg-transparent px-2 py-1 text-[12px] text-mfo-text outline-none" />
-          <select value={max.unit} onChange={(e) => saveSizeFilter('max', max.value, e.target.value)} className="rounded-md border border-mfo-border bg-transparent px-2 py-1 text-[12px] text-mfo-text outline-none">
+          <select value={max.unit} onChange={(e) => saveSizeFilter('max', max.value, e.target.value)} className="rounded-md border border-mfo-border bg-mfo-surface2 px-2 py-1 text-[12px] text-mfo-text outline-none">
             <option value="KB">KB</option><option value="MB">MB</option>
           </select>
         </div>

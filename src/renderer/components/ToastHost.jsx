@@ -13,7 +13,7 @@ export default function ToastHost() {
   }), []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-50 flex flex-col items-center gap-2">
+    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-[2100] flex flex-col items-center gap-2">
       <AnimatePresence>
         {toasts.map((t) => (
           <motion.div

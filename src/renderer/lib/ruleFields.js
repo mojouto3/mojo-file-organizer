@@ -63,13 +63,21 @@ export function summarizeCondition(t, c) {
   }
 }
 
+function summarizeAction(t, action) {
+  switch (action?.type) {
+    case 'move':
+      return t('rules.moveTo', { name: action.dest || t('rules.noFolderSet') });
+    case 'dateTaken':
+      return t('rules.moveByDateTakenTo', { name: action.dest || t('rules.noFolderSet') });
+    case 'delete':
+      return t('common.delete');
+    default:
+      return t('rules.rename');
+  }
+}
+
 export function summarizeRule(t, rule) {
   const joiner = rule.logic === 'OR' ? ` ${t('rules.logicOr')} ` : ` ${t('rules.logicAnd')} `;
   const conditions = (rule.conditions || []).map((c) => summarizeCondition(t, c)).join(joiner);
-  const action = rule.action?.type === 'move'
-    ? t('rules.moveTo', { name: rule.action.dest || t('rules.noFolderSet') })
-    : rule.action?.type === 'delete'
-      ? t('common.delete')
-      : t('rules.rename');
-  return `${t('rules.summaryIf')} ${conditions} → ${action}`;
+  return `${t('rules.summaryIf')} ${conditions} → ${summarizeAction(t, rule.action)}`;
 }
