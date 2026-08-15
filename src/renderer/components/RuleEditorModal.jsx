@@ -7,7 +7,11 @@ import { FIELD_OPTIONS, OPS_BY_FIELD, defaultCondition } from '../lib/ruleFields
 import { showToast } from '../lib/toast.js';
 
 const inputClass = 'rounded-md border border-mfo-border bg-transparent px-2 py-1 text-[12px] text-mfo-text outline-none';
-const selectClass = `${inputClass}`;
+// Selects need an opaque background, not bg-transparent: Chromium's native
+// <select> popup on Windows renders with a white background regardless of
+// the closed box's background, so pairing bg-transparent with this app's
+// light text color made the open dropdown's text invisible (white-on-white).
+const selectClass = 'rounded-md border border-mfo-border bg-mfo-surface2 px-2 py-1 text-[12px] text-mfo-text outline-none';
 
 function ConditionRow({ condition, onChange, onRemove }) {
   const { t } = useTranslation();
@@ -116,7 +120,7 @@ export default function RuleEditorModal({ open, rule, onSave, onClose }) {
       name: name.trim(),
       conditions,
       logic,
-      action: actionType === 'move' ? { type: 'move', dest } : { type: actionType },
+      action: (actionType === 'move' || actionType === 'dateTaken') ? { type: actionType, dest } : { type: actionType },
       enabled: rule?.enabled ?? true
     });
   };
@@ -157,14 +161,18 @@ export default function RuleEditorModal({ open, rule, onSave, onClose }) {
           <label className="mb-1 block text-[11.5px] text-mfo-text-dim">{t('rules.actionLabel')}</label>
           <select value={actionType} onChange={(e) => setActionType(e.target.value)} className={`${selectClass} w-full`}>
             <option value="move">{t('rules.actionMoveOption')}</option>
+            <option value="dateTaken">{t('rules.actionDateTakenOption')}</option>
             <option value="delete">{t('common.delete')}</option>
             <option value="rename">{t('rules.rename')}</option>
           </select>
-          {actionType === 'move' && (
+          {(actionType === 'move' || actionType === 'dateTaken') && (
             <div className="mt-1.5 flex gap-1.5">
               <input readOnly value={dest} placeholder={t('rules.destinationPlaceholder')} className={`${inputClass} flex-1`} />
               <button onClick={pickDest} className="rounded-md border border-mfo-border px-2.5 py-1 text-xs text-mfo-text-dim hover:bg-mfo-surface2 hover:text-mfo-text">{t('common.browse')}</button>
             </div>
+          )}
+          {actionType === 'dateTaken' && (
+            <p className="mt-1.5 text-[11px] text-mfo-text-dim">{t('rules.dateTakenHint')}</p>
           )}
           {actionType === 'rename' && (
             <p className="mt-1.5 text-[11px] text-mfo-text-dim">{t('rules.renameHint')}</p>

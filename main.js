@@ -5,6 +5,7 @@ const fs    = require('fs');
 const fsp   = fs.promises;
 const os    = require('os');
 const https = require('https');
+const exifr = require('exifr');
 
 const APP_VERSION = require('./package.json').version;
 const UPDATE_REPO = 'mojouto3/mojo-file-organizer';
@@ -961,7 +962,7 @@ ipcMain.handle('get-stats', async () => {
       rulesStats.sessions++;
       for (const r of (s.results || [])) {
         rulesStats.total++;
-        if (r.action === 'move')   rulesStats.move++;
+        if (r.action === 'move' || r.action === 'dateTaken') rulesStats.move++;
         if (r.action === 'delete') rulesStats.delete++;
         if (r.action === 'rename') rulesStats.rename++;
       }
@@ -1554,6 +1555,12 @@ ipcMain.handle('preview-rules', async (_, { folderPath, rules }) => {
           if (await fsp.access(moveTo).then(() => true, () => false)) preview.conflict = true;
         }
       }
+      if (firstRule?.action?.type === 'dateTaken' && firstRule.action.dest) {
+        const dateTaken = await getDateTaken(fullPath, ext, stat.mtimeMs);
+        preview.dest = dateTakenDestFolder(firstRule.action.dest, dateTaken);
+        const moveTo = path.join(preview.dest, f.name);
+        if (await fsp.access(moveTo).then(() => true, () => false)) preview.conflict = true;
+      }
       if (firstRule?.action?.type === 'rename') {
         preview.newName = applyRenameRulesToFile(f.name);
       }
@@ -1596,25 +1603,15 @@ async function executeRules(folderPath, rules) {
           } else if (rule.action.type === 'move' && rule.action.dest) {
             const dest = path.resolve(rule.action.dest);
             if (!path.isAbsolute(dest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
-            if (!await fsp.access(dest).then(() => true, () => false)) await fsp.mkdir(dest, { recursive: true });
-            const moveTo = path.join(dest, f.name);
-            const moveToExists = await fsp.access(moveTo).then(() => true, () => false);
-            if (moveToExists) {
-              // File exists at destination — rename with suffix
-              const ext = path.extname(f.name);
-              const base = path.basename(f.name, ext);
-              let suffix = 1;
-              let safePath = moveTo;
-              while (await fsp.access(safePath).then(() => true, () => false)) {
-                safePath = path.join(dest, `${base}_${suffix}${ext}`);
-                suffix++;
-              }
-              await fsp.rename(fullPath, safePath);
-              actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = safePath; actionResult.renamed = true;
-            } else {
-              await fsp.rename(fullPath, moveTo);
-              actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = moveTo;
-            }
+            const { to, renamed } = await moveFileAvoidingCollision(fullPath, dest, f.name);
+            actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = to; actionResult.renamed = renamed;
+          } else if (rule.action.type === 'dateTaken' && rule.action.dest) {
+            const baseDest = path.resolve(rule.action.dest);
+            if (!path.isAbsolute(baseDest)) { actionResult.error = 'Invalid destination'; results.push(actionResult); break; }
+            const dateTaken = await getDateTaken(fullPath, ext, stat.mtimeMs);
+            const dest = dateTakenDestFolder(baseDest, dateTaken);
+            const { to, renamed } = await moveFileAvoidingCollision(fullPath, dest, f.name);
+            actionResult.ok = true; actionResult.dest = dest; actionResult.from = fullPath; actionResult.to = to; actionResult.renamed = renamed;
           } else if (rule.action.type === 'rename') {
             const newName = applyRenameRulesToFile(f.name);
             if (newName !== f.name) {
@@ -1714,6 +1711,52 @@ function applyRenameRulesToFile(filename) {
   // never actually populated by the UI, and reuse the already-correct
   // implementation instead of maintaining a second, drifted copy.
   return applyRenameRules(filename, readSettings().renameRules);
+}
+
+const EXIF_DATE_EXTENSIONS = new Set(['jpg', 'jpeg', 'tiff', 'tif', 'heic', 'heif']);
+
+// Reads the photo's EXIF "date taken" (DateTimeOriginal, falling back to
+// CreateDate) for the "move by date taken" rule action. Falls back to the
+// file's modified time when the format has no EXIF support or the photo
+// simply has no date tags (e.g. a screenshot renamed to .jpg).
+async function getDateTaken(fullPath, ext, mtimeMs) {
+  if (EXIF_DATE_EXTENSIONS.has(ext)) {
+    try {
+      const tags = await exifr.parse(fullPath, ['DateTimeOriginal', 'CreateDate']);
+      const exifDate = tags?.DateTimeOriginal || tags?.CreateDate;
+      if (exifDate instanceof Date && !isNaN(exifDate)) return exifDate;
+    } catch (e) { /* not a readable image, or no EXIF block - fall through */ }
+  }
+  return new Date(mtimeMs);
+}
+
+function dateTakenDestFolder(baseDest, date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const monthName = date.toLocaleString('en-US', { month: 'long' });
+  return path.join(path.resolve(baseDest), String(year), `${month} - ${monthName}`);
+}
+
+// Moves a file into destFolder, creating it if needed, and avoiding
+// overwriting an existing file at the destination by appending a numeric
+// suffix. Shared by the "move" and "move by date taken" rule actions.
+async function moveFileAvoidingCollision(fullPath, destFolder, filename) {
+  if (!await fsp.access(destFolder).then(() => true, () => false)) await fsp.mkdir(destFolder, { recursive: true });
+  const moveTo = path.join(destFolder, filename);
+  if (!await fsp.access(moveTo).then(() => true, () => false)) {
+    await fsp.rename(fullPath, moveTo);
+    return { to: moveTo, renamed: false };
+  }
+  const ext = path.extname(filename);
+  const base = path.basename(filename, ext);
+  let suffix = 1;
+  let safePath = moveTo;
+  while (await fsp.access(safePath).then(() => true, () => false)) {
+    safePath = path.join(destFolder, `${base}_${suffix}${ext}`);
+    suffix++;
+  }
+  await fsp.rename(fullPath, safePath);
+  return { to: safePath, renamed: true };
 }
 
 // ── IPC: Data Backup & Restore ────────────────────────────────────
@@ -2032,6 +2075,14 @@ ipcMain.handle('start-watcher', async (_, { folderPath, useRules }) => {
                   if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'delete' });
                 } else if (rule.action.type === 'move' && rule.action.dest) {
                   const dest = path.resolve(rule.action.dest);
+                  if (!await fsp.access(dest).then(() => true, () => false)) await fsp.mkdir(dest, { recursive: true });
+                  const moveTo = path.join(dest, filename);
+                  await fsp.rename(filePath, moveTo);
+                  sendNotification(`→ ${filename}`, `Moved by rule: ${rule.name}`);
+                  if (mainWindow) mainWindow.webContents.send('watcher-event', { filename, category: `Rule: ${rule.name}`, action: 'move' });
+                } else if (rule.action.type === 'dateTaken' && rule.action.dest) {
+                  const dateTaken = await getDateTaken(filePath, ext, stat.mtimeMs);
+                  const dest = dateTakenDestFolder(rule.action.dest, dateTaken);
                   if (!await fsp.access(dest).then(() => true, () => false)) await fsp.mkdir(dest, { recursive: true });
                   const moveTo = path.join(dest, filename);
                   await fsp.rename(filePath, moveTo);

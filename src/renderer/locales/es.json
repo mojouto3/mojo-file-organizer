@@ -287,6 +287,7 @@
     "conflict": "conflicto",
     "renameTo": "Renombrar a {{name}}",
     "moveTo": "Mover a {{name}}",
+    "moveByDateTakenTo": "Mover por fecha de captura a {{name}}",
     "preset1Name": "Eliminar instaladores antiguos",
     "preset1Desc": "Instaladores con más de 6 meses, a la papelera de reciclaje",
     "preset2Name": "Limpiar archivos temporales",
@@ -351,7 +352,9 @@
     "addCondition": "Añadir condición",
     "actionLabel": "Acción",
     "actionMoveOption": "Mover a carpeta",
+    "actionDateTakenOption": "Mover por fecha de captura",
     "destinationPlaceholder": "Carpeta de destino...",
+    "dateTakenHint": "Organiza las fotos en subcarpetas de Año/Mes usando la fecha EXIF de la foto. Si no tiene datos EXIF, usa la fecha de modificación del archivo.",
     "renameHint": "Usa las Reglas de Renombrado actuales de Configuración.",
     "deleteHint": "Los archivos se moverán a la papelera de reciclaje.",
     "saveRule": "Guardar regla"
