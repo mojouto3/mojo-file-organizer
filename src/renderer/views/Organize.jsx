@@ -14,6 +14,7 @@ import BatchFolderList from '../components/BatchFolderList.jsx';
 import { showToast } from '../lib/toast.js';
 import { getSettings, updateSettings } from '../lib/settingsStore.js';
 import { useDebouncedValue } from '../lib/useDebouncedValue.js';
+import { confirmBulkCloudOperation } from '../lib/cloudSync.js';
 
 const CATEGORY_ICONS = {
   Images: Image, Videos: Video, Audio: Music, Documents: FileText,
@@ -93,6 +94,7 @@ function OrganizeSubView({ onNavigate }) {
 
   const handleOrganize = async () => {
     if (!currentFolder) return;
+    if (!await confirmBulkCloudOperation(t, currentFolder, previewFiles.length)) return;
     setOrganizing(true);
     setProgress(0);
     progressTimer.current = setInterval(() => {

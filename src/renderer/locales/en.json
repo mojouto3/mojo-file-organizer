@@ -273,6 +273,7 @@
     "noActiveRules": "No active rules",
     "confirmExecute": "Confirm & execute",
     "error": "Error",
+    "skipped": "Skipped",
     "recycleBin": "Recycle bin",
     "recycleBinEmpty": "Recycle Bin is empty.",
     "recycleBinInfo": "{{size}}, {{count}} item(s)",
@@ -509,5 +510,9 @@
   "batchFolderList": {
     "noFoldersYet": "No folders added yet.",
     "removeFolder": "Remove folder"
+  },
+  "cloudSync": {
+    "bulkWarning": "This folder is inside your {{provider}} sync folder. Moving {{count}} files may trigger a large re-upload. Continue?",
+    "continueAnyway": "Continue"
   }
 }

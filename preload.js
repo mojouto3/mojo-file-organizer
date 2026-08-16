@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('api', {
   unschedule:      ()       => ipcRenderer.invoke('unschedule'),
   pickFolder:      ()       => ipcRenderer.invoke('pick-folder'),
   getDownloads:    ()       => ipcRenderer.invoke('get-downloads'),
+  getCloudSyncRoots:   ()             => ipcRenderer.invoke('get-cloud-sync-roots'),
+  countFilesInFolder:  (folderPath)   => ipcRenderer.invoke('count-files-in-folder', folderPath),
   scanDuplicates:    (opts)  => ipcRenderer.invoke('scan-duplicates', opts),
   deleteDuplicates:  (files) => ipcRenderer.invoke('delete-duplicates', files),
   restoreDuplicates: (files) => ipcRenderer.invoke('restore-duplicates', files),

@@ -1116,6 +1116,54 @@ ipcMain.handle('pick-folder',   async () => {
 });
 ipcMain.handle('get-downloads', async () => path.join(os.homedir(), 'Downloads'));
 
+// Best-effort detection of locally-synced cloud storage folders, so the
+// renderer can warn before a bulk move/organize forces a large re-upload.
+// Newer "Drive for Desktop" virtual-drive mounts aren't detectable this way
+// and are out of scope; only classic locally-synced folders are covered.
+function getCloudSyncRoots() {
+  const roots = [];
+  const home = os.homedir();
+
+  for (const envVar of ['OneDriveConsumer', 'OneDriveCommercial', 'OneDrive']) {
+    const p = process.env[envVar];
+    if (p && fs.existsSync(p)) roots.push({ path: p, provider: 'OneDrive' });
+  }
+
+  try {
+    const dropboxInfoPath = path.join(process.env.APPDATA || '', 'Dropbox', 'info.json');
+    if (fs.existsSync(dropboxInfoPath)) {
+      const info = JSON.parse(fs.readFileSync(dropboxInfoPath, 'utf8'));
+      for (const key of ['personal', 'business']) {
+        if (info[key]?.path) roots.push({ path: info[key].path, provider: 'Dropbox' });
+      }
+    }
+  } catch (e) { /* Dropbox not installed, or info.json unreadable */ }
+
+  const icloudPath = path.join(home, 'iCloudDrive');
+  if (fs.existsSync(icloudPath)) roots.push({ path: icloudPath, provider: 'iCloud Drive' });
+
+  const gdrivePath = path.join(home, 'Google Drive');
+  if (fs.existsSync(gdrivePath)) roots.push({ path: gdrivePath, provider: 'Google Drive' });
+
+  const seen = new Set();
+  return roots.filter(r => {
+    const resolved = path.resolve(r.path);
+    if (seen.has(resolved.toLowerCase())) return false;
+    seen.add(resolved.toLowerCase());
+    r.path = resolved;
+    return true;
+  });
+}
+
+ipcMain.handle('get-cloud-sync-roots', async () => getCloudSyncRoots());
+
+ipcMain.handle('count-files-in-folder', async (_, folderPath) => {
+  try {
+    const entries = await fsp.readdir(folderPath, { withFileTypes: true });
+    return entries.filter(f => f.isFile()).length;
+  } catch (e) { return 0; }
+});
+
 // ── IPC: Export Stats ─────────────────────────────────────────────
 function csvField(v) {
   return String(v ?? '').replace(/"/g, '""');
