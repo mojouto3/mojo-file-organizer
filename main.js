@@ -1258,13 +1258,6 @@ function getFileSize(filePath) {
   try { return fs.statSync(filePath).size; } catch (e) { return 0; }
 }
 
-function formatBytes(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-
 async function scanFolder(folderPath) {
   const ignore = readIgnoreList();
   const installers = [], junk = [], emptyFolders = [];
