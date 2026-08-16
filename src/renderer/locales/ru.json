@@ -273,6 +273,7 @@
     "noActiveRules": "Нет активных правил",
     "confirmExecute": "Подтвердить и выполнить",
     "error": "Ошибка",
+    "skipped": "Пропущено",
     "recycleBin": "Корзина",
     "recycleBinEmpty": "Корзина пуста.",
     "recycleBinInfo": "{{size}}, элементов: {{count}}",
@@ -509,5 +510,9 @@
   "batchFolderList": {
     "noFoldersYet": "Папки ещё не добавлены.",
     "removeFolder": "Удалить папку"
+  },
+  "cloudSync": {
+    "bulkWarning": "Эта папка находится внутри папки синхронизации {{provider}}. Перемещение {{count}} файлов может вызвать большую повторную загрузку. Продолжить?",
+    "continueAnyway": "Продолжить"
   }
 }
