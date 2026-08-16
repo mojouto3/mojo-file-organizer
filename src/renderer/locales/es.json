@@ -273,6 +273,7 @@
     "noActiveRules": "No hay reglas activas",
     "confirmExecute": "Confirmar y ejecutar",
     "error": "Error",
+    "skipped": "Omitido",
     "recycleBin": "Papelera de reciclaje",
     "recycleBinEmpty": "La papelera de reciclaje está vacía.",
     "recycleBinInfo": "{{size}}, {{count}} elemento(s)",
@@ -509,5 +510,9 @@
   "batchFolderList": {
     "noFoldersYet": "Aún no se han añadido carpetas.",
     "removeFolder": "Quitar carpeta"
+  },
+  "cloudSync": {
+    "bulkWarning": "Esta carpeta está dentro de tu carpeta de sincronización de {{provider}}. Mover {{count}} archivos puede provocar una carga masiva. ¿Continuar?",
+    "continueAnyway": "Continuar"
   }
 }

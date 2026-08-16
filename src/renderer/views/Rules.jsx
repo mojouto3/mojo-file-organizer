@@ -18,6 +18,7 @@ import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
 import { getSettings, updateSettings } from '../lib/settingsStore.js';
 import { useDebouncedValue } from '../lib/useDebouncedValue.js';
+import { confirmBulkCloudOperation } from '../lib/cloudSync.js';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 
@@ -243,6 +244,8 @@ function RunSubView({ rules }) {
   const executeRun = async () => {
     if (!folder) { showToast(t('common.selectFolderFirst')); return; }
     if (!enabledRules.length) { showToast(t('rules.noActiveRules')); return; }
+    const fileCount = await window.api.countFilesInFolder(folder);
+    if (!await confirmBulkCloudOperation(t, folder, fileCount)) return;
     setRunning(true);
     const res = await window.api.runRules({ folderPath: folder, rules: enabledRules });
     setRunning(false);
@@ -264,6 +267,11 @@ function RunSubView({ rules }) {
     if (!batchFolders.length) { showToast(t('organize.noFoldersAdded')); return; }
     if (!enabledRules.length) { showToast(t('rules.noActiveRules')); return; }
     for (let i = 0; i < batchFolders.length; i++) {
+      const fileCount = await window.api.countFilesInFolder(batchFolders[i]);
+      if (!await confirmBulkCloudOperation(t, batchFolders[i], fileCount)) {
+        setBatchStatuses((s) => ({ ...s, [i]: { type: 'error', text: t('rules.skipped') } }));
+        continue;
+      }
       setBatchStatuses((s) => ({ ...s, [i]: { type: 'active', text: t('rules.running') } }));
       try {
         const res = await window.api.runRules({ folderPath: batchFolders[i], rules: enabledRules });

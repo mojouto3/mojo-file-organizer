@@ -15,6 +15,7 @@ import { formatSize } from '../lib/format.js';
 import { showToast } from '../lib/toast.js';
 import { confirm } from '../lib/confirm.js';
 import { getSettings, updateSettings } from '../lib/settingsStore.js';
+import { confirmBulkCloudOperation } from '../lib/cloudSync.js';
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 const AGE_PRESETS = [3, 6, 12];
@@ -89,6 +90,7 @@ function ScanSubView() {
       folder
     };
     const count = sections.reduce((n, s) => (checked[s.id] ? n + s.files.length : n), 0) + (dupAppsFiles?.length || 0);
+    if (!await confirmBulkCloudOperation(t, folder, count)) return;
     const ok = await confirm(t('cleanup.confirmDelete', { count }), { confirmLabel: t('common.delete') });
     if (!ok) return;
     const cleanResult = await window.api.runCleanup(toDelete);

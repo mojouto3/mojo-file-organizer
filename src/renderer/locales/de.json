@@ -273,6 +273,7 @@
     "noActiveRules": "Keine aktiven Regeln",
     "confirmExecute": "Bestätigen & ausführen",
     "error": "Fehler",
+    "skipped": "Übersprungen",
     "recycleBin": "Papierkorb",
     "recycleBinEmpty": "Der Papierkorb ist leer.",
     "recycleBinInfo": "{{size}}, {{count}} Element(e)",
@@ -509,5 +510,9 @@
   "batchFolderList": {
     "noFoldersYet": "Noch keine Ordner hinzugefügt.",
     "removeFolder": "Ordner entfernen"
+  },
+  "cloudSync": {
+    "bulkWarning": "Dieser Ordner befindet sich in deinem {{provider}}-Synchronisierungsordner. Das Verschieben von {{count}} Dateien kann einen großen erneuten Upload auslösen. Fortfahren?",
+    "continueAnyway": "Fortfahren"
   }
 }

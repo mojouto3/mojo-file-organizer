@@ -273,6 +273,7 @@
     "noActiveRules": "Δεν υπάρχουν ενεργοί κανόνες",
     "confirmExecute": "Επιβεβαίωση & εκτέλεση",
     "error": "Σφάλμα",
+    "skipped": "Παραλείφθηκε",
     "recycleBin": "Κάδος ανακύκλωσης",
     "recycleBinEmpty": "Ο κάδος ανακύκλωσης είναι άδειος.",
     "recycleBinInfo": "{{size}}, {{count}} στοιχείο(α)",
@@ -509,5 +510,9 @@
   "batchFolderList": {
     "noFoldersYet": "Δεν έχουν προστεθεί φάκελοι ακόμα.",
     "removeFolder": "Αφαίρεση φακέλου"
+  },
+  "cloudSync": {
+    "bulkWarning": "Αυτός ο φάκελος βρίσκεται μέσα στον φάκελο συγχρονισμού {{provider}}. Η μετακίνηση {{count}} αρχείων μπορεί να προκαλέσει μεγάλο re-upload. Συνέχεια;",
+    "continueAnyway": "Συνέχεια"
   }
 }

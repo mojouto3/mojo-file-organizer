@@ -7,6 +7,7 @@ import Card from '../components/Card.jsx';
 import Button from '../components/Button.jsx';
 import FolderPicker from '../components/FolderPicker.jsx';
 import { showToast } from '../lib/toast.js';
+import { confirmBulkCloudOperation } from '../lib/cloudSync.js';
 
 function groupByGroup(items) {
   const groups = {};
@@ -67,6 +68,7 @@ export default function SmartGroup() {
 
   const handleOrganize = async () => {
     if (!folder) return;
+    if (!await confirmBulkCloudOperation(t, folder, previewFiles.length)) return;
     setOrganizing(true);
     const result = await window.api.organizeGroups(folder);
     setOrganizing(false);
