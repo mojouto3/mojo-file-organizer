@@ -4,6 +4,21 @@ All notable changes to Mojo File Organizer are documented here.
 
 ---
 
+## [4.2.0] - 2026-08-16
+
+### Added
+- New Rule action, "Move by date taken": organizes photos into Year/Month subfolders using the photo's EXIF date, falling back to the file's modified date if it has no EXIF data. Works whether a rule using it is run manually, scheduled, or live via the Watcher's "Also run Rules".
+- A warning before organizing or cleaning up large batches of files (50+) inside a folder synced with OneDrive, Dropbox, or iCloud Drive, since moving that many files can trigger a large, unexpected re-upload.
+
+### Fixed
+- Dropdown menus across the app had invisible text when opened (white text on a white native popup background); they now use a solid background so the text stays visible.
+- Toast notifications could appear hidden behind an open dialog (e.g. a validation message while editing a rule); they now always appear on top.
+- Resolved 11 flagged dependency vulnerabilities in the build toolchain (none of which shipped in the packaged app).
+
+### Changed
+- The CI check that runs on every pull request now actually lints and builds the React interface, instead of only checking the Electron main-process files.
+- Faster app startup (smaller initial bundle), smoother scrolling in the Duplicates and Activity history lists on large folders, and less redundant background work when switching between tabs.
+
 ## [4.1.0] - 2026-08-13
 
 ### Added
